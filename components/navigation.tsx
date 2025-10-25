@@ -1,0 +1,57 @@
+"use client"
+
+import Link from "next/link"
+import { motion } from "framer-motion"
+import { Button } from "@/components/ui/button"
+import { Moon, Sun } from "lucide-react"
+import { useTheme } from "@/components/theme-provider"
+
+export function Navigation() {
+  const { theme, toggleTheme } = useTheme()
+
+  return (
+    <motion.nav
+      initial={{ y: -20, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      className="sticky top-0 z-50 bg-background/60 backdrop-blur-xl border-b border-border/50"
+    >
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4ade80] to-[#22c55e] flex items-center justify-center">
+              <span className="text-white font-bold text-xl">S+</span>
+            </div>
+            <span className="font-bold text-xl text-foreground">StellarWork+</span>
+          </Link>
+
+          <div className="hidden md:flex items-center gap-6">
+            <Link href="/browse" className="text-muted-foreground hover:text-foreground transition-colors">
+              Browse Projects
+            </Link>
+            <Link href="/post-project" className="text-muted-foreground hover:text-foreground transition-colors">
+              Post Project
+            </Link>
+            <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
+              Dashboard
+            </Link>
+            <Link href="/how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
+              How It Works
+            </Link>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
+              {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+            </Button>
+            <Button variant="ghost" asChild>
+              <Link href="/login">Sign In</Link>
+            </Button>
+            <Button className="bg-[#4ade80] hover:bg-[#22c55e] text-white" asChild>
+              <Link href="/signup">Get Started</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    </motion.nav>
+  )
+}
