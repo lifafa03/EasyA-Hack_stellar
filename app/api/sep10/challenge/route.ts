@@ -31,7 +31,20 @@ export async function POST(request: NextRequest) {
     const challengeUrl = `${WEB_AUTH_ENDPOINT}?account=${account}`;
     console.log('🔍 Requesting challenge from:', challengeUrl);
     
-    const response = await fetch(challengeUrl);
+    // MoneyGram requires client_domain parameter (SEP-10 security requirement)
+    let requestUrl = challengeUrl;
+    if (ANCHOR_DOMAIN === 'extstellar.moneygram.com') {
+      // Use production URL if available, otherwise localhost
+      const clientDomain = process.env.NEXT_PUBLIC_VERCEL_URL 
+        ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+        : (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000');
+      
+      requestUrl = `${challengeUrl}&client_domain=${encodeURIComponent(clientDomain)}`;
+      console.log('🔐 Using client_domain:', clientDomain);
+    }
+    
+    console.log('🔍 Final request URL:', requestUrl);
+    const response = await fetch(requestUrl);
 
     if (!response.ok) {
       const errorText = await response.text();
