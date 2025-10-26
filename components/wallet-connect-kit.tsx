@@ -123,31 +123,31 @@ export function WalletConnectButton() {
           </div>
           <DropdownMenuSeparator className="bg-white/10" />
           <DropdownMenuItem asChild>
-            <Link href="/dashboard" className="cursor-pointer">
+            <Link href="/dashboard" className="cursor-pointer text-white hover:text-white focus:text-white">
               <User className="mr-2 h-4 w-4" />
               <span>Dashboard</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href="/dashboard?tab=deposit" className="cursor-pointer">
+            <Link href="/dashboard?tab=deposit" className="cursor-pointer text-white hover:text-white focus:text-white">
               <ArrowDownToLine className="mr-2 h-4 w-4" />
               <span>Deposit Funds</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href="/dashboard?tab=withdraw" className="cursor-pointer">
+            <Link href="/dashboard?tab=withdraw" className="cursor-pointer text-white hover:text-white focus:text-white">
               <ArrowUpFromLine className="mr-2 h-4 w-4" />
               <span>Withdraw Funds</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator className="bg-white/10" />
-          <DropdownMenuItem onClick={wallet.openModal} className="cursor-pointer">
+          <DropdownMenuItem onClick={wallet.openModal} className="cursor-pointer text-white hover:text-white focus:text-white">
             <Wallet className="mr-2 h-4 w-4" />
             <span>Switch Wallet</span>
           </DropdownMenuItem>
           <DropdownMenuItem 
             onClick={wallet.disconnect}
-            className="cursor-pointer text-destructive focus:text-destructive"
+            className="cursor-pointer text-red-400 hover:text-red-300 focus:text-red-300"
           >
             <LogOut className="mr-2 h-4 w-4" />
             <span>Disconnect</span>
