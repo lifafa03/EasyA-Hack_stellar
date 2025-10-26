@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Suspense } from 'react';
 import { motion } from 'framer-motion';
-import { useWallet } from '@/hooks/use-wallet';
+import { useWalletKit } from '@/hooks/use-wallet-kit';
 import { AnchorRegistry, type AnchorProvider } from '@/lib/stellar/services/anchor-registry';
 import { OnRampFlow } from '@/components/fiat-gateway/on-ramp-flow';
 import { OffRampFlow } from '@/components/fiat-gateway/off-ramp-flow';
@@ -215,7 +215,7 @@ const statusColors = {
 };
 
 function DashboardContent() {
-  const wallet = useWallet();
+  const wallet = useWalletKit();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isEditing, setIsEditing] = React.useState(false);
