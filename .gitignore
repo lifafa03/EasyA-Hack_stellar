@@ -25,3 +25,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Rust/Cargo
+**/target/
+**/*.rs.bk
+Cargo.lock
+
+# Stellar deployment configs
+.env.testnet
+.env.mainnet
+.env.mainnet.backup.*
