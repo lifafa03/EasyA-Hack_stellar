@@ -6,6 +6,7 @@ import { Navigation } from "@/components/navigation"
 import { ThemeProvider } from "@/components/theme-provider"
 import { WalletProvider } from "@/hooks/use-wallet"
 import { Toaster } from "@/components/ui/sonner"
+import { Footer } from "@/components/stellar"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -27,6 +28,7 @@ export default function RootLayout({
           <WalletProvider>
             <Navigation />
             {children}
+            <Footer />
             <Toaster position="top-right" richColors />
           </WalletProvider>
         </ThemeProvider>

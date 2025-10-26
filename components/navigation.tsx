@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Moon, Sun } from "lucide-react"
 import { useTheme } from "@/components/theme-provider"
 import { WalletConnectButton } from "@/components/wallet-connect"
+import { NetworkIndicator } from "@/components/stellar"
 
 export function Navigation() {
   const { theme, toggleTheme } = useTheme()
@@ -41,6 +42,7 @@ export function Navigation() {
           </div>
 
           <div className="flex items-center gap-3">
+            <NetworkIndicator className="hidden md:flex" />
             <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
               {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
             </Button>

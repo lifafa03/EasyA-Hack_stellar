@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, DollarSign, Users, Clock, CheckCircle2, Shield, Loader2, ExternalLink, AlertCircle } from "lucide-react"
+import { Calendar, DollarSign, Users, Clock, CheckCircle2, Shield, Loader2, ExternalLink, AlertCircle, Target, TrendingUp, Download, FileText } from "lucide-react"
 import React from "react"
 import {
   Dialog,
@@ -24,6 +24,9 @@ import { useWallet } from "@/hooks/use-wallet"
 import { submitBidWithCheckpoints, BidFormData } from "@/lib/stellar/bid-validation"
 import { SignedBid, fetchEscrowBids, verifyBidSignature } from "@/lib/stellar/contracts"
 import { toast } from "sonner"
+import { Progress } from "@/components/ui/progress"
+import { Separator } from "@/components/ui/separator"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 // Mock project data
 const projectData = {
@@ -52,6 +55,19 @@ const projectData = {
   },
   // Stellar blockchain integration
   escrowId: "ESCROW_DEMO_12345", // In production, this would be fetched from blockchain
+  escrowStatus: "active", // active, completed, disputed
+  escrowContractAddress: "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+  escrowTotalAmount: "5000",
+  escrowReleasedAmount: "1000",
+  escrowReleaseType: "milestone-based",
+  // Crowdfunding pool data
+  hasCrowdfunding: true,
+  poolId: "POOL_DEMO_67890",
+  poolStatus: "funding", // funding, funded, failed
+  poolGoal: "3000",
+  poolRaised: "2100",
+  poolDeadline: Math.floor(Date.now() / 1000) + (14 * 24 * 60 * 60), // 14 days from now
+  poolContributors: 8,
   topBids: [
     {
       id: 1,
@@ -115,6 +131,13 @@ export default function ProjectDetailPage() {
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   
   const isSubmitting = submitState !== 'idle' && submitState !== 'success' && submitState !== 'error';
+  
+  // Escrow and pool management state
+  const [isCompletingMilestone, setIsCompletingMilestone] = React.useState(false);
+  const [isWithdrawing, setIsWithdrawing] = React.useState(false);
+  const [selectedMilestoneId, setSelectedMilestoneId] = React.useState<number | null>(null);
+  const [poolContributionAmount, setPoolContributionAmount] = React.useState('');
+  const [isContributingToPool, setIsContributingToPool] = React.useState(false);
 
   const handleBidSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -178,6 +201,106 @@ export default function ProjectDetailPage() {
     setFundDialogOpen(false)
   }
 
+  const handleCompleteMilestone = async (milestoneId: number) => {
+    if (!wallet.connected || !wallet.publicKey) {
+      toast.error('Please connect your wallet first');
+      return;
+    }
+
+    setIsCompletingMilestone(true);
+    setSelectedMilestoneId(milestoneId);
+    
+    try {
+      // In production, this would call the EscrowService
+      // await escrowService.completeMilestone(projectData.escrowContractAddress, milestoneId, signer);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      toast.success('Milestone completed successfully!', {
+        description: 'Funds have been released to the service provider',
+      });
+      
+      // Refresh project data
+      // In production: await fetchProjectData();
+    } catch (error: any) {
+      console.error('Failed to complete milestone:', error);
+      toast.error('Failed to complete milestone', {
+        description: error.message || 'Please try again',
+      });
+    } finally {
+      setIsCompletingMilestone(false);
+      setSelectedMilestoneId(null);
+    }
+  };
+
+  const handleWithdrawFunds = async () => {
+    if (!wallet.connected || !wallet.publicKey) {
+      toast.error('Please connect your wallet first');
+      return;
+    }
+
+    setIsWithdrawing(true);
+    
+    try {
+      // In production, this would call the EscrowService
+      // await escrowService.withdrawReleased(projectData.escrowContractAddress, signer);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      toast.success('Funds withdrawn successfully!', {
+        description: 'Check your wallet balance',
+      });
+      
+      // Refresh wallet balance
+      await wallet.refreshBalance();
+    } catch (error: any) {
+      console.error('Failed to withdraw funds:', error);
+      toast.error('Failed to withdraw funds', {
+        description: error.message || 'Please try again',
+      });
+    } finally {
+      setIsWithdrawing(false);
+    }
+  };
+
+  const handleContributeToPool = async () => {
+    if (!wallet.connected || !wallet.publicKey) {
+      toast.error('Please connect your wallet first');
+      return;
+    }
+
+    if (!poolContributionAmount || parseFloat(poolContributionAmount) <= 0) {
+      toast.error('Please enter a valid contribution amount');
+      return;
+    }
+
+    setIsContributingToPool(true);
+    
+    try {
+      // In production, this would call the CrowdfundingService
+      // await crowdfundingService.contribute(projectData.poolId, poolContributionAmount, signer);
+      
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      toast.success('Contribution successful!', {
+        description: `You contributed ${poolContributionAmount} USDC`,
+      });
+      
+      setPoolContributionAmount('');
+      await wallet.refreshBalance();
+    } catch (error: any) {
+      console.error('Failed to contribute:', error);
+      toast.error('Failed to contribute', {
+        description: error.message || 'Please try again',
+      });
+    } finally {
+      setIsContributingToPool(false);
+    }
+  };
+
   return (
     <GradientBackground variant="default">
       <main className="min-h-screen bg-background py-12">
@@ -229,41 +352,340 @@ export default function ProjectDetailPage() {
 
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
                 <Card className="p-6">
-                  <h2 className="text-2xl font-bold mb-4">Project Milestones</h2>
-                  <div className="space-y-4">
-                    {projectData.milestones.map((milestone, index) => (
-                      <div key={index} className="flex items-start gap-4 p-4 bg-surface-dark rounded-lg">
-                        <div
-                          className={`mt-1 ${
-                            milestone.status === "completed"
-                              ? "text-[#4ade80]"
-                              : milestone.status === "in-progress"
-                                ? "text-[#fbbf24]"
-                                : "text-muted"
-                          }`}
-                        >
-                          <CheckCircle2 className="h-5 w-5" />
-                        </div>
-                        <div className="flex-grow">
-                          <div className="flex items-center justify-between mb-1">
-                            <h4 className="font-semibold">{milestone.title}</h4>
-                            <span className="text-sm font-semibold">${milestone.budget.toLocaleString()}</span>
-                          </div>
-                          <span
-                            className={`text-xs px-2 py-1 rounded-full ${
-                              milestone.status === "completed"
-                                ? "bg-[#4ade80]/10 text-[#22c55e]"
-                                : milestone.status === "in-progress"
-                                  ? "bg-[#fbbf24]/10 text-[#fbbf24]"
-                                  : "bg-surface text-muted"
-                            }`}
-                          >
-                            {milestone.status.replace("-", " ")}
-                          </span>
-                        </div>
+                  <Tabs defaultValue="milestones" className="w-full">
+                    <TabsList className="grid w-full grid-cols-3">
+                      <TabsTrigger value="milestones">
+                        <CheckCircle2 className="h-4 w-4 mr-2" />
+                        Milestones
+                      </TabsTrigger>
+                      <TabsTrigger value="escrow">
+                        <Shield className="h-4 w-4 mr-2" />
+                        Escrow
+                      </TabsTrigger>
+                      {projectData.hasCrowdfunding && (
+                        <TabsTrigger value="crowdfunding">
+                          <Target className="h-4 w-4 mr-2" />
+                          Crowdfunding
+                        </TabsTrigger>
+                      )}
+                    </TabsList>
+
+                    {/* Milestones Tab */}
+                    <TabsContent value="milestones" className="space-y-4 mt-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-2xl font-bold">Project Milestones</h2>
+                        {wallet.publicKey === projectData.client.name && (
+                          <Badge variant="outline">You are the Client</Badge>
+                        )}
                       </div>
-                    ))}
-                  </div>
+                      <div className="space-y-4">
+                        {projectData.milestones.map((milestone, index) => (
+                          <div key={index} className="flex items-start gap-4 p-4 bg-surface-dark rounded-lg">
+                            <div
+                              className={`mt-1 ${
+                                milestone.status === "completed"
+                                  ? "text-[#4ade80]"
+                                  : milestone.status === "in-progress"
+                                    ? "text-[#fbbf24]"
+                                    : "text-muted"
+                              }`}
+                            >
+                              <CheckCircle2 className="h-5 w-5" />
+                            </div>
+                            <div className="flex-grow">
+                              <div className="flex items-center justify-between mb-1">
+                                <h4 className="font-semibold">{milestone.title}</h4>
+                                <span className="text-sm font-semibold">${milestone.budget.toLocaleString()}</span>
+                              </div>
+                              <span
+                                className={`text-xs px-2 py-1 rounded-full ${
+                                  milestone.status === "completed"
+                                    ? "bg-[#4ade80]/10 text-[#22c55e]"
+                                    : milestone.status === "in-progress"
+                                      ? "bg-[#fbbf24]/10 text-[#fbbf24]"
+                                      : "bg-surface text-muted"
+                                }`}
+                              >
+                                {milestone.status.replace("-", " ")}
+                              </span>
+                              {milestone.status === "in-progress" && wallet.connected && (
+                                <div className="mt-3">
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleCompleteMilestone(index)}
+                                    disabled={isCompletingMilestone}
+                                    className="bg-[#4ade80] hover:bg-[#22c55e] text-white"
+                                  >
+                                    {isCompletingMilestone && selectedMilestoneId === index ? (
+                                      <>
+                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                        Completing...
+                                      </>
+                                    ) : (
+                                      'Mark as Complete'
+                                    )}
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </TabsContent>
+
+                    {/* Escrow Tab */}
+                    <TabsContent value="escrow" className="space-y-4 mt-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-2xl font-bold">Escrow Contract</h2>
+                        <Badge 
+                          variant="outline" 
+                          className={
+                            projectData.escrowStatus === 'active' 
+                              ? 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                              : projectData.escrowStatus === 'completed'
+                              ? 'bg-green-500/10 text-green-500 border-green-500/20'
+                              : 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
+                          }
+                        >
+                          {projectData.escrowStatus.charAt(0).toUpperCase() + projectData.escrowStatus.slice(1)}
+                        </Badge>
+                      </div>
+
+                      {/* Escrow Progress */}
+                      <Card className="bg-surface-dark">
+                        <div className="p-6 space-y-4">
+                          <div className="space-y-2">
+                            <div className="flex justify-between text-sm">
+                              <span className="text-muted">Released</span>
+                              <span className="font-semibold">
+                                ${projectData.escrowReleasedAmount} / ${projectData.escrowTotalAmount} USDC
+                              </span>
+                            </div>
+                            <Progress 
+                              value={(parseFloat(projectData.escrowReleasedAmount) / parseFloat(projectData.escrowTotalAmount)) * 100} 
+                              className="h-3" 
+                            />
+                            <div className="flex justify-between text-xs text-muted">
+                              <span>
+                                {((parseFloat(projectData.escrowReleasedAmount) / parseFloat(projectData.escrowTotalAmount)) * 100).toFixed(1)}% completed
+                              </span>
+                              <span className="capitalize">{projectData.escrowReleaseType.replace('-', ' ')}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+
+                      {/* Contract Details */}
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <Card className="bg-surface-dark">
+                          <div className="p-4 space-y-2">
+                            <div className="flex items-center gap-2 text-sm text-muted">
+                              <FileText className="h-4 w-4" />
+                              <span>Contract Address</span>
+                            </div>
+                            <p className="text-xs font-mono break-all">
+                              {projectData.escrowContractAddress.slice(0, 12)}...{projectData.escrowContractAddress.slice(-12)}
+                            </p>
+                            <a
+                              href={`https://stellar.expert/explorer/testnet/contract/${projectData.escrowContractAddress}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs text-[#22c55e] hover:text-[#4ade80] flex items-center gap-1"
+                            >
+                              View on Explorer <ExternalLink className="h-3 w-3" />
+                            </a>
+                          </div>
+                        </Card>
+
+                        <Card className="bg-surface-dark">
+                          <div className="p-4 space-y-2">
+                            <div className="flex items-center gap-2 text-sm text-muted">
+                              <DollarSign className="h-4 w-4" />
+                              <span>Available to Withdraw</span>
+                            </div>
+                            <p className="text-2xl font-bold text-[#22c55e]">
+                              ${projectData.escrowReleasedAmount} USDC
+                            </p>
+                            {parseFloat(projectData.escrowReleasedAmount) > 0 && wallet.connected && (
+                              <Button
+                                size="sm"
+                                onClick={handleWithdrawFunds}
+                                disabled={isWithdrawing}
+                                className="w-full bg-[#4ade80] hover:bg-[#22c55e] text-white mt-2"
+                              >
+                                {isWithdrawing ? (
+                                  <>
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    Withdrawing...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Download className="h-4 w-4 mr-2" />
+                                    Withdraw Funds
+                                  </>
+                                )}
+                              </Button>
+                            )}
+                          </div>
+                        </Card>
+                      </div>
+
+                      {/* Transaction History */}
+                      <Card className="bg-surface-dark">
+                        <div className="p-4">
+                          <h3 className="font-semibold mb-3">Transaction History</h3>
+                          <div className="space-y-3">
+                            <div className="flex items-start gap-3 text-sm">
+                              <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5" />
+                              <div className="flex-1">
+                                <p className="font-medium">Milestone 1 Completed</p>
+                                <p className="text-xs text-muted">Released $1,000 USDC • 2 days ago</p>
+                              </div>
+                            </div>
+                            <Separator />
+                            <div className="flex items-start gap-3 text-sm">
+                              <FileText className="h-4 w-4 text-blue-500 mt-0.5" />
+                              <div className="flex-1">
+                                <p className="font-medium">Escrow Contract Created</p>
+                                <p className="text-xs text-muted">Locked $5,000 USDC • 5 days ago</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </Card>
+                    </TabsContent>
+
+                    {/* Crowdfunding Tab */}
+                    {projectData.hasCrowdfunding && (
+                      <TabsContent value="crowdfunding" className="space-y-4 mt-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <h2 className="text-2xl font-bold">Crowdfunding Pool</h2>
+                          <Badge 
+                            variant="outline"
+                            className={
+                              projectData.poolStatus === 'funded'
+                                ? 'bg-green-500/10 text-green-500 border-green-500/20'
+                                : projectData.poolStatus === 'failed'
+                                ? 'bg-red-500/10 text-red-500 border-red-500/20'
+                                : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                            }
+                          >
+                            {projectData.poolStatus.charAt(0).toUpperCase() + projectData.poolStatus.slice(1)}
+                          </Badge>
+                        </div>
+
+                        {/* Pool Progress */}
+                        <Card className="bg-surface-dark">
+                          <div className="p-6 space-y-4">
+                            <div className="space-y-2">
+                              <div className="flex justify-between">
+                                <span className="text-sm text-muted">Funding Progress</span>
+                                <span className="text-sm font-semibold">
+                                  {((parseFloat(projectData.poolRaised) / parseFloat(projectData.poolGoal)) * 100).toFixed(1)}%
+                                </span>
+                              </div>
+                              <Progress 
+                                value={(parseFloat(projectData.poolRaised) / parseFloat(projectData.poolGoal)) * 100} 
+                                className="h-4" 
+                              />
+                              <div className="flex justify-between">
+                                <span className="text-2xl font-bold">${parseFloat(projectData.poolRaised).toLocaleString()} USDC</span>
+                                <span className="text-lg text-muted">of ${parseFloat(projectData.poolGoal).toLocaleString()} USDC</span>
+                              </div>
+                            </div>
+                          </div>
+                        </Card>
+
+                        {/* Pool Stats */}
+                        <div className="grid grid-cols-3 gap-4">
+                          <Card className="bg-surface-dark">
+                            <div className="p-4">
+                              <div className="flex items-center gap-3">
+                                <Users className="h-5 w-5 text-[#4ade80]" />
+                                <div>
+                                  <p className="text-sm text-muted">Contributors</p>
+                                  <p className="text-xl font-bold">{projectData.poolContributors}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+
+                          <Card className="bg-surface-dark">
+                            <div className="p-4">
+                              <div className="flex items-center gap-3">
+                                <Calendar className="h-5 w-5 text-[#4ade80]" />
+                                <div>
+                                  <p className="text-sm text-muted">Days Left</p>
+                                  <p className="text-xl font-bold">
+                                    {Math.ceil((projectData.poolDeadline * 1000 - Date.now()) / (1000 * 60 * 60 * 24))}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+
+                          <Card className="bg-surface-dark">
+                            <div className="p-4">
+                              <div className="flex items-center gap-3">
+                                <DollarSign className="h-5 w-5 text-[#4ade80]" />
+                                <div>
+                                  <p className="text-sm text-muted">Avg. Contribution</p>
+                                  <p className="text-xl font-bold">
+                                    ${(parseFloat(projectData.poolRaised) / projectData.poolContributors).toFixed(0)}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </Card>
+                        </div>
+
+                        {/* Contribution Form */}
+                        {projectData.poolStatus === 'funding' && (
+                          <Card className="bg-surface-dark">
+                            <div className="p-6 space-y-4">
+                              <h3 className="font-semibold flex items-center gap-2">
+                                <TrendingUp className="h-5 w-5 text-[#4ade80]" />
+                                Make a Contribution
+                              </h3>
+                              <div className="space-y-2">
+                                <Label htmlFor="pool-contribution">Contribution Amount (USDC)</Label>
+                                <Input
+                                  id="pool-contribution"
+                                  type="number"
+                                  step="0.01"
+                                  placeholder="100.00"
+                                  value={poolContributionAmount}
+                                  onChange={(e) => setPoolContributionAmount(e.target.value)}
+                                />
+                                {wallet.usdcBalance && (
+                                  <p className="text-sm text-muted">
+                                    Available balance: {parseFloat(wallet.usdcBalance).toFixed(2)} USDC
+                                  </p>
+                                )}
+                              </div>
+                              <Button
+                                onClick={handleContributeToPool}
+                                disabled={!wallet.connected || isContributingToPool || !poolContributionAmount}
+                                className="w-full bg-[#4ade80] hover:bg-[#22c55e] text-white"
+                              >
+                                {isContributingToPool ? (
+                                  <>
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    Contributing...
+                                  </>
+                                ) : (
+                                  <>
+                                    <TrendingUp className="h-4 w-4 mr-2" />
+                                    Contribute
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+                          </Card>
+                        )}
+                      </TabsContent>
+                    )}
+                  </Tabs>
                 </Card>
               </motion.div>
 

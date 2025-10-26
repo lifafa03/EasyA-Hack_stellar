@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Briefcase, Users, DollarSign, Shield, Zap, TrendingUp, CheckCircle2, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { GradientBackground } from "@/components/gradient-background"
+import { StellarFAQ } from "@/components/stellar/stellar-faq"
+import { StellarBadge } from "@/components/stellar"
 
 const userTypes = [
   {
@@ -262,6 +264,80 @@ export default function HowItWorksPage() {
                 </motion.div>
               ))}
             </div>
+          </div>
+        </section>
+      </GradientBackground>
+
+      {/* Stellar Education Section */}
+      <GradientBackground variant="surface">
+        <section className="py-20">
+          <div className="container mx-auto px-4 max-w-4xl">
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              className="text-center mb-12"
+            >
+              <div className="flex justify-center mb-4">
+                <StellarBadge />
+              </div>
+              <h2 className="text-4xl font-bold mb-4">Built on Stellar Blockchain</h2>
+              <p className="text-muted text-lg">
+                Fast, secure, and transparent transactions powered by cutting-edge blockchain technology
+              </p>
+            </motion.div>
+
+            <div className="grid md:grid-cols-2 gap-6 mb-12">
+              <Card className="p-6">
+                <h3 className="font-bold text-xl mb-3">⚡ Lightning Fast</h3>
+                <p className="text-muted mb-4">
+                  Stellar processes transactions in just 5-7 seconds. No more waiting days for payments to clear.
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li>• Instant payment confirmations</li>
+                  <li>• Real-time balance updates</li>
+                  <li>• No banking delays</li>
+                </ul>
+              </Card>
+
+              <Card className="p-6">
+                <h3 className="font-bold text-xl mb-3">💰 Minimal Fees</h3>
+                <p className="text-muted mb-4">
+                  Transaction fees are just fractions of a cent, meaning more money stays in your pocket.
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li>• 0.00001 XLM per transaction</li>
+                  <li>• No hidden charges</li>
+                  <li>• Transparent fee structure</li>
+                </ul>
+              </Card>
+
+              <Card className="p-6">
+                <h3 className="font-bold text-xl mb-3">🔒 Secure & Trustless</h3>
+                <p className="text-muted mb-4">
+                  Smart contracts automatically enforce agreements without requiring trust between parties.
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li>• Funds locked in escrow</li>
+                  <li>• Automatic milestone releases</li>
+                  <li>• Dispute protection built-in</li>
+                </ul>
+              </Card>
+
+              <Card className="p-6">
+                <h3 className="font-bold text-xl mb-3">🌍 Global & Accessible</h3>
+                <p className="text-muted mb-4">
+                  Work with anyone, anywhere. Stellar enables borderless payments with fiat on/off-ramps.
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li>• Support for multiple currencies</li>
+                  <li>• Easy fiat conversion</li>
+                  <li>• No geographic restrictions</li>
+                </ul>
+              </Card>
+            </div>
+
+            <StellarFAQ />
           </div>
         </section>
       </GradientBackground>

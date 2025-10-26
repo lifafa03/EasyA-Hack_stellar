@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Plus, X, DollarSign, Calendar, Loader2, CheckCircle2, ExternalLink, AlertCircle } from "lucide-react"
+import { Plus, X, DollarSign, Calendar, Loader2, CheckCircle2, ExternalLink, AlertCircle, Target, Shield } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { GradientBackground } from "@/components/gradient-background"
 import { useWallet } from "@/hooks/use-wallet"
@@ -19,6 +19,7 @@ import { createEscrow } from "@/lib/stellar/trustless-work"
 import { validateEscrowCreation, executeWithRetry } from "@/lib/stellar/validation"
 import { checkUSDCTrustline } from "@/lib/stellar/payments"
 import { toast } from "sonner"
+import { Switch } from "@/components/ui/switch"
 
 interface Milestone {
   title: string
@@ -36,6 +37,8 @@ interface FormData {
 }
 
 type SubmitState = 'idle' | 'validating' | 'checking-trustline' | 'preparing' | 'signing' | 'submitting' | 'success' | 'error'
+
+type FundingType = 'escrow-only' | 'crowdfunding' | 'hybrid'
 
 export default function PostProjectPage() {
   const router = useRouter()
@@ -57,6 +60,12 @@ export default function PostProjectPage() {
   const [escrowId, setEscrowId] = useState<string | null>(null)
   const [transactionHash, setTransactionHash] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  
+  // Funding configuration
+  const [fundingType, setFundingType] = useState<FundingType>('escrow-only')
+  const [enableCrowdfunding, setEnableCrowdfunding] = useState(false)
+  const [crowdfundingGoal, setCrowdfundingGoal] = useState('')
+  const [crowdfundingDeadline, setCrowdfundingDeadline] = useState('')
 
   const addMilestone = () => {
     setMilestones([...milestones, { title: "", budget: "", description: "" }])
@@ -524,6 +533,178 @@ export default function PostProjectPage() {
                     />
                   </motion.div>
                 ))}
+              </div>
+            </Card>
+
+            {/* Funding Configuration */}
+            <Card className="p-6">
+              <div className="flex items-center gap-3 mb-6">
+                <Shield className="h-6 w-6 text-[#4ade80]" />
+                <div>
+                  <h2 className="text-2xl font-bold">Funding & Escrow Configuration</h2>
+                  <p className="text-sm text-muted mt-1">Configure how your project will be funded and secured</p>
+                </div>
+              </div>
+
+              <div className="space-y-6">
+                {/* Escrow Type Selection */}
+                <div className="space-y-4">
+                  <Label>Funding Model</Label>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <Card
+                      className={`cursor-pointer transition-all ${
+                        fundingType === 'escrow-only'
+                          ? 'border-[#4ade80] bg-[#4ade80]/5'
+                          : 'hover:border-border/80'
+                      }`}
+                      onClick={() => {
+                        setFundingType('escrow-only')
+                        setEnableCrowdfunding(false)
+                      }}
+                    >
+                      <div className="p-4">
+                        <div className="flex items-start gap-3">
+                          <Shield className={`h-5 w-5 mt-0.5 ${
+                            fundingType === 'escrow-only' ? 'text-[#22c55e]' : 'text-muted'
+                          }`} />
+                          <div>
+                            <h3 className="font-semibold mb-1">Escrow Only</h3>
+                            <p className="text-xs text-muted">
+                              Traditional escrow with milestone-based payments
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+
+                    <Card
+                      className={`cursor-pointer transition-all ${
+                        fundingType === 'crowdfunding'
+                          ? 'border-[#4ade80] bg-[#4ade80]/5'
+                          : 'hover:border-border/80'
+                      }`}
+                      onClick={() => {
+                        setFundingType('crowdfunding')
+                        setEnableCrowdfunding(true)
+                      }}
+                    >
+                      <div className="p-4">
+                        <div className="flex items-start gap-3">
+                          <Target className={`h-5 w-5 mt-0.5 ${
+                            fundingType === 'crowdfunding' ? 'text-[#22c55e]' : 'text-muted'
+                          }`} />
+                          <div>
+                            <h3 className="font-semibold mb-1">Crowdfunding</h3>
+                            <p className="text-xs text-muted">
+                              Raise funds from multiple investors
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+
+                    <Card
+                      className={`cursor-pointer transition-all ${
+                        fundingType === 'hybrid'
+                          ? 'border-[#4ade80] bg-[#4ade80]/5'
+                          : 'hover:border-border/80'
+                      }`}
+                      onClick={() => {
+                        setFundingType('hybrid')
+                        setEnableCrowdfunding(true)
+                      }}
+                    >
+                      <div className="p-4">
+                        <div className="flex items-start gap-3">
+                          <div className={`mt-0.5 ${
+                            fundingType === 'hybrid' ? 'text-[#22c55e]' : 'text-muted'
+                          }`}>
+                            <div className="flex gap-1">
+                              <Shield className="h-4 w-4" />
+                              <Target className="h-4 w-4" />
+                            </div>
+                          </div>
+                          <div>
+                            <h3 className="font-semibold mb-1">Hybrid</h3>
+                            <p className="text-xs text-muted">
+                              Crowdfunding + escrow protection
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
+                </div>
+
+                {/* Crowdfunding Configuration */}
+                {(fundingType === 'crowdfunding' || fundingType === 'hybrid') && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="space-y-4 p-4 bg-surface-dark rounded-lg"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <Target className="h-5 w-5 text-[#4ade80]" />
+                      <h3 className="font-semibold">Crowdfunding Settings</h3>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="crowdfunding-goal">Funding Goal (USDC)</Label>
+                        <Input
+                          id="crowdfunding-goal"
+                          type="number"
+                          placeholder="10000"
+                          value={crowdfundingGoal}
+                          onChange={(e) => setCrowdfundingGoal(e.target.value)}
+                          disabled={isSubmitting}
+                          className="mt-2"
+                        />
+                        <p className="text-xs text-muted mt-1">
+                          {fundingType === 'hybrid' 
+                            ? 'Additional funds to raise beyond project budget'
+                            : 'Total amount to raise from investors'
+                          }
+                        </p>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="crowdfunding-deadline">Campaign Deadline</Label>
+                        <Input
+                          id="crowdfunding-deadline"
+                          type="datetime-local"
+                          value={crowdfundingDeadline}
+                          onChange={(e) => setCrowdfundingDeadline(e.target.value)}
+                          disabled={isSubmitting}
+                          className="mt-2"
+                        />
+                        <p className="text-xs text-muted mt-1">
+                          When the crowdfunding campaign ends
+                        </p>
+                      </div>
+                    </div>
+
+                    <Alert className="border-blue-500/50 bg-blue-500/10">
+                      <AlertCircle className="h-4 w-4 text-blue-500" />
+                      <AlertDescription className="text-sm">
+                        {fundingType === 'hybrid' 
+                          ? 'Hybrid model: Crowdfunding pool will be created first. Once funded, an escrow contract will be automatically created for milestone-based payments.'
+                          : 'Crowdfunding only: Funds will be released to you once the goal is met. No escrow protection for service providers.'
+                        }
+                      </AlertDescription>
+                    </Alert>
+                  </motion.div>
+                )}
+
+                {/* Escrow Info */}
+                {fundingType === 'escrow-only' && (
+                  <Alert className="border-[#4ade80]/50 bg-[#4ade80]/10">
+                    <Shield className="h-4 w-4 text-[#22c55e]" />
+                    <AlertDescription className="text-sm">
+                      <strong>Secure Escrow:</strong> Your project budget will be locked in a smart contract and released to the service provider as milestones are completed. This protects both parties.
+                    </AlertDescription>
+                  </Alert>
+                )}
               </div>
             </Card>
 

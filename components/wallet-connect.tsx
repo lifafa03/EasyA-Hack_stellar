@@ -32,19 +32,44 @@ export function WalletConnectButton() {
       // Debug: log available wallet APIs
       debugWalletAPIs();
       
-      setWalletAvailability({
-        freighter: isWalletAvailable('freighter'),
-        albedo: isWalletAvailable('albedo'),
-        lobstr: isWalletAvailable('lobstr'),
-        xbull: isWalletAvailable('xbull'),
-      });
+      // Check immediately
+      const checkAvailability = () => {
+        const availability = {
+          freighter: isWalletAvailable('freighter'),
+          albedo: isWalletAvailable('albedo'),
+          lobstr: isWalletAvailable('lobstr'),
+          xbull: isWalletAvailable('xbull'),
+        };
+        
+        setWalletAvailability(availability);
+        console.log('Wallet availability:', availability);
+        
+        return availability;
+      };
       
-      console.log('Wallet availability:', {
-        freighter: isWalletAvailable('freighter'),
-        albedo: isWalletAvailable('albedo'),
-        lobstr: isWalletAvailable('lobstr'),
-        xbull: isWalletAvailable('xbull'),
-      });
+      // Check immediately
+      const initial = checkAvailability();
+      
+      // If no wallets detected, retry after delays
+      // (wallet extensions might still be initializing)
+      if (!initial.freighter && !initial.albedo && !initial.lobstr && !initial.xbull) {
+        const timeout1 = setTimeout(() => {
+          console.log('Retrying wallet detection (500ms)...');
+          const retry1 = checkAvailability();
+          
+          // Try one more time if still no wallets
+          if (!retry1.freighter && !retry1.albedo && !retry1.lobstr && !retry1.xbull) {
+            const timeout2 = setTimeout(() => {
+              console.log('Retrying wallet detection (1500ms)...');
+              checkAvailability();
+            }, 1000);
+            
+            return () => clearTimeout(timeout2);
+          }
+        }, 500);
+        
+        return () => clearTimeout(timeout1);
+      }
     }
   }, [showDialog]);
 

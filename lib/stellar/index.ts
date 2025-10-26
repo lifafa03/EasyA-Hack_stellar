@@ -6,5 +6,35 @@
 export * from './types';
 export * from './config';
 export * from './sdk';
+export * from './services';
+export * from './errors';
+export * from './retry';
+export * from './events';
 export { StellarSDK, getStellarSDK, resetStellarSDK } from './sdk';
-export { getStellarConfig, validateConfig, STELLAR_CONFIGS } from './config';
+export { getStellarConfig, validateConfig } from './config';
+export {
+  handleStellarError,
+  logError,
+  createStellarError,
+  parseStellarSDKError,
+  isUserRejectedError,
+  isInsufficientFundsError,
+  isNetworkError,
+  getErrorLogger,
+  setErrorLogger,
+} from './errors';
+export {
+  withRetry,
+  getTransactionQueue,
+  resetTransactionQueue,
+  isRetryableError,
+  calculateRetryDelay,
+} from './retry';
+export {
+  getEventMonitor,
+  resetEventMonitor,
+  getNotificationManager,
+  resetNotificationManager,
+  createEventNotification,
+  enableAutoNotifications,
+} from './events';
