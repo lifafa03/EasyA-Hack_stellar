@@ -33,13 +33,18 @@
 
 Watch our complete platform demonstration and learn how StellaNova revolutionizes the freelance marketplace with Stellar blockchain technology:
 
-https://github.com/user-attachments/assets/videofinal.mov
+**📺 Watch on YouTube (Recommended):**  
+[![Watch Presentation Video](https://img.shields.io/badge/YouTube-Watch_Video-red?style=for-the-badge&logo=youtube)](https://youtu.be/tpt_QfVGCAU)
 
-**Video Preview:**
+👉 **[Click here to watch on YouTube](https://youtu.be/tpt_QfVGCAU)** *(Backup link in case embedded video doesn't load)*
+
+---
+
+**Embedded Video:**
 
 <video width="100%" controls>
   <source src="public/video/videofinal.mov" type="video/quicktime">
-  Your browser does not support the video tag. <a href="public/video/videofinal.mov">Download the presentation video</a>
+  Your browser does not support the video tag. <a href="https://youtu.be/tpt_QfVGCAU">Watch on YouTube instead</a>
 </video>
 
 *Full walkthrough covering wallet integration, project funding, escrow management, and USDC transactions on Stellar testnet*
