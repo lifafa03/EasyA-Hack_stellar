@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, DollarSign, Users, Clock, CheckCircle2 } from "lucide-react"
+import { Calendar, DollarSign, Users, Clock, CheckCircle2, Shield, Loader2, ExternalLink, AlertCircle } from "lucide-react"
 import React from "react"
 import {
   Dialog,
@@ -15,10 +15,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { GradientBackground } from "@/components/gradient-background"
+import { useWallet } from "@/hooks/use-wallet"
+import { submitBidWithCheckpoints, BidFormData } from "@/lib/stellar/bid-validation"
+import { SignedBid, fetchEscrowBids, verifyBidSignature } from "@/lib/stellar/contracts"
+import { toast } from "sonner"
 
 // Mock project data
 const projectData = {
@@ -45,6 +50,8 @@ const projectData = {
     rating: 4.8,
     projectsPosted: 23,
   },
+  // Stellar blockchain integration
+  escrowId: "ESCROW_DEMO_12345", // In production, this would be fetched from blockchain
   topBids: [
     {
       id: 1,
@@ -53,6 +60,8 @@ const projectData = {
       amount: 4800,
       deliveryDays: 30,
       rating: 4.9,
+      verified: true, // On-chain verified
+      signature: "MOCK_SIGNATURE_1",
     },
     {
       id: 2,
@@ -61,6 +70,8 @@ const projectData = {
       amount: 5200,
       deliveryDays: 25,
       rating: 4.7,
+      verified: true,
+      signature: "MOCK_SIGNATURE_2",
     },
     {
       id: 3,
@@ -69,19 +80,96 @@ const projectData = {
       amount: 4500,
       deliveryDays: 35,
       rating: 4.8,
+      verified: false, // Off-chain bid
     },
   ],
 }
 
+type SubmitState = 
+  | 'idle'
+  | 'validating'
+  | 'signing'
+  | 'verifying'
+  | 'submitting'
+  | 'success'
+  | 'error';
+
 export default function ProjectDetailPage() {
+  const wallet = useWallet();
   const fundedPercentage = (projectData.funded / projectData.budget) * 100
   const [bidDialogOpen, setBidDialogOpen] = React.useState(false)
   const [fundDialogOpen, setFundDialogOpen] = React.useState(false)
+  
+  // Bid form state
+  const [bidFormData, setBidFormData] = React.useState<BidFormData>({
+    bidAmount: '',
+    deliveryDays: '',
+    proposal: '',
+    portfolioLink: '',
+    milestonesApproach: '',
+  });
+  
+  // Submission state tracking
+  const [submitState, setSubmitState] = React.useState<SubmitState>('idle');
+  const [transactionHash, setTransactionHash] = React.useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+  
+  const isSubmitting = submitState !== 'idle' && submitState !== 'success' && submitState !== 'error';
 
-  const handleBidSubmit = (e: React.FormEvent) => {
+  const handleBidSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("[v0] Bid submitted")
-    setBidDialogOpen(false)
+    
+    if (!wallet.connected || !wallet.publicKey) {
+      toast.error('Wallet Not Connected', {
+        description: 'Please connect your Stellar wallet to submit a bid.',
+      });
+      return;
+    }
+    
+    try {
+      setErrorMessage(null);
+      setSubmitState('validating');
+      
+      // Submit bid with 5-checkpoint validation
+      const walletTypeForBid = (wallet.walletType === 'freighter' || wallet.walletType === 'albedo') 
+        ? wallet.walletType 
+        : 'freighter';
+      
+      const result = await submitBidWithCheckpoints(
+        bidFormData,
+        projectData.escrowId,
+        wallet.publicKey,
+        projectData.budget,
+        wallet.connected,
+        walletTypeForBid
+      );
+      
+      if (result.success) {
+        setSubmitState('success');
+        setTransactionHash(result.transactionHash || null);
+        
+        // Reset form and close dialog after 3 seconds
+        setTimeout(() => {
+          setBidDialogOpen(false);
+          setSubmitState('idle');
+          setBidFormData({
+            bidAmount: '',
+            deliveryDays: '',
+            proposal: '',
+            portfolioLink: '',
+            milestonesApproach: '',
+          });
+          setTransactionHash(null);
+        }, 3000);
+      } else {
+        setSubmitState('error');
+        setErrorMessage(result.error || 'Failed to submit bid');
+      }
+    } catch (error) {
+      setSubmitState('error');
+      setErrorMessage(error instanceof Error ? error.message : 'Unknown error occurred');
+      console.error('Bid submission error:', error);
+    }
   }
 
   const handleFundSubmit = (e: React.FormEvent) => {
