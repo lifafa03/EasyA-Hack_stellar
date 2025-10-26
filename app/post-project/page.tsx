@@ -306,12 +306,18 @@ export default function PostProjectPage() {
   const isSubmitting = submitState === 'submitting'
 
   return (
-    <GradientBackground variant="default">
-      <main className="min-h-screen py-12">
-        <div className="container mx-auto px-4 max-w-3xl">
+      <main className="min-h-screen bg-black relative overflow-hidden py-12">
+        {/* Background Effects */}
+        <div className="absolute inset-0">
+          <div className="absolute top-20 left-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-20 right-1/4 w-[500px] h-[500px] bg-[#4ade80]/10 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/3 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        </div>
+
+        <div className="container mx-auto px-4 max-w-3xl relative z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Post a Project</h1>
-            <p className="text-muted text-lg mb-8">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">Post a Project</h1>
+            <p className="text-gray-300 text-lg mb-8">
               Share your project and connect with talented freelancers
             </p>
           </motion.div>
@@ -324,8 +330,8 @@ export default function PostProjectPage() {
             className="space-y-6"
           >
             {/* Project Details */}
-            <Card className="p-6">
-              <h2 className="text-2xl font-bold mb-6">Project Details</h2>
+            <Card className="p-6 bg-white/5 backdrop-blur-sm border-white/10">
+              <h2 className="text-2xl font-bold mb-6 text-white">Project Details</h2>
 
               <div className="space-y-4">
                 <div>
@@ -381,17 +387,18 @@ export default function PostProjectPage() {
                 </div>
 
                 {/* XLM to USDC Conversion */}
-                <Card className="border-primary/20 bg-primary/5">
+                <Card className="border-[#4ade80]/20 bg-[#4ade80]/5">
                   <div className="p-4">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <span className="text-2xl">💱</span>
-                        <h3 className="font-semibold">Convert XLM to USDC</h3>
+                        <h3 className="font-semibold text-white">Convert XLM to USDC</h3>
                       </div>
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
+                        className="text-white hover:bg-white/10"
                         onClick={() => setShowSwapSection(!showSwapSection)}
                       >
                         {showSwapSection ? 'Hide' : 'Show'}
@@ -491,17 +498,18 @@ export default function PostProjectPage() {
             </Card>
 
             {/* Milestones */}
-            <Card className="p-6">
+            <Card className="p-6 bg-white/5 backdrop-blur-sm border-white/10">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-2xl font-bold">Payment Milestones</h2>
-                  <p className="text-sm text-muted mt-1">Break your project into 2-5 payment phases</p>
+                  <h2 className="text-2xl font-bold text-white">Payment Milestones</h2>
+                  <p className="text-sm text-gray-400 mt-1">Break your project into 2-5 payment phases</p>
                 </div>
                 <Button 
                   type="button" 
                   onClick={addMilestone} 
                   variant="outline" 
                   size="sm"
+                  className="border-white/20 bg-white/5 hover:bg-white/10 text-white backdrop-blur-sm"
                   disabled={isSubmitting || milestones.length >= 5}
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -515,17 +523,17 @@ export default function PostProjectPage() {
                     key={index}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="p-4 bg-surface-dark rounded-lg"
+                    className="p-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg"
                   >
                     <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-semibold text-sm">Milestone {index + 1}</h3>
+                      <h3 className="font-semibold text-sm text-white">Milestone {index + 1}</h3>
                       {milestones.length > 2 && (
                         <Button
                           type="button"
                           onClick={() => removeMilestone(index)}
                           variant="ghost"
                           size="sm"
-                          className="text-destructive hover:text-destructive h-8 w-8 p-0"
+                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-8 w-8 p-0"
                           disabled={isSubmitting}
                         >
                           <X className="h-4 w-4" />
@@ -619,30 +627,33 @@ export default function PostProjectPage() {
 
             {/* Submit Buttons */}
             <div className="flex gap-4">
-              <Button 
-                type="submit" 
-                size="lg" 
-                className="flex-1 bg-[#4ade80] hover:bg-[#22c55e] text-white"
-                disabled={isSubmitting || submitState === 'success' || !wallet.connected}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Creating Project...
-                  </>
-                ) : submitState === 'success' ? (
-                  <>
-                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                    Project Created!
-                  </>
-                ) : (
-                  'Post Project'
-                )}
-              </Button>
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="flex-1">
+                <Button 
+                  type="submit" 
+                  size="lg" 
+                  className="w-full bg-linear-to-r from-[#4ade80] to-[#22c55e] hover:from-[#22c55e] hover:to-[#4ade80] text-white shadow-lg shadow-[#4ade80]/50"
+                  disabled={isSubmitting || submitState === 'success' || !wallet.connected}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Creating Project...
+                    </>
+                  ) : submitState === 'success' ? (
+                    <>
+                      <CheckCircle2 className="h-4 w-4 mr-2" />
+                      Project Created!
+                    </>
+                  ) : (
+                    'Post Project'
+                  )}
+                </Button>
+              </motion.div>
               <Button 
                 type="button" 
                 size="lg" 
                 variant="outline" 
+                className="border-white/20 bg-white/5 hover:bg-white/10 text-white backdrop-blur-sm"
                 onClick={() => router.back()}
                 disabled={isSubmitting}
               >
@@ -652,6 +663,5 @@ export default function PostProjectPage() {
           </motion.form>
         </div>
       </main>
-    </GradientBackground>
   )
 }

@@ -174,23 +174,31 @@ function ProfileContent() {
   };
 
   return (
-    <GradientBackground variant="default">
-      <main className="min-h-screen bg-background py-12">
-        <div className="container mx-auto px-4 max-w-6xl">
+      <main className="min-h-screen bg-black relative overflow-hidden py-12">
+        {/* Background Effects */}
+        <div className="absolute inset-0">
+          <div className="absolute top-20 left-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-20 right-1/4 w-[500px] h-[500px] bg-[#4ade80]/10 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/3 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        </div>
+
+        <div className="container mx-auto px-4 max-w-6xl relative z-10">
           {/* Header */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h1 className="text-4xl font-bold">Profile & Wallet</h1>
-                <p className="text-muted-foreground mt-1">Manage your account and wallet operations</p>
+                <h1 className="text-4xl font-bold text-white">Profile & Wallet</h1>
+                <p className="text-gray-300 mt-1">Manage your account and wallet operations</p>
               </div>
               {!wallet.connected ? (
-                <Button onClick={() => wallet.connect()} className="bg-[#4ade80] hover:bg-[#22c55e] text-white">
-                  <Wallet className="h-4 w-4 mr-2" />
-                  Connect Wallet
-                </Button>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button onClick={() => wallet.connect()} className="bg-linear-to-r from-[#4ade80] to-[#22c55e] hover:from-[#22c55e] hover:to-[#4ade80] text-white shadow-lg shadow-[#4ade80]/50">
+                    <Wallet className="h-4 w-4 mr-2" />
+                    Connect Wallet
+                  </Button>
+                </motion.div>
               ) : (
-                <Button onClick={() => wallet.disconnect()} variant="outline">
+                <Button onClick={() => wallet.disconnect()} variant="outline" className="border-white/20 bg-white/5 hover:bg-white/10 text-white backdrop-blur-sm">
                   Disconnect
                 </Button>
               )}
@@ -198,24 +206,24 @@ function ProfileContent() {
 
             {/* Prominent USDC Balance Display */}
             {wallet.connected && wallet.publicKey && (
-              <Card className="border-primary/50 bg-gradient-to-br from-primary/5 to-primary/10">
+              <Card className="border-[#4ade80]/30 bg-linear-to-br from-[#4ade80]/10 to-purple-600/10 backdrop-blur-sm">
                 <CardContent className="py-6">
                   <div className="flex items-center justify-between">
                     <div className="space-y-1">
-                      <p className="text-sm text-muted-foreground">Wallet Address</p>
-                      <p className="text-sm font-mono">
+                      <p className="text-sm text-gray-400">Wallet Address</p>
+                      <p className="text-sm font-mono text-white">
                         {wallet.publicKey.slice(0, 8)}...{wallet.publicKey.slice(-8)}
                       </p>
                     </div>
                     <div className="text-right space-y-1">
-                      <p className="text-sm text-muted-foreground">Available Balance</p>
+                      <p className="text-sm text-gray-400">Available Balance</p>
                       <div className="flex items-baseline gap-2">
-                        <p className="text-3xl font-bold text-[#22c55e]">
+                        <p className="text-3xl font-bold text-[#4ade80]">
                           ${wallet.usdcBalance ? parseFloat(wallet.usdcBalance).toFixed(2) : '0.00'}
                         </p>
-                        <span className="text-lg font-semibold text-[#22c55e]">USDC</span>
+                        <span className="text-lg font-semibold text-[#4ade80]">USDC</span>
                       </div>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-xs text-gray-400">
                         {wallet.balance ? parseFloat(wallet.balance).toFixed(2) : '0.00'} XLM
                       </p>
                     </div>
@@ -228,7 +236,7 @@ function ProfileContent() {
           {/* Main Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
             <div className="space-y-4">
-              <TabsList className="grid w-full grid-cols-5 max-w-3xl">
+              <TabsList className="grid w-full grid-cols-5 max-w-3xl bg-white/5 border border-white/10">
                 <TabsTrigger value="profile" className="gap-2">
                   <User className="h-4 w-4" />
                   <span className="hidden sm:inline">Profile</span>
@@ -265,7 +273,7 @@ function ProfileContent() {
             {/* Profile Tab */}
             <TabsContent value="profile" className="space-y-6">
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                <Card className="p-8">
+                <Card className="p-8 bg-white/5 backdrop-blur-sm border-white/10">
                   <div className="flex flex-col md:flex-row gap-8">
                     <div className="flex flex-col items-center">
                       <div className="relative">
@@ -322,18 +330,18 @@ function ProfileContent() {
                       ) : (
                         <div>
                           <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-3xl font-bold">{profileData.name}</h2>
-                            <Button onClick={() => setIsEditing(true)} variant="outline" size="sm">
+                            <h2 className="text-3xl font-bold text-white">{profileData.name}</h2>
+                            <Button onClick={() => setIsEditing(true)} variant="outline" size="sm" className="border-white/20 bg-white/5 hover:bg-white/10 text-white backdrop-blur-sm">
                               Edit Profile
                             </Button>
                           </div>
-                          <p className="text-muted mb-4">{profileData.email}</p>
-                          <p className="text-foreground leading-relaxed mb-4">{profileData.bio}</p>
-                          <div className="flex flex-wrap gap-4 text-sm text-muted">
+                          <p className="text-gray-400 mb-4">{profileData.email}</p>
+                          <p className="text-gray-300 leading-relaxed mb-4">{profileData.bio}</p>
+                          <div className="flex flex-wrap gap-4 text-sm text-gray-400">
                             <span>📍 {profileData.location}</span>
                             <span>
                               🌐{" "}
-                              <a href={profileData.website} className="text-[#22c55e] hover:underline">
+                              <a href={profileData.website} className="text-[#4ade80] hover:underline">
                                 {profileData.website}
                               </a>
                             </span>
@@ -347,43 +355,43 @@ function ProfileContent() {
 
               {/* Stats */}
               <div className="grid md:grid-cols-3 gap-6">
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                  <Card className="p-6">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} whileHover={{ y: -5, scale: 1.05 }}>
+                  <Card className="p-6 bg-white/5 backdrop-blur-sm border-white/10 hover:border-[#4ade80]/50 transition-all">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-[#4ade80]/10 flex items-center justify-center">
-                        <Briefcase className="h-6 w-6 text-[#22c55e]" />
+                      <div className="w-12 h-12 rounded-xl bg-linear-to-br from-[#4ade80] to-[#22c55e] flex items-center justify-center shadow-lg shadow-[#4ade80]/30">
+                        <Briefcase className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <p className="text-sm text-muted">Projects Completed</p>
-                        <p className="text-2xl font-bold">{profileData.stats.projectsCompleted}</p>
+                        <p className="text-sm text-gray-400">Projects Completed</p>
+                        <p className="text-2xl font-bold text-white">{profileData.stats.projectsCompleted}</p>
                       </div>
                     </div>
                   </Card>
                 </motion.div>
 
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                  <Card className="p-6">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} whileHover={{ y: -5, scale: 1.05 }}>
+                  <Card className="p-6 bg-white/5 backdrop-blur-sm border-white/10 hover:border-blue-500/50 transition-all">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                        <DollarSign className="h-6 w-6 text-blue-500" />
+                      <div className="w-12 h-12 rounded-xl bg-linear-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                        <DollarSign className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <p className="text-sm text-muted">Total Earned</p>
-                        <p className="text-2xl font-bold">${profileData.stats.totalEarned.toLocaleString()} USDC</p>
+                        <p className="text-sm text-gray-400">Total Earned</p>
+                        <p className="text-2xl font-bold text-white">${profileData.stats.totalEarned.toLocaleString()} USDC</p>
                       </div>
                     </div>
                   </Card>
                 </motion.div>
 
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                  <Card className="p-6">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} whileHover={{ y: -5, scale: 1.05 }}>
+                  <Card className="p-6 bg-white/5 backdrop-blur-sm border-white/10 hover:border-amber-500/50 transition-all">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-[#fbbf24]/10 flex items-center justify-center">
-                        <Award className="h-6 w-6 text-[#fbbf24]" />
+                      <div className="w-12 h-12 rounded-xl bg-linear-to-br from-amber-500 to-orange-400 flex items-center justify-center shadow-lg shadow-amber-500/30">
+                        <Award className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <p className="text-sm text-muted">Success Rate</p>
-                        <p className="text-2xl font-bold">{profileData.stats.successRate}%</p>
+                        <p className="text-sm text-gray-400">Success Rate</p>
+                        <p className="text-2xl font-bold text-white">{profileData.stats.successRate}%</p>
                       </div>
                     </div>
                   </Card>
@@ -392,16 +400,16 @@ function ProfileContent() {
 
               {/* Skills */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-                <Card className="p-6">
-                  <h2 className="text-2xl font-bold mb-4">Skills</h2>
+                <Card className="p-6 bg-white/5 backdrop-blur-sm border-white/10">
+                  <h2 className="text-2xl font-bold mb-4 text-white">Skills</h2>
                   <div className="flex flex-wrap gap-2">
                     {profileData.skills.map((skill) => (
-                      <Badge key={skill} className="bg-[#4ade80]/10 text-[#22c55e] hover:bg-[#4ade80]/20 px-4 py-2">
+                      <Badge key={skill} className="bg-[#4ade80]/20 text-[#4ade80] hover:bg-[#4ade80]/30 px-4 py-2 border border-[#4ade80]/30">
                         {skill}
                       </Badge>
                     ))}
                     {isEditing && (
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" className="border-white/20 bg-white/5 hover:bg-white/10 text-white">
                         + Add Skill
                       </Button>
                     )}
@@ -411,11 +419,11 @@ function ProfileContent() {
 
               {/* Portfolio */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
-                <Card className="p-6">
+                <Card className="p-6 bg-white/5 backdrop-blur-sm border-white/10">
                   <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold">Portfolio</h2>
+                    <h2 className="text-2xl font-bold text-white">Portfolio</h2>
                     {isEditing && (
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" className="border-white/20 bg-white/5 hover:bg-white/10 text-white">
                         + Add Project
                       </Button>
                     )}
@@ -434,11 +442,12 @@ function ProfileContent() {
                           <img
                             src={item.image || "/placeholder.svg"}
                             alt={item.title}
-                            className="w-full h-48 object-cover transition-transform group-hover:scale-105"
+                            className="w-full h-48 object-cover transition-transform group-hover:scale-110 duration-500"
                           />
+                          <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
                         </div>
-                        <h3 className="font-semibold mb-1">{item.title}</h3>
-                        <p className="text-sm text-muted">{item.description}</p>
+                        <h3 className="font-semibold mb-1 text-white">{item.title}</h3>
+                        <p className="text-sm text-gray-400">{item.description}</p>
                       </motion.div>
                     ))}
                   </div>
@@ -653,7 +662,6 @@ function ProfileContent() {
           </Dialog>
         </div>
       </main>
-    </GradientBackground>
   );
 }
 

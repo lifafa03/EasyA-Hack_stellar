@@ -528,9 +528,15 @@ export default function ProjectDetailPage() {
   };
 
   return (
-    <GradientBackground variant="default">
-      <main className="min-h-screen bg-background py-12">
-        <div className="container mx-auto px-4">
+      <main className="min-h-screen bg-black relative overflow-hidden py-12">
+        {/* Background Effects */}
+        <div className="absolute inset-0">
+          <div className="absolute top-20 left-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-20 right-1/4 w-[500px] h-[500px] bg-[#4ade80]/10 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/3 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-6">
@@ -561,14 +567,14 @@ export default function ProjectDetailPage() {
               </motion.div>
 
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                <Card className="p-6">
-                  <h2 className="text-2xl font-bold mb-4">Project Description</h2>
-                  <p className="text-muted leading-relaxed mb-6">{projectData.description}</p>
+                <Card className="p-6 bg-white/5 backdrop-blur-sm border-white/10">
+                  <h2 className="text-2xl font-bold mb-4 text-white">Project Description</h2>
+                  <p className="text-gray-300 leading-relaxed mb-6">{projectData.description}</p>
 
-                  <h3 className="font-semibold mb-3">Required Skills</h3>
+                  <h3 className="font-semibold mb-3 text-white">Required Skills</h3>
                   <div className="flex flex-wrap gap-2">
                     {projectData.skills.map((skill) => (
-                      <span key={skill} className="px-3 py-1 bg-surface-dark rounded-full text-sm">
+                      <span key={skill} className="px-3 py-1 bg-white/10 border border-white/20 rounded-full text-sm text-white">
                         {skill}
                       </span>
                     ))}
@@ -577,13 +583,13 @@ export default function ProjectDetailPage() {
               </motion.div>
 
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                <Card className="p-6">
+                <Card className="p-6 bg-white/5 backdrop-blur-sm border-white/10">
                   <Tabs defaultValue="milestones" className="w-full" onValueChange={(value) => {
                     if (value === 'bids' && escrowBids.length === 0) {
                       fetchEscrowBidsData();
                     }
                   }}>
-                    <TabsList className="grid w-full grid-cols-4">
+                    <TabsList className="grid w-full grid-cols-4 bg-white/5 border border-white/10">
                       <TabsTrigger value="milestones">
                         <CheckCircle2 className="h-4 w-4 mr-2" />
                         Milestones
@@ -607,23 +613,23 @@ export default function ProjectDetailPage() {
                     {/* Milestones Tab */}
                     <TabsContent value="milestones" className="space-y-4 mt-6">
                       <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-2xl font-bold">Project Milestones</h2>
+                        <h2 className="text-2xl font-bold text-white">Project Milestones</h2>
                         {wallet.connected && escrowStatus && wallet.publicKey === escrowStatus.clientAddress && (
-                          <Badge variant="outline">You are the Client</Badge>
+                          <Badge variant="outline" className="border-[#4ade80]/30 bg-[#4ade80]/10 text-[#4ade80]">You are the Client</Badge>
                         )}
                       </div>
                       
                       {loadingEscrow ? (
-                        <Card className="bg-surface-dark p-6">
+                        <Card className="bg-white/5 backdrop-blur-sm border-white/10 p-6">
                           <div className="flex items-center justify-center">
-                            <Loader2 className="h-8 w-8 animate-spin text-muted" />
-                            <span className="ml-3 text-muted">Loading milestones...</span>
+                            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                            <span className="ml-3 text-gray-300">Loading milestones...</span>
                           </div>
                         </Card>
                       ) : escrowStatus && escrowStatus.milestones.length > 0 ? (
                         <div className="space-y-4">
                           {escrowStatus.milestones.map((milestone, index) => (
-                            <div key={milestone.id} className="flex items-start gap-4 p-4 bg-surface-dark rounded-lg">
+                            <div key={milestone.id} className="flex items-start gap-4 p-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg">
                               <div
                                 className={`mt-1 ${
                                   milestone.status === "completed" || milestone.status === "approved"
@@ -1121,11 +1127,11 @@ export default function ProjectDetailPage() {
               </motion.div>
 
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                <Card className="p-6">
-                  <h2 className="text-2xl font-bold mb-4">Top Bids</h2>
+                <Card className="p-6 bg-white/5 backdrop-blur-sm border-white/10">
+                  <h2 className="text-2xl font-bold mb-4 text-white">Top Bids</h2>
                   <div className="space-y-4">
                     {projectData.topBids.map((bid) => (
-                      <div key={bid.id} className="flex items-center justify-between p-4 bg-surface-dark rounded-lg">
+                      <div key={bid.id} className="flex items-center justify-between p-4 bg-white/5 backdrop-blur-sm border border-white/10 rounded-lg">
                         <div className="flex items-center gap-4">
                           <Avatar className="h-12 w-12">
                             <img src={bid.avatar || "/placeholder.svg"} alt={bid.freelancer} />
@@ -1149,31 +1155,33 @@ export default function ProjectDetailPage() {
             {/* Sidebar */}
             <div className="space-y-6">
               <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
-                <Card className="p-6 sticky top-24">
-                  <h3 className="font-bold text-lg mb-4">Funding Progress</h3>
+                <Card className="p-6 sticky top-24 bg-white/5 backdrop-blur-sm border-white/10">
+                  <h3 className="font-bold text-lg mb-4 text-white">Funding Progress</h3>
 
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-2xl font-bold text-[#22c55e]">${projectData.funded.toLocaleString()} USDC</span>
-                      <span className="text-muted">of ${projectData.budget.toLocaleString()} USDC</span>
+                      <span className="text-2xl font-bold text-[#4ade80]">${projectData.funded.toLocaleString()} USDC</span>
+                      <span className="text-gray-400">of ${projectData.budget.toLocaleString()} USDC</span>
                     </div>
-                    <div className="h-3 bg-surface-dark rounded-full overflow-hidden mb-2">
+                    <div className="h-3 bg-white/10 rounded-full overflow-hidden mb-2">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${fundedPercentage}%` }}
                         transition={{ duration: 1, delay: 0.3 }}
-                        className="h-full bg-[#4ade80] rounded-full"
+                        className="h-full bg-linear-to-r from-[#4ade80] to-cyan-400 rounded-full"
                       />
                     </div>
-                    <p className="text-sm text-muted">{fundedPercentage.toFixed(0)}% funded</p>
+                    <p className="text-sm text-gray-400">{fundedPercentage.toFixed(0)}% funded</p>
                   </div>
 
                   <div className="space-y-3 mb-6">
                     <Dialog open={bidDialogOpen} onOpenChange={setBidDialogOpen}>
                       <DialogTrigger asChild>
-                        <Button className="w-full bg-[#4ade80] hover:bg-[#22c55e] text-white" size="lg">
-                          Place a Bid
-                        </Button>
+                        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          <Button className="w-full bg-linear-to-r from-[#4ade80] to-[#22c55e] hover:from-[#22c55e] hover:to-[#4ade80] text-white shadow-lg shadow-[#4ade80]/50" size="lg">
+                            Place a Bid
+                          </Button>
+                        </motion.div>
                       </DialogTrigger>
                       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
@@ -1329,7 +1337,7 @@ export default function ProjectDetailPage() {
 
                     <Dialog open={fundDialogOpen} onOpenChange={setFundDialogOpen}>
                       <DialogTrigger asChild>
-                        <Button className="w-full bg-transparent" variant="outline" size="lg">
+                        <Button className="w-full border-white/20 bg-white/5 hover:bg-white/10 text-white backdrop-blur-sm" variant="outline" size="lg">
                           Fund This Project
                         </Button>
                       </DialogTrigger>
@@ -1415,18 +1423,18 @@ export default function ProjectDetailPage() {
                     </Dialog>
                   </div>
 
-                  <div className="pt-6 border-t border-border">
-                    <h4 className="font-semibold mb-3">Posted by</h4>
+                  <div className="pt-6 border-t border-white/10">
+                    <h4 className="font-semibold mb-3 text-white">Posted by</h4>
                     <div className="flex items-center gap-3 mb-4">
                       <Avatar className="h-12 w-12">
                         <img src={projectData.client.avatar || "/placeholder.svg"} alt={projectData.client.name} />
                       </Avatar>
                       <div>
-                        <p className="font-semibold">{projectData.client.name}</p>
-                        <p className="text-sm text-muted">⭐ {projectData.client.rating} rating</p>
+                        <p className="font-semibold text-white">{projectData.client.name}</p>
+                        <p className="text-sm text-gray-400">⭐ {projectData.client.rating} rating</p>
                       </div>
                     </div>
-                    <p className="text-sm text-muted">{projectData.client.projectsPosted} projects posted</p>
+                    <p className="text-sm text-gray-400">{projectData.client.projectsPosted} projects posted</p>
                   </div>
                 </Card>
               </motion.div>
@@ -1434,6 +1442,5 @@ export default function ProjectDetailPage() {
           </div>
         </div>
       </main>
-    </GradientBackground>
   )
 }

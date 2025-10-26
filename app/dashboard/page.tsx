@@ -159,77 +159,85 @@ export default function DashboardPage() {
   const activeInvestments = myInvestments.filter((inv) => inv.status === 'active').length;
 
   return (
-    <GradientBackground variant="default">
-      <main className="min-h-screen py-12">
-        <div className="container mx-auto px-4 max-w-7xl">
+      <main className="min-h-screen bg-black relative overflow-hidden py-12">
+        {/* Background Effects */}
+        <div className="absolute inset-0">
+          <div className="absolute top-20 right-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-1/4 left-1/4 w-[500px] h-[500px] bg-[#4ade80]/10 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 right-1/3 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        </div>
+        
+        <div className="container mx-auto px-4 max-w-7xl relative z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h1 className="text-4xl md:text-5xl font-bold mb-4">Dashboard</h1>
-                <p className="text-muted text-lg">Track your active bids and investments</p>
+                <h1 className="text-4xl md:text-5xl font-bold mb-4 text-white">Dashboard</h1>
+                <p className="text-gray-300 text-lg">Track your active bids and investments</p>
               </div>
-              <Button variant="outline" asChild>
-                <Link href="/profile">
-                  <Wallet className="h-4 w-4 mr-2" />
-                  Manage Wallet
-                </Link>
-              </Button>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button variant="outline" className="border-white/20 bg-white/5 hover:bg-white/10 text-white backdrop-blur-sm" asChild>
+                  <Link href="/profile">
+                    <Wallet className="h-4 w-4 mr-2" />
+                    Manage Wallet
+                  </Link>
+                </Button>
+              </motion.div>
             </div>
           </motion.div>
 
           {/* Stats Overview */}
           <div className="grid md:grid-cols-4 gap-6 mb-8">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-              <Card className="p-6">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} whileHover={{ y: -5, scale: 1.05 }}>
+              <Card className="p-6 bg-white/5 backdrop-blur-sm border-white/10 hover:border-[#4ade80]/50 transition-all">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-[#4ade80]/10 flex items-center justify-center">
-                    <Briefcase className="h-5 w-5 text-[#22c55e]" />
+                  <div className="w-10 h-10 rounded-lg bg-linear-to-br from-[#4ade80] to-[#22c55e] flex items-center justify-center shadow-lg shadow-[#4ade80]/30">
+                    <Briefcase className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted">Active Bids</p>
-                    <p className="text-2xl font-bold">{activeBids}</p>
+                    <p className="text-sm text-gray-400">Active Bids</p>
+                    <p className="text-2xl font-bold text-white">{activeBids}</p>
                   </div>
                 </div>
               </Card>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-              <Card className="p-6">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} whileHover={{ y: -5, scale: 1.05 }}>
+              <Card className="p-6 bg-white/5 backdrop-blur-sm border-white/10 hover:border-blue-500/50 transition-all">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                    <DollarSign className="h-5 w-5 text-blue-500" />
+                  <div className="w-10 h-10 rounded-lg bg-linear-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                    <DollarSign className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted">Total Earned</p>
-                    <p className="text-2xl font-bold">${totalEarned.toLocaleString()} USDC</p>
+                    <p className="text-sm text-gray-400">Total Earned</p>
+                    <p className="text-2xl font-bold text-white">${totalEarned.toLocaleString()} USDC</p>
                   </div>
                 </div>
               </Card>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-              <Card className="p-6">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} whileHover={{ y: -5, scale: 1.05 }}>
+              <Card className="p-6 bg-white/5 backdrop-blur-sm border-white/10 hover:border-purple-500/50 transition-all">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                    <TrendingUp className="h-5 w-5 text-purple-500" />
+                  <div className="w-10 h-10 rounded-lg bg-linear-to-br from-purple-500 to-pink-400 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                    <TrendingUp className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted">Investments</p>
-                    <p className="text-2xl font-bold">{activeInvestments}</p>
+                    <p className="text-sm text-gray-400">Investments</p>
+                    <p className="text-2xl font-bold text-white">{activeInvestments}</p>
                   </div>
                 </div>
               </Card>
             </motion.div>
 
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-              <Card className="p-6">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} whileHover={{ y: -5, scale: 1.05 }}>
+              <Card className="p-6 bg-white/5 backdrop-blur-sm border-white/10 hover:border-amber-500/50 transition-all">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-[#fbbf24]/10 flex items-center justify-center">
-                    <Wallet className="h-5 w-5 text-[#fbbf24]" />
+                  <div className="w-10 h-10 rounded-lg bg-linear-to-br from-amber-500 to-orange-400 flex items-center justify-center shadow-lg shadow-amber-500/30">
+                    <Wallet className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <p className="text-sm text-muted">Total Invested</p>
-                    <p className="text-2xl font-bold">${totalInvested.toLocaleString()} USDC</p>
+                    <p className="text-sm text-gray-400">Total Invested</p>
+                    <p className="text-2xl font-bold text-white">${totalInvested.toLocaleString()} USDC</p>
                   </div>
                 </div>
               </Card>
@@ -238,12 +246,12 @@ export default function DashboardPage() {
 
           {/* Main Content Tabs */}
           <Tabs defaultValue="bids" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-2 max-w-md">
-              <TabsTrigger value="bids" className="gap-2">
+            <TabsList className="grid w-full grid-cols-2 max-w-md bg-white/5 border border-white/10">
+              <TabsTrigger value="bids" className="gap-2 data-[state=active]:bg-[#4ade80] data-[state=active]:text-white">
                 <Briefcase className="h-4 w-4" />
                 My Bids
               </TabsTrigger>
-              <TabsTrigger value="investments" className="gap-2">
+              <TabsTrigger value="investments" className="gap-2 data-[state=active]:bg-[#4ade80] data-[state=active]:text-white">
                 <TrendingUp className="h-4 w-4" />
                 My Investments
               </TabsTrigger>
@@ -258,11 +266,11 @@ export default function DashboardPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <Card className="p-6 hover:shadow-lg transition-shadow">
+                  <Card className="p-6 bg-white/5 backdrop-blur-sm border-white/10 hover:border-[#4ade80]/50 hover:shadow-2xl hover:shadow-[#4ade80]/10 transition-all">
                     <div className="space-y-4">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
-                          <h3 className="font-bold text-lg">{bid.projectTitle}</h3>
+                          <h3 className="font-bold text-lg text-white">{bid.projectTitle}</h3>
                           <Badge className={statusColors[bid.status as keyof typeof statusColors]}>
                             {bid.status.charAt(0).toUpperCase() + bid.status.slice(1)}
                           </Badge>
@@ -273,24 +281,24 @@ export default function DashboardPage() {
                             </Badge>
                           )}
                         </div>
-                        <Button variant="outline" size="sm" asChild>
+                        <Button variant="outline" className="border-white/20 bg-white/5 hover:bg-white/10 text-white backdrop-blur-sm" size="sm" asChild>
                           <Link href={`/project/${bid.projectId}`}>View Project</Link>
                         </Button>
                       </div>
 
                       {(bid.status === 'pending' || bid.status === 'rejected') && (
                         <div className="space-y-3">
-                          <div className="flex flex-wrap gap-4 text-sm text-muted">
+                          <div className="flex flex-wrap gap-4 text-sm text-gray-400">
                             <span className="flex items-center gap-1">
-                              <DollarSign className="h-4 w-4" />
+                              <DollarSign className="h-4 w-4 text-[#4ade80]" />
                               Bid: ${bid.bidAmount.toLocaleString()} USDC
                             </span>
                             <span className="flex items-center gap-1">
-                              <Clock className="h-4 w-4" />
+                              <Clock className="h-4 w-4 text-[#4ade80]" />
                               {bid.deliveryDays} days
                             </span>
                             <span className="flex items-center gap-1">
-                              <Calendar className="h-4 w-4" />
+                              <Calendar className="h-4 w-4 text-[#4ade80]" />
                               Submitted {new Date(bid.submittedDate).toLocaleDateString()}
                             </span>
                             <span>Competing with {bid.totalBids - 1} other bids</span>
@@ -455,10 +463,12 @@ export default function DashboardPage() {
 
               {myBids.length === 0 && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
-                  <p className="text-muted text-lg mb-4">You haven't placed any bids yet</p>
-                  <Button className="bg-[#4ade80] hover:bg-[#22c55e] text-white" asChild>
-                    <Link href="/browse">Browse Projects</Link>
-                  </Button>
+                  <p className="text-gray-300 text-lg mb-4">You haven't placed any bids yet</p>
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button className="bg-linear-to-r from-[#4ade80] to-[#22c55e] hover:from-[#22c55e] hover:to-[#4ade80] text-white shadow-lg shadow-[#4ade80]/50" asChild>
+                      <Link href="/browse">Browse Projects</Link>
+                    </Button>
+                  </motion.div>
                 </motion.div>
               )}
             </TabsContent>
@@ -472,16 +482,16 @@ export default function DashboardPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
-                  <Card className="p-6 hover:shadow-lg transition-shadow">
+                  <Card className="p-6 bg-white/5 backdrop-blur-sm border-white/10 hover:border-purple-500/50 hover:shadow-2xl hover:shadow-purple-500/10 transition-all">
                     <div className="space-y-4">
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-3">
-                          <h3 className="font-bold text-lg">{investment.projectTitle}</h3>
+                          <h3 className="font-bold text-lg text-white">{investment.projectTitle}</h3>
                           <Badge className={statusColors[investment.status as keyof typeof statusColors]}>
                             {investment.status.charAt(0).toUpperCase() + investment.status.slice(1)}
                           </Badge>
                         </div>
-                        <Button variant="outline" size="sm" asChild>
+                        <Button variant="outline" className="border-white/20 bg-white/5 hover:bg-white/10 text-white backdrop-blur-sm" size="sm" asChild>
                           <Link href={`/project/${investment.projectId}`}>
                             View Project <ArrowRight className="ml-2 h-4 w-4" />
                           </Link>
@@ -639,16 +649,17 @@ export default function DashboardPage() {
 
               {myInvestments.length === 0 && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-12">
-                  <p className="text-muted text-lg mb-4">You haven't invested in any projects yet</p>
-                  <Button className="bg-[#4ade80] hover:bg-[#22c55e] text-white" asChild>
-                    <Link href="/browse">Discover Projects</Link>
-                  </Button>
+                  <p className="text-gray-300 text-lg mb-4">You haven't invested in any projects yet</p>
+                  <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                    <Button className="bg-linear-to-r from-[#4ade80] to-[#22c55e] hover:from-[#22c55e] hover:to-[#4ade80] text-white shadow-lg shadow-[#4ade80]/50" asChild>
+                      <Link href="/browse">Discover Projects</Link>
+                    </Button>
+                  </motion.div>
                 </motion.div>
               )}
             </TabsContent>
           </Tabs>
         </div>
       </main>
-    </GradientBackground>
   );
 }

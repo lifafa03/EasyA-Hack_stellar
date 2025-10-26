@@ -126,9 +126,14 @@ export default function BrowsePage() {
   const totalBids = projects.reduce((sum, project) => sum + project.bids, 0)
 
   return (
-    <GradientBackground variant="default">
-      <main className="min-h-screen bg-background py-12">
-        <div className="container mx-auto px-4 max-w-7xl">
+    <main className="min-h-screen bg-black relative overflow-hidden py-12">
+      {/* Background Effects */}
+      <div className="absolute inset-0">
+        <div className="absolute top-20 left-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute top-1/2 right-1/4 w-[500px] h-[500px] bg-[#4ade80]/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 left-1/3 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      </div>
+        <div className="container mx-auto px-4 max-w-7xl relative z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
               <div>
@@ -136,25 +141,27 @@ export default function BrowsePage() {
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.1 }}
-                  className="inline-block mb-3 px-4 py-2 bg-[#4ade80]/10 rounded-full border border-[#4ade80]/20"
+                  className="inline-block mb-3 px-4 py-2 bg-linear-to-r from-purple-600/20 to-[#4ade80]/20 rounded-full border border-[#4ade80]/30 backdrop-blur-sm"
                 >
-                  <span className="text-[#22c55e] font-semibold text-sm flex items-center gap-2">
-                    <Sparkles className="h-4 w-4" />
+                  <span className="text-[#4ade80] font-semibold text-sm flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 animate-pulse" />
                     Discover Opportunities
                   </span>
                 </motion.div>
-                <h1 className="text-4xl md:text-5xl font-bold mb-3 text-foreground">Browse Projects</h1>
-                <p className="text-muted-foreground text-lg leading-relaxed">
+                <h1 className="text-4xl md:text-5xl font-bold mb-3 text-white">Browse Projects</h1>
+                <p className="text-gray-300 text-lg leading-relaxed">
                   Find the perfect project to work on or invest in
                 </p>
               </div>
-              <Button className="bg-[#4ade80] hover:bg-[#22c55e] text-white" asChild>
-                <Link href="/post-project">Post a Project</Link>
-              </Button>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button className="bg-linear-to-r from-[#4ade80] to-[#22c55e] hover:from-[#22c55e] hover:to-[#4ade80] text-white shadow-lg shadow-[#4ade80]/50" asChild>
+                  <Link href="/post-project">Post a Project</Link>
+                </Button>
+              </motion.div>
             </div>
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-              <Card className="p-6 bg-gradient-to-br from-card to-surface border-border">
+              <Card className="p-6 bg-white/5 backdrop-blur-sm border-white/10">
                 {loading ? (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                     {[...Array(4)].map((_, i) => (
@@ -169,44 +176,44 @@ export default function BrowsePage() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#4ade80] to-[#22c55e] flex items-center justify-center shadow-md">
+                    <motion.div whileHover={{ y: -5, scale: 1.05 }} className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-linear-to-br from-[#4ade80] to-[#22c55e] flex items-center justify-center shadow-lg shadow-[#4ade80]/30">
                         <TrendingUp className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <p className="text-2xl font-bold text-foreground">{projects.length}</p>
-                        <p className="text-xs text-muted-foreground">Active Projects</p>
+                        <p className="text-2xl font-bold text-white">{projects.length}</p>
+                        <p className="text-xs text-gray-400">Active Projects</p>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-md">
+                    </motion.div>
+                    <motion.div whileHover={{ y: -5, scale: 1.05 }} className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-linear-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/30">
                         <DollarSign className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <p className="text-2xl font-bold text-foreground">${(totalFunding / 1000).toFixed(0)}K USDC</p>
-                        <p className="text-xs text-muted-foreground">Total Funding</p>
+                        <p className="text-2xl font-bold text-white">${(totalFunding / 1000).toFixed(0)}K USDC</p>
+                        <p className="text-xs text-gray-400">Total Funding</p>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-400 flex items-center justify-center shadow-md">
+                    </motion.div>
+                    <motion.div whileHover={{ y: -5, scale: 1.05 }} className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-linear-to-br from-amber-500 to-orange-400 flex items-center justify-center shadow-lg shadow-amber-500/30">
                         <Users className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <p className="text-2xl font-bold text-foreground">{totalBids}</p>
-                        <p className="text-xs text-muted-foreground">Total Bids</p>
+                        <p className="text-2xl font-bold text-white">{totalBids}</p>
+                        <p className="text-xs text-gray-400">Total Bids</p>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-400 flex items-center justify-center shadow-md">
+                    </motion.div>
+                    <motion.div whileHover={{ y: -5, scale: 1.05 }} className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-linear-to-br from-purple-500 to-pink-400 flex items-center justify-center shadow-lg shadow-purple-500/30">
                         <Clock className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <p className="text-2xl font-bold text-foreground">
+                        <p className="text-2xl font-bold text-white">
                           {Math.round(projects.reduce((sum, p) => sum + p.daysLeft, 0) / projects.length)}
                         </p>
-                        <p className="text-xs text-muted-foreground">Avg Days Left</p>
+                        <p className="text-xs text-gray-400">Avg Days Left</p>
                       </div>
-                    </div>
+                    </motion.div>
                   </div>
                 )}
               </Card>
@@ -219,37 +226,38 @@ export default function BrowsePage() {
             transition={{ delay: 0.3 }}
             className="mb-8"
           >
-            <Card className="p-6 bg-card border-border">
+            <Card className="p-6 bg-white/5 backdrop-blur-sm border-white/10">
               <div className="space-y-4">
                 <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                   <Input
                     placeholder="Search by title, description, or skills..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-12 h-12 bg-background border-border text-foreground"
+                    className="pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500"
                   />
                 </div>
 
                 <div className="flex items-center gap-3 flex-wrap">
-                  <div className="flex items-center gap-2 text-muted-foreground">
+                  <div className="flex items-center gap-2 text-gray-400">
                     <Filter className="h-4 w-4" />
                     <span className="text-sm font-medium">Filter by:</span>
                   </div>
                   {categories.map((category) => (
-                    <Button
-                      key={category}
-                      variant={selectedCategory === category ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setSelectedCategory(category)}
-                      className={
-                        selectedCategory === category
-                          ? "bg-[#4ade80] hover:bg-[#22c55e] text-white border-[#4ade80]"
-                          : "border-border bg-transparent hover:bg-surface"
-                      }
-                    >
-                      {category}
-                    </Button>
+                    <motion.div key={category} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <Button
+                        variant={selectedCategory === category ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedCategory(category)}
+                        className={
+                          selectedCategory === category
+                            ? "bg-linear-to-r from-[#4ade80] to-[#22c55e] hover:from-[#22c55e] hover:to-[#4ade80] text-white border-[#4ade80] shadow-lg shadow-[#4ade80]/50"
+                            : "border-white/20 bg-white/5 hover:bg-white/10 text-white backdrop-blur-sm"
+                        }
+                      >
+                        {category}
+                      </Button>
+                    </motion.div>
                   ))}
                 </div>
               </div>
@@ -257,12 +265,12 @@ export default function BrowsePage() {
           </motion.div>
 
           <div className="mb-6 flex items-center justify-between">
-            <p className="text-muted-foreground">
-              Showing <span className="font-bold text-foreground text-lg">{filteredProjects.length}</span>{" "}
+            <p className="text-gray-300">
+              Showing <span className="font-bold text-white text-lg">{filteredProjects.length}</span>{" "}
               {filteredProjects.length === 1 ? "project" : "projects"}
               {selectedCategory !== "All" && (
                 <span className="ml-2">
-                  in <span className="font-semibold text-foreground">{selectedCategory}</span>
+                  in <span className="font-semibold text-[#4ade80]">{selectedCategory}</span>
                 </span>
               )}
             </p>
@@ -278,23 +286,23 @@ export default function BrowsePage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                 >
-                  <Card className="p-0 h-full border-border bg-card flex flex-col overflow-hidden">
-                    <Skeleton className="h-48 w-full" />
+                  <Card className="p-0 h-full bg-white/5 backdrop-blur-sm border-white/10 flex flex-col overflow-hidden">
+                    <Skeleton className="h-48 w-full bg-white/10" />
                     <div className="p-6 flex flex-col flex-grow space-y-4">
-                      <Skeleton className="h-6 w-3/4" />
-                      <Skeleton className="h-4 w-full" />
-                      <Skeleton className="h-4 w-full" />
-                      <Skeleton className="h-4 w-2/3" />
+                      <Skeleton className="h-6 w-3/4 bg-white/10" />
+                      <Skeleton className="h-4 w-full bg-white/10" />
+                      <Skeleton className="h-4 w-full bg-white/10" />
+                      <Skeleton className="h-4 w-2/3 bg-white/10" />
                       <div className="flex gap-2 mt-4">
-                        <Skeleton className="h-6 w-16" />
-                        <Skeleton className="h-6 w-16" />
-                        <Skeleton className="h-6 w-16" />
+                        <Skeleton className="h-6 w-16 bg-white/10" />
+                        <Skeleton className="h-6 w-16 bg-white/10" />
+                        <Skeleton className="h-6 w-16 bg-white/10" />
                       </div>
                       <div className="mt-auto space-y-2">
-                        <Skeleton className="h-2 w-full" />
+                        <Skeleton className="h-2 w-full bg-white/10" />
                         <div className="flex justify-between">
-                          <Skeleton className="h-4 w-24" />
-                          <Skeleton className="h-4 w-24" />
+                          <Skeleton className="h-4 w-24 bg-white/10" />
+                          <Skeleton className="h-4 w-24 bg-white/10" />
                         </div>
                       </div>
                     </div>
@@ -308,14 +316,16 @@ export default function BrowsePage() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
+                whileHover={{ y: -10, scale: 1.02 }}
               >
-                <Card className="p-0 h-full hover:shadow-xl transition-all duration-300 hover:-translate-y-2 border-border bg-card flex flex-col group overflow-hidden">
-                  <div className="relative h-48 w-full overflow-hidden bg-surface">
+                <Card className="p-0 h-full bg-white/5 backdrop-blur-sm border-white/10 hover:border-[#4ade80]/50 transition-all duration-300 hover:shadow-2xl hover:shadow-[#4ade80]/20 flex flex-col group overflow-hidden">
+                  <div className="relative h-48 w-full overflow-hidden">
                     <img
                       src={project.image || "/placeholder.svg"}
                       alt={project.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
                     <div className="absolute top-4 left-4">
                       <Badge className="bg-[#4ade80]/90 backdrop-blur-sm text-white border-[#4ade80]/20 hover:bg-[#4ade80]">
                         {project.category}
@@ -328,10 +338,10 @@ export default function BrowsePage() {
                   </div>
 
                   <div className="p-6 flex flex-col flex-grow">
-                    <h3 className="font-bold text-xl mb-3 text-balance text-foreground group-hover:text-[#22c55e] transition-colors">
+                    <h3 className="font-bold text-xl mb-3 text-balance text-white group-hover:text-[#4ade80] transition-colors">
                       {project.title}
                     </h3>
-                    <p className="text-muted-foreground text-sm mb-4 line-clamp-3 flex-grow leading-relaxed">
+                    <p className="text-gray-400 text-sm mb-4 line-clamp-3 flex-grow leading-relaxed">
                       {project.description}
                     </p>
 
@@ -340,48 +350,48 @@ export default function BrowsePage() {
                         {project.skills.slice(0, 3).map((skill) => (
                           <span
                             key={skill}
-                            className="px-2.5 py-1 bg-surface text-xs rounded-md font-medium text-foreground border border-border"
+                            className="px-2.5 py-1 bg-white/10 text-xs rounded-md font-medium text-white border border-white/20"
                           >
                             {skill}
                           </span>
                         ))}
                         {project.skills.length > 3 && (
-                          <span className="px-2.5 py-1 bg-surface text-xs rounded-md font-medium text-muted-foreground border border-border">
+                          <span className="px-2.5 py-1 bg-white/10 text-xs rounded-md font-medium text-gray-400 border border-white/20">
                             +{project.skills.length - 3}
                           </span>
                         )}
                       </div>
 
-                      <div className="p-4 bg-surface rounded-lg border border-border">
+                      <div className="p-4 bg-white/5 rounded-lg border border-white/10">
                         <div className="flex items-center justify-between text-sm mb-2">
-                          <span className="text-muted-foreground font-medium">Funding Progress</span>
-                          <span className="font-bold text-foreground">
+                          <span className="text-gray-400 font-medium">Funding Progress</span>
+                          <span className="font-bold text-white">
                             {Math.round((project.funded / project.budget) * 100)}%
                           </span>
                         </div>
-                        <div className="h-2.5 bg-muted rounded-full overflow-hidden mb-2">
+                        <div className="h-2.5 bg-white/10 rounded-full overflow-hidden mb-2">
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${(project.funded / project.budget) * 100}%` }}
                             transition={{ duration: 1, delay: 0.2 + index * 0.05 }}
-                            className="h-full bg-gradient-to-r from-[#4ade80] to-[#22c55e] rounded-full"
+                            className="h-full bg-linear-to-r from-[#4ade80] to-cyan-400 rounded-full"
                           />
                         </div>
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">{formatUSDC(project.funded)} raised</span>
-                          <span className="font-semibold text-foreground">{formatUSDC(project.budget)} goal</span>
+                          <span className="text-gray-500">{formatUSDC(project.funded)} raised</span>
+                          <span className="font-semibold text-white">{formatUSDC(project.budget)} goal</span>
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between pt-4 border-t border-border">
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <div className="flex items-center justify-between pt-4 border-t border-white/10">
+                        <div className="flex items-center gap-2 text-sm text-gray-400">
                           <Users className="h-4 w-4" />
                           <span className="font-medium">{project.bids} bids</span>
                         </div>
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="text-[#22c55e] hover:text-[#4ade80] hover:bg-[#4ade80]/10 group-hover:translate-x-1 transition-transform"
+                          className="text-[#4ade80] hover:text-[#22c55e] hover:bg-[#4ade80]/10 group-hover:translate-x-1 transition-transform"
                           asChild
                         >
                           <Link href={`/project/${project.id}`}>
@@ -397,28 +407,30 @@ export default function BrowsePage() {
             )}
           </div>
 
-          {filteredProjects.length === 0 && (
+          {filteredProjects.length === 0 && !loading && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
-              <div className="w-20 h-20 rounded-full bg-surface mx-auto mb-6 flex items-center justify-center">
-                <Search className="h-10 w-10 text-muted-foreground" />
+              <div className="w-20 h-20 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 mx-auto mb-6 flex items-center justify-center">
+                <Search className="h-10 w-10 text-gray-400" />
               </div>
-              <h3 className="text-2xl font-bold mb-2 text-foreground">No projects found</h3>
-              <p className="text-muted-foreground text-lg mb-6">
+              <h3 className="text-2xl font-bold mb-2 text-white">No projects found</h3>
+              <p className="text-gray-300 text-lg mb-6">
                 Try adjusting your search or filters to find what you're looking for
               </p>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSearchQuery("")
-                  setSelectedCategory("All")
-                }}
-              >
-                Clear Filters
-              </Button>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  variant="outline"
+                  className="border-white/20 bg-white/5 hover:bg-white/10 text-white backdrop-blur-sm"
+                  onClick={() => {
+                    setSearchQuery("")
+                    setSelectedCategory("All")
+                  }}
+                >
+                  Clear Filters
+                </Button>
+              </motion.div>
             </motion.div>
           )}
         </div>
       </main>
-    </GradientBackground>
   )
 }

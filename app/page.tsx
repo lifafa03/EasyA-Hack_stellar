@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { 
   ArrowRight, Rocket, Users, DollarSign, Shield, TrendingUp, Clock, 
-  CheckCircle2, Star, Zap, Briefcase, Globe, Lock, BarChart3
+  CheckCircle2, Star, Zap, Briefcase, Globe, Lock, BarChart3, Sparkles, ChevronRight
 } from "lucide-react"
 import { GradientBackground } from "@/components/gradient-background"
 import { StellarBadge, StellarFAQ } from "@/components/stellar"
 import { WalletConnectButton } from "@/components/wallet-connect"
+import { AnimatedTextCycle } from "@/components/animated-text-cycle"
+import { InteractiveDots } from "@/components/interactive-dots"
 
 const stats = [
   { label: "Active Projects", value: "2,500+", icon: Rocket },
@@ -168,88 +170,152 @@ const testimonials = [
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen relative overflow-hidden">
-      {/* Global background gradient */}
-      <div className="absolute inset-0 bg-linear-to-b from-surface via-background to-surface -z-10" />
-      
-      {/* Decorative gradient blobs */}
-      <div className="absolute top-20 left-10 w-72 h-72 bg-[#4ade80]/5 dark:bg-[#4ade80]/10 rounded-full blur-3xl -z-10" />
-      <div className="absolute top-1/3 right-10 w-96 h-96 bg-[#22c55e]/5 dark:bg-[#22c55e]/10 rounded-full blur-3xl -z-10" />
-      <div className="absolute top-2/3 left-1/4 w-64 h-64 bg-[#4ade80]/3 dark:bg-[#4ade80]/5 rounded-full blur-3xl -z-10" />
-      <div className="absolute bottom-20 right-1/3 w-80 h-80 bg-[#22c55e]/5 dark:bg-[#22c55e]/10 rounded-full blur-3xl -z-10" />
-      
-      {/* Hero Section */}
-      <div>
-        <section className="relative py-24 md:py-32">
+    <main className="min-h-screen relative overflow-hidden bg-black">
+      {/* Hero Section with Interactive Background */}
+      <div className="relative min-h-screen">
+        <InteractiveDots />
+        
+        {/* Enhanced gradient overlays */}
+        <div className="absolute inset-0 bg-linear-to-b from-transparent via-black/20 to-black z-1 pointer-events-none" />
+        <div className="absolute inset-0 z-1 pointer-events-none">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute top-20 right-1/4 w-[500px] h-[500px] bg-[#4ade80]/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+        </div>
+
+        <section className="relative z-10 py-24 md:py-32 min-h-screen flex items-center">
           <div className="container mx-auto px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="max-w-5xl mx-auto text-center"
+              className="max-w-6xl mx-auto text-center"
             >
               <motion.div
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.2 }}
-                className="inline-flex items-center gap-2 mb-6 px-4 py-2 bg-[#4ade80]/10 rounded-full border border-[#4ade80]/20"
+                className="inline-flex items-center gap-2 mb-8 px-5 py-2.5 bg-linear-to-r from-purple-600/20 to-[#4ade80]/20 border border-[#4ade80]/30 rounded-full backdrop-blur-sm"
               >
-                <div className="scale-75">
-                  <StellarBadge />
-                </div>
-                <span className="text-[#22c55e] font-semibold text-sm">Powered by Stellar Blockchain</span>
+                <Sparkles className="w-4 h-4 text-[#4ade80] animate-pulse" />
+                <span className="text-[#4ade80] font-semibold text-sm">Powered by Stellar Blockchain</span>
+                <div className="w-2 h-2 bg-[#4ade80] rounded-full animate-pulse" />
               </motion.div>
 
-              <h1 className="text-5xl md:text-7xl font-bold mb-6 text-balance text-foreground leading-tight">
-                The Future of <span className="text-[#4ade80]">Decentralized</span> Work
-              </h1>
+              <motion.h1
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="text-5xl sm:text-6xl lg:text-8xl font-bold leading-tight mb-8"
+              >
+                <span className="text-white">The Future of{" "}</span>
+                <span className="inline-block h-[1.2em] overflow-hidden align-bottom">
+                  <AnimatedTextCycle
+                    words={["Crowdfunding", "Freelancing", "Work", "Collaboration", "Innovation"]}
+                    className="bg-linear-to-r from-purple-400 via-[#4ade80] to-cyan-400 bg-clip-text text-transparent"
+                  />
+                </span>
+                <br />
+                <span className="bg-linear-to-r from-purple-400 via-pink-500 to-[#4ade80] bg-clip-text text-transparent">
+                  Starts Here
+                </span>
+              </motion.h1>
 
-              <p className="text-xl md:text-2xl text-muted-foreground mb-8 text-pretty max-w-3xl mx-auto leading-relaxed">
-                Connect businesses, freelancers, and investors on a transparent platform powered by blockchain technology
-              </p>
+              <motion.p
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+                className="text-lg sm:text-xl lg:text-2xl text-gray-300 max-w-4xl mx-auto mb-10 leading-relaxed"
+              >
+                Where <span className="text-[#4ade80] font-semibold">Kickstarter meets Upwork</span>. Fund projects, hire talent, and build the future—all on a decentralized, transparent blockchain platform.
+              </motion.p>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-                <Button size="lg" className="bg-[#4ade80] hover:bg-[#22c55e] text-white text-lg px-8" asChild>
-                  <Link href="/browse">
-                    Find Projects <ArrowRight className="ml-2 h-5 w-5" />
-                  </Link>
-                </Button>
-                <Button size="lg" variant="outline" className="border-border bg-transparent text-lg px-8" asChild>
-                  <Link href="/post-project">Fund a Project</Link>
-                </Button>
-              </div>
-
-              {/* Stats */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto"
+                transition={{ duration: 0.6, delay: 0.5 }}
+                className="flex flex-col sm:flex-row gap-4 justify-center mb-16"
+              >
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    size="lg"
+                    className="group relative overflow-hidden bg-linear-to-r from-purple-600 to-[#4ade80] hover:from-purple-500 hover:to-[#22c55e] text-white text-lg px-10 py-7 shadow-lg shadow-[#4ade80]/50"
+                    asChild
+                  >
+                    <Link href="/browse" className="flex items-center gap-2">
+                      <Rocket className="w-5 h-5" />
+                      Launch Your Project
+                      <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                  </Link>
+                </Button>
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="border-white/20 bg-white/5 hover:bg-white/10 backdrop-blur-sm text-white text-lg px-10 py-7"
+                    asChild
+                  >
+                    <Link href="/post-project" className="flex items-center gap-2">
+                      <Zap className="w-5 h-5" />
+                      Find Talent
+                    </Link>
+                </Button>
+                </motion.div>
+              </motion.div>
+
+              {/* Enhanced Stats */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
+                className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto"
               >
                 {stats.map((stat, index) => (
                   <motion.div
                     key={stat.label}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.5 + index * 0.1 }}
-                    className="text-center"
+                    transition={{ delay: 0.7 + index * 0.1 }}
+                    whileHover={{ y: -5, scale: 1.05 }}
+                    className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:border-[#4ade80]/50 transition-all"
                   >
-                    <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#4ade80]/10 mb-3">
-                      <stat.icon className="h-7 w-7 text-[#22c55e]" />
-                    </div>
-                    <div className="text-3xl md:text-4xl font-bold text-foreground mb-1">{stat.value}</div>
-                    <div className="text-sm text-muted-foreground">{stat.label}</div>
+                    <stat.icon className="w-10 h-10 text-[#4ade80] mb-3 mx-auto" />
+                    <div className="text-3xl md:text-4xl font-bold text-white mb-1">{stat.value}</div>
+                    <div className="text-sm text-gray-400">{stat.label}</div>
                   </motion.div>
                 ))}
+              </motion.div>
+
+              {/* Platform Preview */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8, delay: 0.9 }}
+                className="mt-20 w-full max-w-6xl mx-auto"
+              >
+                <div className="relative rounded-2xl overflow-hidden border border-[#4ade80]/30 shadow-2xl shadow-[#4ade80]/20">
+                  <div className="absolute inset-0 bg-linear-to-br from-purple-600/20 to-[#4ade80]/20 backdrop-blur-sm z-10" />
+                  <img
+                    src="https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=1200&h=675&fit=crop"
+                    alt="Decentralized marketplace interface"
+                    className="w-full h-auto object-cover opacity-80"
+                  />
+                  <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-transparent z-10" />
+                </div>
               </motion.div>
             </motion.div>
           </div>
         </section>
       </div>
 
-      {/* Problem & Solution */}
-      <div>
-        <section className="py-24 relative">
+      {/* How It Works */}
+      <div className="bg-linear-to-b from-black via-gray-900 to-black relative">
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute top-1/4 left-10 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 right-10 w-96 h-96 bg-[#4ade80]/20 rounded-full blur-3xl" />
+        </div>
+        <section className="py-24 relative z-10">
           <div className="container mx-auto px-4">
             <motion.div
               initial={{ opacity: 0 }}
@@ -257,15 +323,23 @@ export default function HomePage() {
               viewport={{ once: true }}
               className="text-center mb-16"
             >
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">The Problem</h2>
-              <p className="text-muted-foreground text-lg md:text-xl max-w-3xl mx-auto mb-12">
-                Traditional freelance platforms are slow, expensive, and opaque. Payment delays, high fees, and zero transparency kill momentum. Businesses struggle to fund projects, freelancers wait weeks for payment, and investors have no way to participate in the upside.
-              </p>
-              
-              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">The Solution</h2>
-              <p className="text-muted-foreground text-lg md:text-xl max-w-3xl mx-auto">
-                We're building the future of decentralized work. Instant payments. Zero middlemen. Full transparency. Fund projects, find work, or invest—all on-chain, all trustless, all degen-approved.
-              </p>
+              <motion.h2 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="text-4xl md:text-6xl font-bold mb-6 text-white"
+              >
+                How It <span className="bg-linear-to-r from-[#4ade80] via-cyan-400 to-purple-400 bg-clip-text text-transparent">Works</span>
+              </motion.h2>
+              <motion.p 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+                className="text-gray-300 text-lg md:text-xl max-w-3xl mx-auto leading-relaxed"
+              >
+                Whether you're funding, building, or investing—get started in minutes
+              </motion.p>
             </motion.div>
 
             <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
@@ -276,33 +350,45 @@ export default function HomePage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.15 }}
+                  whileHover={{ y: -10, scale: 1.02 }}
                 >
-                  <Card className="p-8 h-full flex flex-col hover:shadow-xl transition-all duration-300 hover:-translate-y-2 bg-card border-border">
-                    <div
+                  <Card className="p-8 h-full flex flex-col bg-white/5 backdrop-blur-sm border-white/10 hover:border-[#4ade80]/50 transition-all duration-300 hover:shadow-2xl hover:shadow-[#4ade80]/20">
+                    <motion.div
+                      whileHover={{ rotate: [0, -10, 10, -10, 0], scale: 1.1 }}
+                      transition={{ duration: 0.5 }}
                       className={`w-16 h-16 rounded-2xl bg-linear-to-br ${journey.gradient} flex items-center justify-center mb-6 shadow-lg`}
                     >
                       <journey.icon className="h-8 w-8 text-white" />
-                    </div>
+                    </motion.div>
 
-                    <h3 className="text-2xl font-bold mb-2 text-card-foreground">{journey.title}</h3>
-                    <p className="text-muted-foreground mb-6">{journey.description}</p>
+                    <h3 className="text-2xl font-bold mb-2 text-white">{journey.title}</h3>
+                    <p className="text-gray-400 mb-6">{journey.description}</p>
 
                     <div className="space-y-3 mb-8 grow">
                       {journey.steps.map((step, stepIndex) => (
-                        <div key={stepIndex} className="flex items-start gap-3">
+                        <motion.div 
+                          key={stepIndex} 
+                          initial={{ opacity: 0, x: -20 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: 0.4 + stepIndex * 0.1 }}
+                          className="flex items-start gap-3"
+                        >
                           <div className="w-6 h-6 rounded-full bg-[#4ade80]/20 flex items-center justify-center shrink-0 mt-0.5">
-                            <span className="text-[#22c55e] text-sm font-semibold">{stepIndex + 1}</span>
+                            <span className="text-[#4ade80] text-sm font-semibold">{stepIndex + 1}</span>
                           </div>
-                          <p className="text-sm text-muted-foreground leading-relaxed">{step}</p>
-                        </div>
+                          <p className="text-sm text-gray-400 leading-relaxed">{step}</p>
+                        </motion.div>
                       ))}
                     </div>
 
-                    <Button className="w-full bg-[#4ade80] hover:bg-[#22c55e] text-white" asChild>
+                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                      <Button className="w-full bg-linear-to-r from-[#4ade80] to-[#22c55e] hover:from-[#22c55e] hover:to-[#4ade80] text-white shadow-lg shadow-[#4ade80]/50" asChild>
                       <Link href={journey.ctaLink}>
                         {journey.cta} <ArrowRight className="ml-2 h-4 w-4" />
                       </Link>
                     </Button>
+                    </motion.div>
                   </Card>
                 </motion.div>
               ))}
@@ -312,8 +398,12 @@ export default function HomePage() {
       </div>
 
       {/* Key Features */}
-      <div>
-        <section className="py-24 relative">
+      <div className="bg-black relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute top-1/3 right-10 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/3 left-10 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-3xl" />
+        </div>
+        <section className="py-24 relative z-10">
           <div className="container mx-auto px-4">
             <motion.div
               initial={{ opacity: 0 }}
@@ -321,10 +411,23 @@ export default function HomePage() {
               viewport={{ once: true }}
               className="text-center mb-16"
             >
-              <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Why Choose StellarWork+</h2>
-              <p className="text-muted-foreground text-lg md:text-xl max-w-3xl mx-auto">
+              <motion.h2 
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                className="text-4xl md:text-6xl font-bold mb-4 text-white"
+              >
+                Why Choose <span className="bg-linear-to-r from-[#4ade80] to-cyan-400 bg-clip-text text-transparent">StellarWork+</span>
+              </motion.h2>
+              <motion.p 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+                className="text-gray-300 text-lg md:text-xl max-w-3xl mx-auto"
+              >
                 Built on blockchain for transparency, security, and instant payments
-              </p>
+              </motion.p>
             </motion.div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
@@ -335,15 +438,18 @@ export default function HomePage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
+                  whileHover={{ y: -5, scale: 1.03 }}
                 >
-                  <Card className="p-6 h-full hover:shadow-lg transition-all hover:-translate-y-1 bg-card border-border group">
-                    <div
-                      className={`w-14 h-14 rounded-2xl bg-linear-to-br ${feature.gradient} flex items-center justify-center mb-4 shadow-md group-hover:scale-110 transition-transform`}
+                  <Card className="p-6 h-full bg-white/5 backdrop-blur-sm border-white/10 hover:border-[#4ade80]/50 transition-all group hover:shadow-xl hover:shadow-[#4ade80]/20">
+                    <motion.div
+                      whileHover={{ rotate: 360 }}
+                      transition={{ duration: 0.6 }}
+                      className={`w-14 h-14 rounded-2xl bg-linear-to-br ${feature.gradient} flex items-center justify-center mb-4 shadow-md`}
                     >
                       <feature.icon className="h-7 w-7 text-white" />
-                    </div>
-                    <h3 className="font-bold text-lg mb-2 text-card-foreground">{feature.title}</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">{feature.description}</p>
+                    </motion.div>
+                    <h3 className="font-bold text-lg mb-2 text-white group-hover:text-[#4ade80] transition-colors">{feature.title}</h3>
+                    <p className="text-gray-400 text-sm leading-relaxed">{feature.description}</p>
                   </Card>
                 </motion.div>
               ))}
@@ -353,17 +459,42 @@ export default function HomePage() {
       </div>
 
       {/* Featured Projects */}
-      <div>
-        <section className="py-24 relative">
+      <div className="bg-linear-to-b from-black via-gray-900 to-black relative">
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-20 left-1/4 w-96 h-96 bg-[#4ade80]/20 rounded-full blur-3xl" />
+        </div>
+        <section className="py-24 relative z-10">
           <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between mb-12">
+            <div className="flex flex-col md:flex-row items-center justify-between mb-12 gap-4">
               <div>
-                <h2 className="text-4xl font-bold mb-2 text-foreground">Featured Projects</h2>
-                <p className="text-muted-foreground text-lg">Discover opportunities and invest in innovation</p>
+                <motion.h2 
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  className="text-4xl md:text-5xl font-bold mb-2 text-white"
+                >
+                  Featured Projects
+                </motion.h2>
+                <motion.p 
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.1 }}
+                  className="text-gray-400 text-lg"
+                >
+                  Discover opportunities and invest in innovation
+                </motion.p>
               </div>
-              <Button variant="outline" className="border-border bg-transparent" asChild>
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                whileHover={{ scale: 1.05 }}
+              >
+                <Button variant="outline" className="border-white/20 bg-white/5 hover:bg-white/10 text-white backdrop-blur-sm" asChild>
                 <Link href="/browse">View All</Link>
               </Button>
+              </motion.div>
             </div>
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
@@ -374,14 +505,16 @@ export default function HomePage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
+                  whileHover={{ y: -10, scale: 1.02 }}
                 >
-                  <Card className="p-0 h-full hover:shadow-xl transition-all hover:-translate-y-2 bg-card border-border overflow-hidden group">
-                    <div className="relative h-48 w-full overflow-hidden bg-surface">
+                  <Card className="p-0 h-full bg-white/5 backdrop-blur-sm border-white/10 hover:border-[#4ade80]/50 overflow-hidden group transition-all duration-300 hover:shadow-2xl hover:shadow-[#4ade80]/20">
+                    <div className="relative h-48 w-full overflow-hidden">
                       <img
                         src={project.image || "/placeholder.svg"}
                         alt={project.title}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
+                      <div className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent" />
                       <div className="absolute top-4 left-4">
                         <span className="px-3 py-1 bg-[#4ade80]/90 backdrop-blur-sm text-white text-xs font-semibold rounded-full">
                           {project.category}
@@ -393,35 +526,35 @@ export default function HomePage() {
                     </div>
 
                     <div className="p-6">
-                      <h3 className="font-bold text-lg mb-2 text-balance text-card-foreground group-hover:text-[#22c55e] transition-colors">
+                      <h3 className="font-bold text-lg mb-2 text-balance text-white group-hover:text-[#4ade80] transition-colors">
                         {project.title}
                       </h3>
-                      <p className="text-muted-foreground text-sm mb-4 line-clamp-2 leading-relaxed">
+                      <p className="text-gray-400 text-sm mb-4 line-clamp-2 leading-relaxed">
                         {project.description}
                       </p>
 
                       <div className="space-y-3">
                         <div>
                           <div className="flex items-center justify-between text-sm mb-2">
-                            <span className="text-muted-foreground">Funded</span>
-                            <span className="font-semibold text-card-foreground">
-                              ${project.funded.toLocaleString()} USDC / ${project.budget.toLocaleString()} USDC
+                            <span className="text-gray-500">Funded</span>
+                            <span className="font-semibold text-white">
+                              ${project.funded.toLocaleString()} / ${project.budget.toLocaleString()} USDC
                             </span>
                           </div>
-                          <div className="h-2 bg-muted rounded-full overflow-hidden">
+                          <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                             <motion.div
                               initial={{ width: 0 }}
                               whileInView={{ width: `${(project.funded / project.budget) * 100}%` }}
                               viewport={{ once: true }}
                               transition={{ duration: 1, delay: 0.2 }}
-                              className="h-full bg-[#4ade80] rounded-full"
+                              className="h-full bg-linear-to-r from-[#4ade80] to-cyan-400 rounded-full"
                             />
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between pt-3 border-t border-border">
-                          <span className="text-sm text-muted-foreground">{project.bids} bids</span>
-                          <Button size="sm" variant="ghost" className="text-[#22c55e] hover:text-[#4ade80]" asChild>
+                        <div className="flex items-center justify-between pt-3 border-t border-white/10">
+                          <span className="text-sm text-gray-400">{project.bids} bids</span>
+                          <Button size="sm" variant="ghost" className="text-[#4ade80] hover:text-[#22c55e] hover:bg-[#4ade80]/10" asChild>
                             <Link href={`/project/${project.id}`}>
                               View Details <ArrowRight className="ml-1 h-4 w-4" />
                             </Link>
@@ -438,8 +571,12 @@ export default function HomePage() {
       </div>
 
       {/* Stellar Benefits */}
-      <div>
-        <section className="py-24 relative">
+      <div className="bg-black relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-[#4ade80]/10 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-3xl" />
+        </div>
+        <section className="py-24 relative z-10">
           <div className="container mx-auto px-4 max-w-6xl">
             <motion.div
               initial={{ opacity: 0 }}
@@ -447,13 +584,35 @@ export default function HomePage() {
               viewport={{ once: true }}
               className="text-center mb-16"
             >
-              <div className="flex justify-center mb-4">
+              <motion.div 
+                className="flex justify-center mb-6"
+                initial={{ scale: 0 }}
+                whileInView={{ scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ type: "spring", stiffness: 200 }}
+              >
+                <div className="relative">
+                  <div className="absolute inset-0 bg-[#4ade80]/20 blur-xl rounded-full" />
                 <StellarBadge />
               </div>
-              <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Built on Stellar Blockchain</h2>
-              <p className="text-muted-foreground text-lg md:text-xl max-w-3xl mx-auto">
+              </motion.div>
+              <motion.h2 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="text-4xl md:text-6xl font-bold mb-4 text-white"
+              >
+                Built on <span className="bg-linear-to-r from-[#4ade80] to-cyan-400 bg-clip-text text-transparent">Stellar Blockchain</span>
+              </motion.h2>
+              <motion.p 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+                className="text-gray-300 text-lg md:text-xl max-w-3xl mx-auto"
+              >
                 Fast, secure, and transparent transactions powered by cutting-edge blockchain technology
-              </p>
+              </motion.p>
             </motion.div>
 
             <div className="grid md:grid-cols-2 gap-6 mb-12">
@@ -493,34 +652,83 @@ export default function HomePage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
+                  whileHover={{ y: -5, scale: 1.02 }}
                 >
-                  <Card className="p-6 h-full bg-card border-border hover:shadow-lg transition-all">
-                    <div className={`w-12 h-12 rounded-xl bg-linear-to-br ${benefit.gradient} flex items-center justify-center mb-4`}>
+                  <Card className="p-6 h-full bg-white/5 backdrop-blur-sm border-white/10 hover:border-[#4ade80]/50 transition-all hover:shadow-xl hover:shadow-[#4ade80]/20">
+                    <motion.div 
+                      className={`w-12 h-12 rounded-xl bg-linear-to-br ${benefit.gradient} flex items-center justify-center mb-4`}
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                    >
                       <benefit.icon className="h-6 w-6 text-white" />
-                    </div>
-                    <h3 className="font-bold text-xl mb-3 text-card-foreground">{benefit.title}</h3>
-                    <p className="text-muted-foreground mb-4 leading-relaxed">{benefit.description}</p>
+                    </motion.div>
+                    <h3 className="font-bold text-xl mb-3 text-white">{benefit.title}</h3>
+                    <p className="text-gray-400 mb-4 leading-relaxed">{benefit.description}</p>
                     <ul className="space-y-2">
                       {benefit.features.map((feature, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
-                          <CheckCircle2 className="h-4 w-4 text-[#22c55e] shrink-0 mt-0.5" />
+                        <motion.li 
+                          key={i} 
+                          initial={{ opacity: 0, x: -10 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: 0.1 + i * 0.05 }}
+                          className="flex items-start gap-2 text-sm text-gray-400"
+                        >
+                          <CheckCircle2 className="h-4 w-4 text-[#4ade80] shrink-0 mt-0.5" />
                           <span>{feature}</span>
-                        </li>
+                        </motion.li>
                       ))}
                     </ul>
                   </Card>
                 </motion.div>
               ))}
             </div>
+          </div>
+        </section>
+      </div>
 
+      {/* FAQ Section */}
+      <div className="bg-linear-to-b from-black via-gray-900 to-black relative">
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl" />
+        </div>
+        <section className="py-24 relative z-10">
+          <div className="container mx-auto px-4 max-w-6xl">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="text-center mb-16"
+            >
+              <motion.h2 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="text-4xl md:text-5xl font-bold mb-4 text-white"
+              >
+                Frequently Asked <span className="bg-linear-to-r from-[#4ade80] to-cyan-400 bg-clip-text text-transparent">Questions</span>
+              </motion.h2>
+              <motion.p 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+                className="text-gray-300 text-lg max-w-2xl mx-auto"
+              >
+                Everything you need to know about StellarWork+
+              </motion.p>
+            </motion.div>
+            
             <StellarFAQ />
           </div>
         </section>
       </div>
 
       {/* Testimonials */}
-      <div>
-        <section className="py-24 relative">
+      <div className="bg-linear-to-b from-black via-gray-900 to-black relative">
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl" />
+        </div>
+        <section className="py-24 relative z-10">
           <div className="container mx-auto px-4">
             <motion.div
               initial={{ opacity: 0 }}
@@ -528,10 +736,23 @@ export default function HomePage() {
               viewport={{ once: true }}
               className="text-center mb-16"
             >
-              <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Trusted by Thousands</h2>
-              <p className="text-muted-foreground text-lg md:text-xl max-w-3xl mx-auto">
+              <motion.h2 
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                className="text-4xl md:text-6xl font-bold mb-4 text-white"
+              >
+                Trusted by <span className="bg-linear-to-r from-[#4ade80] to-cyan-400 bg-clip-text text-transparent">Thousands</span>
+              </motion.h2>
+              <motion.p 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+                className="text-gray-300 text-lg md:text-xl max-w-3xl mx-auto"
+              >
                 See what our community has to say about their experience
-              </p>
+              </motion.p>
             </motion.div>
 
             <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
@@ -542,23 +763,33 @@ export default function HomePage() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1 }}
+                  whileHover={{ y: -5, scale: 1.03 }}
                 >
-                  <Card className="p-6 h-full bg-card border-border hover:shadow-lg transition-all">
+                  <Card className="p-6 h-full bg-white/5 backdrop-blur-sm border-white/10 hover:border-[#4ade80]/50 transition-all hover:shadow-xl hover:shadow-[#4ade80]/20">
                     <div className="flex gap-1 mb-4">
                       {Array.from({ length: testimonial.rating }).map((_, i) => (
-                        <Star key={i} className="h-4 w-4 fill-[#fbbf24] text-[#fbbf24]" />
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, scale: 0 }}
+                          whileInView={{ opacity: 1, scale: 1 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: 0.2 + i * 0.05 }}
+                        >
+                          <Star className="h-5 w-5 fill-[#fbbf24] text-[#fbbf24]" />
+                        </motion.div>
                       ))}
                     </div>
-                    <p className="text-muted-foreground mb-6 leading-relaxed italic">"{testimonial.content}"</p>
+                    <p className="text-gray-300 mb-6 leading-relaxed italic">"{testimonial.content}"</p>
                     <div className="flex items-center gap-3">
-                      <img
+                      <motion.img
+                        whileHover={{ scale: 1.1 }}
                         src={testimonial.avatar || "/placeholder.svg"}
                         alt={testimonial.name}
-                        className="w-12 h-12 rounded-full object-cover"
+                        className="w-12 h-12 rounded-full object-cover border-2 border-[#4ade80]/50"
                       />
                       <div>
-                        <div className="font-semibold text-card-foreground">{testimonial.name}</div>
-                        <div className="text-sm text-muted-foreground">{testimonial.role}</div>
+                        <div className="font-semibold text-white">{testimonial.name}</div>
+                        <div className="text-sm text-gray-400">{testimonial.role}</div>
                       </div>
                     </div>
                   </Card>
@@ -570,8 +801,11 @@ export default function HomePage() {
       </div>
 
       {/* CTA Section */}
-      <div>
-        <section className="py-24 relative">
+      <div className="bg-black relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-linear-to-r from-[#4ade80]/20 via-purple-600/20 to-cyan-500/20 rounded-full blur-3xl" />
+        </div>
+        <section className="py-32 relative z-10">
           <div className="container mx-auto px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -579,28 +813,100 @@ export default function HomePage() {
               viewport={{ once: true }}
               className="max-w-4xl mx-auto text-center"
             >
-              <h2 className="text-4xl md:text-6xl font-bold mb-6 text-balance text-foreground">Ready to Start Your Journey?</h2>
-              <p className="text-xl md:text-2xl mb-10 text-muted-foreground text-pretty leading-relaxed max-w-2xl mx-auto">
-                Join thousands of businesses, freelancers, and investors building the future of work
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <Button size="lg" className="bg-[#4ade80] hover:bg-[#22c55e] text-white text-lg px-8" asChild>
-                  <Link href="/signup">Create Account</Link>
+              <motion.div
+                initial={{ scale: 0 }}
+                whileInView={{ scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ type: "spring", stiffness: 200 }}
+                className="mb-8"
+              >
+                <div className="inline-flex items-center gap-2 bg-linear-to-r from-purple-600/20 to-[#4ade80]/20 border border-[#4ade80]/30 rounded-full px-6 py-3 backdrop-blur-sm">
+                  <Sparkles className="w-5 h-5 text-[#4ade80] animate-pulse" />
+                  <span className="text-[#4ade80] font-semibold">Start Building Today</span>
+                </div>
+              </motion.div>
+
+              <motion.h2 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.1 }}
+                className="text-5xl md:text-7xl font-bold mb-6 text-balance leading-tight"
+              >
+                <span className="text-white">Ready to Start Your</span>
+                <br />
+                <span className="bg-linear-to-r from-[#4ade80] via-cyan-400 to-purple-400 bg-clip-text text-transparent">
+                  Journey?
+                </span>
+              </motion.h2>
+              
+              <motion.p 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.2 }}
+                className="text-xl md:text-2xl mb-12 text-gray-300 text-pretty leading-relaxed max-w-2xl mx-auto"
+              >
+                Join thousands of businesses, freelancers, and investors building the <span className="text-[#4ade80] font-semibold">future of work</span>
+              </motion.p>
+              
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.3 }}
+                className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+              >
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button 
+                    size="lg" 
+                    className="group bg-linear-to-r from-[#4ade80] to-[#22c55e] hover:from-[#22c55e] hover:to-[#4ade80] text-white text-lg px-10 py-7 shadow-lg shadow-[#4ade80]/50" 
+                    asChild
+                  >
+                    <Link href="/signup" className="flex items-center gap-2">
+                      <Rocket className="w-5 h-5" />
+                      Create Account
+                      <ChevronRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+                    </Link>
                 </Button>
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-border bg-transparent text-lg px-8"
+                    className="border-white/20 bg-white/5 hover:bg-white/10 backdrop-blur-sm text-white text-lg px-10 py-7"
                   asChild
                 >
                   <Link href="/browse">Find Projects</Link>
                 </Button>
-              </div>
+                </motion.div>
+              </motion.div>
               
-              <div className="mt-12 flex items-center justify-center gap-2 text-muted-foreground">
-                <CheckCircle2 className="h-5 w-5 text-[#22c55e]" />
-                <span className="text-sm">No credit card required • Free to join • Start in minutes</span>
-              </div>
+              <motion.div 
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.4 }}
+                className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-6 text-gray-400"
+              >
+                {[
+                  { icon: CheckCircle2, text: "No credit card required" },
+                  { icon: CheckCircle2, text: "Free to join" },
+                  { icon: CheckCircle2, text: "Start in minutes" },
+                ].map((item, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: 0.5 + i * 0.1 }}
+                    className="flex items-center gap-2"
+                  >
+                    <item.icon className="h-5 w-5 text-[#4ade80]" />
+                    <span className="text-sm">{item.text}</span>
+                  </motion.div>
+                ))}
+              </motion.div>
             </motion.div>
           </div>
         </section>
