@@ -77,6 +77,9 @@ export function OffRampFlow({
   // SEP-10: Get challenge for authentication
   const getChallenge = async () => {
     try {
+      console.log('🔐 Getting challenge for account:', wallet.publicKey);
+      console.log('🏦 Anchor domain:', selectedAnchor.domain);
+      
       const response = await fetch('/api/sep10/challenge', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -88,13 +91,15 @@ export function OffRampFlow({
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.details || error.message || 'Failed to get challenge');
+        console.error('❌ Challenge error response:', error);
+        throw new Error(error.error || error.details || error.message || 'Failed to get challenge');
       }
 
       const data = await response.json();
+      console.log('✅ Challenge received');
       return data.transaction;
     } catch (err: any) {
-      console.error('Challenge error:', err);
+      console.error('❌ Challenge error:', err);
       throw err;
     }
   };

@@ -29,13 +29,32 @@ export async function POST(request: NextRequest) {
 
     // Request challenge from anchor
     const challengeUrl = `${WEB_AUTH_ENDPOINT}?account=${account}`;
+    console.log('🔍 Requesting challenge from:', challengeUrl);
+    
     const response = await fetch(challengeUrl);
 
     if (!response.ok) {
-      throw new Error(`Anchor returned ${response.status}: ${response.statusText}`);
+      const errorText = await response.text();
+      console.error('❌ Challenge request failed:', {
+        status: response.status,
+        statusText: response.statusText,
+        url: challengeUrl,
+        errorBody: errorText
+      });
+      
+      let errorDetails = errorText;
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorDetails = errorJson.error || errorJson.message || errorText;
+      } catch (e) {
+        // Not JSON, use text as-is
+      }
+      
+      throw new Error(`Anchor returned ${response.status}: ${errorDetails}`);
     }
 
     const data = await response.json();
+    console.log('✅ Challenge received successfully');
 
     return NextResponse.json({
       success: true,
