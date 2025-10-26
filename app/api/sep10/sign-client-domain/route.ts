@@ -42,8 +42,13 @@ export async function POST(request: NextRequest) {
     // Get client domain signing key from environment
     let clientDomainSecret = process.env.SIGNING_SECRET_KEY;
     
+    console.log('🔍 Debug: SIGNING_SECRET_KEY exists?', !!clientDomainSecret);
+    console.log('🔍 Debug: First 10 chars:', clientDomainSecret?.substring(0, 10));
+    console.log('🔍 Debug: Has quotes?', clientDomainSecret?.startsWith('"') || clientDomainSecret?.startsWith("'"));
+    
     if (!clientDomainSecret) {
       console.error('❌ SIGNING_SECRET_KEY not found in environment');
+      console.error('Available env keys:', Object.keys(process.env).filter(k => k.includes('SIGNING')));
       return NextResponse.json(
         { error: 'Client domain signing key not configured' },
         { status: 500 }
@@ -51,7 +56,28 @@ export async function POST(request: NextRequest) {
     }
 
     // Remove quotes if present (from .env.local format)
+    const originalLength = clientDomainSecret.length;
     clientDomainSecret = clientDomainSecret.replace(/^["']|["']$/g, '');
+    console.log('🔍 Debug: Removed quotes?', originalLength !== clientDomainSecret.length);
+    console.log('🔍 Debug: After cleanup, first 10 chars:', clientDomainSecret.substring(0, 10));
+    console.log('🔍 Debug: Total length:', clientDomainSecret.length);
+
+    // Validate it looks like a Stellar secret key
+    if (!clientDomainSecret.startsWith('S') || clientDomainSecret.length !== 56) {
+      console.error('❌ Invalid Stellar secret key format');
+      console.error('Key should start with S and be 56 chars, got:', {
+        startsWithS: clientDomainSecret.startsWith('S'),
+        length: clientDomainSecret.length,
+        preview: clientDomainSecret.substring(0, 10)
+      });
+      return NextResponse.json(
+        { 
+          error: 'Invalid Stellar secret key format',
+          details: `Key should start with 'S' and be 56 characters`
+        },
+        { status: 500 }
+      );
+    }
 
     console.log('🔐 Adding client_domain signature for MoneyGram');
     console.log('📄 Input XDR preview:', transaction_xdr.substring(0, 20) + '...');
