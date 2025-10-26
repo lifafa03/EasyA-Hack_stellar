@@ -10,9 +10,15 @@ export function Navigation() {
     <motion.nav
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="sticky top-0 z-50 bg-black/80 backdrop-blur-xl border-b border-white/10"
+      className="sticky top-0 z-50 bg-black backdrop-blur-xl border-b border-white/10"
     >
-      <div className="container mx-auto px-4 py-4">
+      {/* Subtle gradient background matching landing page */}
+      <div className="absolute inset-0 opacity-30 pointer-events-none">
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#4ade80]/10 rounded-full blur-3xl" />
+      </div>
+      
+      <div className="container mx-auto px-4 py-4 relative z-10">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-xl bg-linear-to-br from-[#4ade80] to-[#22c55e] flex items-center justify-center shadow-lg shadow-[#4ade80]/30">
