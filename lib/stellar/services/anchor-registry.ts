@@ -77,7 +77,7 @@ export class AnchorRegistry {
         deposit: '5-15 minutes',
         withdrawal: '1-3 business days',
       },
-      description: '✅ LIVE: Global cash in/out with 174 country coverage. Direct USDC→INR conversion with pickup at 430,000+ MoneyGram locations worldwide or bank transfer to India.',
+      description: 'Global cash in/out with 174 country coverage. Direct USDC→INR conversion with pickup at 430,000+ MoneyGram locations worldwide or bank transfer to India.',
     },
   ];
 
