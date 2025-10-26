@@ -543,15 +543,15 @@ export default function ProjectDetailPage() {
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                 <div className="flex items-center gap-3 mb-4">
                   <Badge className="bg-[#4ade80]/10 text-[#22c55e] hover:bg-[#4ade80]/20">{projectData.category}</Badge>
-                  <span className="text-sm text-muted flex items-center gap-1">
+                  <span className="text-sm text-gray-400 flex items-center gap-1">
                     <Calendar className="h-4 w-4" />
                     Posted on {new Date(projectData.postedDate).toLocaleDateString()}
                   </span>
                 </div>
 
-                <h1 className="text-4xl font-bold mb-4 text-balance">{projectData.title}</h1>
+                <h1 className="text-4xl font-bold mb-4 text-white">{projectData.title}</h1>
 
-                <div className="flex flex-wrap gap-4 text-sm text-muted mb-6">
+                <div className="flex flex-wrap gap-4 text-sm text-gray-400 mb-6">
                   <span className="flex items-center gap-1">
                     <Clock className="h-4 w-4" />
                     {projectData.daysLeft} days left
@@ -636,18 +636,18 @@ export default function ProjectDetailPage() {
                                     ? "text-[#4ade80]"
                                     : milestone.status === "in-progress"
                                       ? "text-[#fbbf24]"
-                                      : "text-muted"
+                                      : "text-gray-400"
                                 }`}
                               >
                                 <CheckCircle2 className="h-5 w-5" />
                               </div>
-                              <div className="flex-grow">
+                              <div className="grow">
                                 <div className="flex items-center justify-between mb-1">
-                                  <h4 className="font-semibold">{milestone.title}</h4>
+                                  <h4 className="font-semibold text-white">{milestone.title}</h4>
                                   <span className="text-sm font-semibold">${parseFloat(milestone.budget).toLocaleString()} USDC</span>
                                 </div>
                                 {milestone.description && (
-                                  <p className="text-sm text-muted mb-2">{milestone.description}</p>
+                                  <p className="text-sm text-gray-400 mb-2">{milestone.description}</p>
                                 )}
                                 <span
                                   className={`text-xs px-2 py-1 rounded-full ${
@@ -655,13 +655,13 @@ export default function ProjectDetailPage() {
                                       ? "bg-[#4ade80]/10 text-[#22c55e]"
                                       : milestone.status === "in-progress"
                                         ? "bg-[#fbbf24]/10 text-[#fbbf24]"
-                                        : "bg-surface text-muted"
+                                        : "bg-surface text-gray-400"
                                   }`}
                                 >
                                   {milestone.status.replace("-", " ")}
                                 </span>
                                 {milestone.completedAt && (
-                                  <p className="text-xs text-muted mt-1">
+                                  <p className="text-xs text-gray-400 mt-1">
                                     Completed: {new Date(milestone.completedAt).toLocaleDateString()}
                                   </p>
                                 )}
@@ -701,7 +701,7 @@ export default function ProjectDetailPage() {
                     {/* Escrow Tab */}
                     <TabsContent value="escrow" className="space-y-4 mt-6">
                       <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-2xl font-bold">Escrow Contract</h2>
+                        <h2 className="text-2xl font-bold text-white">Escrow Contract</h2>
                         {loadingEscrow ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : escrowStatus ? (
@@ -727,8 +727,8 @@ export default function ProjectDetailPage() {
                       {loadingEscrow ? (
                         <Card className="bg-surface-dark p-6">
                           <div className="flex items-center justify-center">
-                            <Loader2 className="h-8 w-8 animate-spin text-muted" />
-                            <span className="ml-3 text-muted">Loading escrow details...</span>
+                            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                            <span className="ml-3 text-gray-400">Loading escrow details...</span>
                           </div>
                         </Card>
                       ) : escrowStatus ? (
@@ -738,7 +738,7 @@ export default function ProjectDetailPage() {
                             <div className="p-6 space-y-4">
                               <div className="space-y-2">
                                 <div className="flex justify-between text-sm">
-                                  <span className="text-muted">Released</span>
+                                  <span className="text-gray-400">Released</span>
                                   <span className="font-semibold">
                                     ${parseFloat(escrowStatus.releasedAmount).toLocaleString()} / ${parseFloat(escrowStatus.totalAmount).toLocaleString()} USDC
                                   </span>
@@ -747,7 +747,7 @@ export default function ProjectDetailPage() {
                                   value={(parseFloat(escrowStatus.releasedAmount) / parseFloat(escrowStatus.totalAmount)) * 100} 
                                   className="h-3" 
                                 />
-                                <div className="flex justify-between text-xs text-muted">
+                                <div className="flex justify-between text-xs text-gray-400">
                                   <span>
                                     {((parseFloat(escrowStatus.releasedAmount) / parseFloat(escrowStatus.totalAmount)) * 100).toFixed(1)}% completed
                                   </span>
@@ -758,7 +758,7 @@ export default function ProjectDetailPage() {
                               {escrowStatus.yieldGenerated && escrowStatus.yieldGenerated > 0 && (
                                 <div className="pt-3 border-t border-border">
                                   <div className="flex items-center justify-between text-sm">
-                                    <span className="text-muted flex items-center gap-2">
+                                    <span className="text-gray-400 flex items-center gap-2">
                                       <TrendingUp className="h-4 w-4" />
                                       Yield Generated
                                     </span>
@@ -775,7 +775,7 @@ export default function ProjectDetailPage() {
                           <div className="grid md:grid-cols-2 gap-4">
                             <Card className="bg-surface-dark">
                               <div className="p-4 space-y-2">
-                                <div className="flex items-center gap-2 text-sm text-muted">
+                                <div className="flex items-center gap-2 text-sm text-gray-400">
                                   <FileText className="h-4 w-4" />
                                   <span>Contract Address</span>
                                 </div>
@@ -795,7 +795,7 @@ export default function ProjectDetailPage() {
 
                             <Card className="bg-surface-dark">
                               <div className="p-4 space-y-2">
-                                <div className="flex items-center gap-2 text-sm text-muted">
+                                <div className="flex items-center gap-2 text-sm text-gray-400">
                                   <DollarSign className="h-4 w-4" />
                                   <span>Available to Withdraw</span>
                                 </div>
@@ -832,14 +832,14 @@ export default function ProjectDetailPage() {
                               <h3 className="font-semibold">Participants</h3>
                               <div className="space-y-2">
                                 <div className="flex items-center justify-between text-sm">
-                                  <span className="text-muted">Client</span>
+                                  <span className="text-gray-400">Client</span>
                                   <span className="font-mono text-xs">
                                     {escrowStatus.clientAddress.slice(0, 8)}...{escrowStatus.clientAddress.slice(-8)}
                                   </span>
                                 </div>
                                 {escrowStatus.freelancerAddress && (
                                   <div className="flex items-center justify-between text-sm">
-                                    <span className="text-muted">Freelancer</span>
+                                    <span className="text-gray-400">Freelancer</span>
                                     <span className="font-mono text-xs">
                                       {escrowStatus.freelancerAddress.slice(0, 8)}...{escrowStatus.freelancerAddress.slice(-8)}
                                     </span>
@@ -862,15 +862,15 @@ export default function ProjectDetailPage() {
                     {/* Bids Tab */}
                     <TabsContent value="bids" className="space-y-4 mt-6">
                       <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-2xl font-bold">Submitted Bids</h2>
+                        <h2 className="text-2xl font-bold text-white">Submitted Bids</h2>
                         <Badge variant="outline">{escrowBids.length} bids</Badge>
                       </div>
 
                       {loadingBids ? (
                         <Card className="bg-surface-dark p-6">
                           <div className="flex items-center justify-center">
-                            <Loader2 className="h-8 w-8 animate-spin text-muted" />
-                            <span className="ml-3 text-muted">Loading bids...</span>
+                            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                            <span className="ml-3 text-gray-400">Loading bids...</span>
                           </div>
                         </Card>
                       ) : escrowBids.length > 0 ? (
@@ -881,13 +881,13 @@ export default function ProjectDetailPage() {
                                 <div className="flex items-start justify-between mb-4">
                                   <div className="flex items-center gap-3">
                                     <Avatar className="h-12 w-12">
-                                      <div className="w-full h-full bg-gradient-to-br from-[#4ade80] to-[#22c55e] flex items-center justify-center text-white font-bold">
+                                      <div className="w-full h-full bg-linear-to-br from-[#4ade80] to-[#22c55e] flex items-center justify-center text-white font-bold">
                                         {bid.freelancerAddress.slice(0, 2).toUpperCase()}
                                       </div>
                                     </Avatar>
                                     <div>
                                       <p className="font-semibold">Freelancer</p>
-                                      <p className="text-xs font-mono text-muted">
+                                      <p className="text-xs font-mono text-gray-400">
                                         {bid.freelancerAddress.slice(0, 8)}...{bid.freelancerAddress.slice(-8)}
                                       </p>
                                     </div>
@@ -896,14 +896,14 @@ export default function ProjectDetailPage() {
                                     <p className="text-2xl font-bold text-[#22c55e]">
                                       ${parseFloat(bid.bidAmount).toLocaleString()} USDC
                                     </p>
-                                    <p className="text-sm text-muted">{bid.deliveryDays} days delivery</p>
+                                    <p className="text-sm text-gray-400">{bid.deliveryDays} days delivery</p>
                                   </div>
                                 </div>
 
                                 <div className="space-y-3">
                                   <div>
                                     <h4 className="font-semibold text-sm mb-2">Proposal</h4>
-                                    <p className="text-sm text-muted">{bid.proposal}</p>
+                                    <p className="text-sm text-gray-400">{bid.proposal}</p>
                                   </div>
 
                                   {bid.portfolioLink && (
@@ -923,7 +923,7 @@ export default function ProjectDetailPage() {
                                   {bid.milestonesApproach && (
                                     <div>
                                       <h4 className="font-semibold text-sm mb-2">Milestone Approach</h4>
-                                      <p className="text-sm text-muted">{bid.milestonesApproach}</p>
+                                      <p className="text-sm text-gray-400">{bid.milestonesApproach}</p>
                                     </div>
                                   )}
 
@@ -943,7 +943,7 @@ export default function ProjectDetailPage() {
                                         </>
                                       )}
                                     </div>
-                                    <p className="text-xs text-muted">
+                                    <p className="text-xs text-gray-400">
                                       Submitted: {new Date(bid.timestamp).toLocaleDateString()}
                                     </p>
                                   </div>
@@ -969,9 +969,9 @@ export default function ProjectDetailPage() {
                       ) : (
                         <Card className="bg-surface-dark p-12">
                           <div className="text-center">
-                            <Users className="h-12 w-12 text-muted mx-auto mb-4" />
+                            <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                             <h3 className="font-semibold mb-2">No Bids Yet</h3>
-                            <p className="text-sm text-muted mb-4">
+                            <p className="text-sm text-gray-400 mb-4">
                               Be the first to submit a bid for this project!
                             </p>
                             <Button
@@ -989,7 +989,7 @@ export default function ProjectDetailPage() {
                     {projectData.hasCrowdfunding && (
                       <TabsContent value="crowdfunding" className="space-y-4 mt-6">
                         <div className="flex items-center justify-between mb-4">
-                          <h2 className="text-2xl font-bold">Crowdfunding Pool</h2>
+                          <h2 className="text-2xl font-bold text-white">Crowdfunding Pool</h2>
                           <Badge 
                             variant="outline"
                             className={
@@ -1009,7 +1009,7 @@ export default function ProjectDetailPage() {
                           <div className="p-6 space-y-4">
                             <div className="space-y-2">
                               <div className="flex justify-between">
-                                <span className="text-sm text-muted">Funding Progress</span>
+                                <span className="text-sm text-gray-400">Funding Progress</span>
                                 <span className="text-sm font-semibold">
                                   {((parseFloat(projectData.poolRaised) / parseFloat(projectData.poolGoal)) * 100).toFixed(1)}%
                                 </span>
@@ -1020,7 +1020,7 @@ export default function ProjectDetailPage() {
                               />
                               <div className="flex justify-between">
                                 <span className="text-2xl font-bold">${parseFloat(projectData.poolRaised).toLocaleString()} USDC</span>
-                                <span className="text-lg text-muted">of ${parseFloat(projectData.poolGoal).toLocaleString()} USDC</span>
+                                <span className="text-lg text-gray-400">of ${parseFloat(projectData.poolGoal).toLocaleString()} USDC</span>
                               </div>
                             </div>
                           </div>
@@ -1033,7 +1033,7 @@ export default function ProjectDetailPage() {
                               <div className="flex items-center gap-3">
                                 <Users className="h-5 w-5 text-[#4ade80]" />
                                 <div>
-                                  <p className="text-sm text-muted">Contributors</p>
+                                  <p className="text-sm text-gray-400">Contributors</p>
                                   <p className="text-xl font-bold">{projectData.poolContributors}</p>
                                 </div>
                               </div>
@@ -1045,7 +1045,7 @@ export default function ProjectDetailPage() {
                               <div className="flex items-center gap-3">
                                 <Calendar className="h-5 w-5 text-[#4ade80]" />
                                 <div>
-                                  <p className="text-sm text-muted">Days Left</p>
+                                  <p className="text-sm text-gray-400">Days Left</p>
                                   <p className="text-xl font-bold">
                                     {Math.ceil((projectData.poolDeadline * 1000 - Date.now()) / (1000 * 60 * 60 * 24))}
                                   </p>
@@ -1059,7 +1059,7 @@ export default function ProjectDetailPage() {
                               <div className="flex items-center gap-3">
                                 <DollarSign className="h-5 w-5 text-[#4ade80]" />
                                 <div>
-                                  <p className="text-sm text-muted">Avg. Contribution</p>
+                                  <p className="text-sm text-gray-400">Avg. Contribution</p>
                                   <p className="text-xl font-bold">
                                     ${(parseFloat(projectData.poolRaised) / projectData.poolContributors).toFixed(0)} USDC
                                   </p>
@@ -1089,7 +1089,7 @@ export default function ProjectDetailPage() {
                                 />
                                 {wallet.usdcBalance && (
                                   <div className="space-y-1">
-                                    <p className="text-sm text-muted">
+                                    <p className="text-sm text-gray-400">
                                       Available balance: {parseFloat(wallet.usdcBalance).toFixed(2)} USDC
                                     </p>
                                     {fiatBalance.hasPendingTransactions && parseFloat(fiatBalance.pendingOnRampAmount) > 0 && (
@@ -1138,12 +1138,12 @@ export default function ProjectDetailPage() {
                           </Avatar>
                           <div>
                             <h4 className="font-semibold">{bid.freelancer}</h4>
-                            <p className="text-sm text-muted">⭐ {bid.rating} rating</p>
+                            <p className="text-sm text-gray-400">⭐ {bid.rating} rating</p>
                           </div>
                         </div>
                         <div className="text-right">
                           <p className="font-bold text-lg">${bid.amount.toLocaleString()} USDC</p>
-                          <p className="text-sm text-muted">{bid.deliveryDays} days</p>
+                          <p className="text-sm text-gray-400">{bid.deliveryDays} days</p>
                         </div>
                       </div>
                     ))}
@@ -1220,7 +1220,7 @@ export default function ProjectDetailPage() {
                               <div>
                                 <Label htmlFor="bid-amount">Bid Amount (USDC) *</Label>
                                 <div className="relative mt-2">
-                                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
+                                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                                   <Input 
                                     id="bid-amount" 
                                     type="number" 
@@ -1233,7 +1233,7 @@ export default function ProjectDetailPage() {
                                     disabled={isSubmitting}
                                   />
                                 </div>
-                                <p className="text-xs text-muted mt-1">
+                                <p className="text-xs text-gray-400 mt-1">
                                   Project budget: ${projectData.budget.toLocaleString()} USDC
                                 </p>
                               </div>
@@ -1241,7 +1241,7 @@ export default function ProjectDetailPage() {
                               <div>
                                 <Label htmlFor="delivery-time">Delivery Time (days) *</Label>
                                 <div className="relative mt-2">
-                                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
+                                  <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                                   <Input 
                                     id="delivery-time" 
                                     type="number" 
@@ -1299,7 +1299,7 @@ export default function ProjectDetailPage() {
                                 <Shield className="h-4 w-4 text-[#4ade80]" />
                                 Cryptographic Verification
                               </h4>
-                              <p className="text-sm text-muted">
+                              <p className="text-sm text-gray-400">
                                 Your bid will be signed with your wallet to prove authenticity. This ensures your proposal cannot be tampered with.
                               </p>
                             </div>
@@ -1361,7 +1361,7 @@ export default function ProjectDetailPage() {
                             <div>
                               <Label htmlFor="fund-amount">Funding Amount (USDC) *</Label>
                               <div className="relative mt-2">
-                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
+                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                                 <Input 
                                   id="fund-amount" 
                                   type="number" 
@@ -1374,12 +1374,12 @@ export default function ProjectDetailPage() {
                                 />
                               </div>
                               {escrowStatus && (
-                                <p className="text-xs text-muted mt-2">
+                                <p className="text-xs text-gray-400 mt-2">
                                   Total funded: ${parseFloat(escrowStatus.releasedAmount).toLocaleString()} / ${parseFloat(escrowStatus.totalAmount).toLocaleString()} USDC
                                 </p>
                               )}
                               {wallet.usdcBalance && (
-                                <p className="text-xs text-muted mt-1">
+                                <p className="text-xs text-gray-400 mt-1">
                                   Your balance: {parseFloat(wallet.usdcBalance).toFixed(2)} USDC
                                 </p>
                               )}
@@ -1390,7 +1390,7 @@ export default function ProjectDetailPage() {
                                 <Shield className="h-4 w-4 text-[#4ade80]" />
                                 Escrow Protection
                               </h4>
-                              <ul className="text-sm text-muted space-y-1">
+                              <ul className="text-sm text-gray-400 space-y-1">
                                 <li>• Funds held in Trustless Work USDC escrow</li>
                                 <li>• Released only upon milestone completion</li>
                                 <li>• Full transparency on Stellar blockchain</li>
