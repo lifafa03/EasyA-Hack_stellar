@@ -107,6 +107,8 @@ export function OffRampFlow({
   // Sign challenge with wallet
   const signChallenge = async (challengeXdr: string) => {
     try {
+      console.log('📝 Signing challenge with wallet...');
+      
       if (wallet.walletType === 'freighter') {
         const { signTransaction } = await import('@stellar/freighter-api');
         const result = await signTransaction(challengeXdr, {
@@ -114,17 +116,45 @@ export function OffRampFlow({
         });
         
         // Extract signed XDR from result
+        let signedXdr: string;
         if (typeof result === 'string') {
-          return result;
+          signedXdr = result;
         } else if (result && typeof result === 'object' && 'signedTxXdr' in result) {
-          return (result as any).signedTxXdr;
+          signedXdr = (result as any).signedTxXdr;
+        } else {
+          throw new Error('Unexpected signature result format');
         }
-        throw new Error('Unexpected signature result format');
+        
+        console.log('✅ Wallet signature added');
+        
+        // For MoneyGram, add client_domain signature
+        if (selectedAnchor.domain === 'extstellar.moneygram.com') {
+          console.log('🔐 Adding client_domain signature for MoneyGram...');
+          const response = await fetch('/api/sep10/sign-client-domain', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              transaction_xdr: signedXdr,
+              anchor_domain: selectedAnchor.domain,
+            }),
+          });
+          
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error || 'Failed to add client_domain signature');
+          }
+          
+          const data = await response.json();
+          signedXdr = data.transaction;
+          console.log('✅ Client domain signature added');
+        }
+        
+        return signedXdr;
       } else {
         throw new Error(`Wallet type ${wallet.walletType} not supported for signing`);
       }
     } catch (err: any) {
-      console.error('Sign error:', err);
+      console.error('❌ Sign error:', err);
       throw new Error(`Failed to sign challenge: ${err.message}`);
     }
   };
