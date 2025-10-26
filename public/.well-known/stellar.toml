@@ -30,6 +30,7 @@ anchor_asset = "USD"
 
 [[CURRENCIES]]
 code = "XLM"
+issuer = "native"
 display_decimals = 7
 name = "Stellar Lumens"
 desc = "Native Stellar asset"
