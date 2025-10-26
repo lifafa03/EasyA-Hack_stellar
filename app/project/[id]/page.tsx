@@ -22,25 +22,19 @@ import { Textarea } from "@/components/ui/textarea"
 import { GradientBackground } from "@/components/gradient-background"
 import { useWalletKit } from "@/hooks/use-wallet-kit"
 import { useFiatBalance } from "@/hooks/use-fiat-balance"
-import { submitBidWithCheckpoints, BidFormData } from "@/lib/stellar/bid-validation"
-import { SignedBid, fetchEscrowBids, verifyBidSignature } from "@/lib/stellar/contracts"
 import { toast } from "sonner"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  getEscrowStatus, 
-  fundEscrow, 
-  releaseMilestone, 
-  withdrawFunds,
-  submitBid,
-  fetchBids,
-  EscrowStatus,
-  SignedBid as TrustlessWorkBid,
-  TrustlessWorkError
-} from "@/lib/stellar/trustless-work"
-import { getAccountBalance } from "@/lib/stellar/wallet"
-import { STELLAR_CONFIG } from "@/lib/stellar/config"
+
+// Simplified bid form interface
+interface BidFormData {
+  bidAmount: string
+  deliveryDays: string
+  proposal: string
+  portfolioLink: string
+  milestonesApproach: string
+}
 
 // Mock project data
 const projectData = {
@@ -148,65 +142,14 @@ export default function ProjectDetailPage() {
   const isSubmitting = submitState !== 'idle' && submitState !== 'success' && submitState !== 'error';
   
   // Escrow and pool management state
+  const [loadingEscrow, setLoadingEscrow] = React.useState(false);
   const [isCompletingMilestone, setIsCompletingMilestone] = React.useState(false);
   const [isWithdrawing, setIsWithdrawing] = React.useState(false);
   const [selectedMilestoneId, setSelectedMilestoneId] = React.useState<number | null>(null);
   const [poolContributionAmount, setPoolContributionAmount] = React.useState('');
   const [isContributingToPool, setIsContributingToPool] = React.useState(false);
-  
-  // Trustless Work integration state
-  const [escrowStatus, setEscrowStatus] = React.useState<EscrowStatus | null>(null);
-  const [loadingEscrow, setLoadingEscrow] = React.useState(true);
-  const [escrowBids, setEscrowBids] = React.useState<TrustlessWorkBid[]>([]);
-  const [loadingBids, setLoadingBids] = React.useState(false);
   const [fundAmount, setFundAmount] = React.useState('');
   const [isFunding, setIsFunding] = React.useState(false);
-  
-  // Fetch escrow status on mount
-  React.useEffect(() => {
-    const fetchEscrowStatus = async () => {
-      try {
-        setLoadingEscrow(true);
-        const status = await getEscrowStatus(projectData.escrowId);
-        setEscrowStatus(status);
-      } catch (error) {
-        console.error('Error fetching escrow status:', error);
-        if (error instanceof TrustlessWorkError) {
-          toast.error('Failed to load escrow status', {
-            description: error.message,
-          });
-        }
-      } finally {
-        setLoadingEscrow(false);
-      }
-    };
-    
-    fetchEscrowStatus();
-  }, []);
-  
-  // Fetch bids when escrow tab is active
-  const fetchEscrowBidsData = React.useCallback(async () => {
-    try {
-      setLoadingBids(true);
-      const bids = await fetchBids(projectData.escrowId);
-      setEscrowBids(bids);
-    } catch (error) {
-      console.error('Error fetching bids:', error);
-      toast.error('Failed to load bids');
-    } finally {
-      setLoadingBids(false);
-    }
-  }, []);
-  
-  // Refresh escrow status
-  const refreshEscrowStatus = React.useCallback(async () => {
-    try {
-      const status = await getEscrowStatus(projectData.escrowId);
-      setEscrowStatus(status);
-    } catch (error) {
-      console.error('Error refreshing escrow status:', error);
-    }
-  }, []);
 
   const handleBidSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

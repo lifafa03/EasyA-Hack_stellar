@@ -103,11 +103,36 @@ export default function BrowsePage() {
   const [loading, setLoading] = useState(true)
   const [projects, setProjects] = useState(allProjects)
 
-  // Simulate loading projects
+  // Load projects from localStorage and merge with mock data
   useEffect(() => {
     setLoading(true)
     const timer = setTimeout(() => {
-      setProjects(allProjects)
+      try {
+        const storedProjectsJson = localStorage.getItem('stellar-projects')
+        if (storedProjectsJson) {
+          const storedProjects = JSON.parse(storedProjectsJson)
+          // Transform stored projects to match the display format
+          const transformedProjects = storedProjects.map((p: any) => ({
+            id: p.id,
+            title: p.title,
+            description: p.description,
+            budget: p.budget,
+            funded: 0, // New projects start with 0 funding
+            category: p.category.charAt(0).toUpperCase() + p.category.slice(1),
+            bids: p.bids?.length || 0,
+            daysLeft: p.duration,
+            skills: [], // Could be extracted from description or added to form
+            image: '/placeholder.svg',
+          }))
+          // Merge with mock projects (new projects first)
+          setProjects([...transformedProjects, ...allProjects])
+        } else {
+          setProjects(allProjects)
+        }
+      } catch (error) {
+        console.error('Error loading projects:', error)
+        setProjects(allProjects)
+      }
       setLoading(false)
     }, 800)
     return () => clearTimeout(timer)

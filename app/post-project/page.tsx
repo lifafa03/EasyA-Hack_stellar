@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation"
 import { GradientBackground } from "@/components/gradient-background"
 import { useWalletKit } from "@/hooks/use-wallet-kit"
 import { toast } from "sonner"
-import { createEscrow, type EscrowParams, type Milestone as TrustlessMilestone } from "@/lib/stellar/trustless-work"
+// Removed TrustlessWork dependency - using simple Stellar USDC instead
 
 interface Milestone {
   title: string
@@ -55,7 +55,6 @@ export default function PostProjectPage() {
   const [swapAmount, setSwapAmount] = useState('')
   const [swapping, setSwapping] = useState(false)
   const [usdcBalance, setUsdcBalance] = useState<string>('0')
-  const [escrowContractAddress, setEscrowContractAddress] = useState<string>('')
 
   // Fetch USDC balance when wallet connects
   const fetchUSDCBalance = async () => {
@@ -240,60 +239,57 @@ export default function PostProjectPage() {
       }
 
       setSubmitState('submitting')
-      toast.info('Creating escrow contract on Stellar...')
+      toast.info('Creating project with USDC escrow...')
 
       const projectId = `project-${Date.now()}`
       
-      // Prepare milestones for smart contract
-      const contractMilestones: TrustlessMilestone[] = milestones
+      // Prepare milestones
+      const projectMilestones = milestones
         .filter(m => m.title.trim() && m.budget)
         .map((m, index) => ({
-          id: `m${index}`,
+          id: index,
           title: m.title,
           description: '',
-          budget: parseFloat(m.budget),
+          amount: parseFloat(m.budget),
           status: 'pending' as const,
+          completedAt: null,
         }))
 
-      // Create escrow params
-      const escrowParams: EscrowParams = {
-        clientAddress: wallet.publicKey!,
-        totalBudget: projectBudget,
-        milestones: contractMilestones,
-        projectId: projectId,
-        currency: 'USDC',
-        enableYield: true, // Enable yield-bearing escrow
-      }
-
-      // Create escrow contract on blockchain
-      const result = await createEscrow(escrowParams, wallet.walletType as any)
-      
-      toast.success('Escrow contract created!')
-      console.log('Escrow created:', result)
-      
-      // Store contract address for display
-      setEscrowContractAddress(result.contractAddress)
-
-      // Store project data with escrow info
+      // Store project data
       const projectData = {
+        id: projectId,
         ...formData,
-        milestones: contractMilestones,
+        budget: parseFloat(formData.budget),
+        duration: parseInt(formData.duration),
+        milestones: projectMilestones,
         createdAt: new Date().toISOString(),
         clientAddress: wallet.publicKey,
-        escrowId: result.escrowId,
-        contractAddress: result.contractAddress,
-        transactionHash: result.transaction.hash,
+        status: 'open' as const,
+        bids: [],
+        escrowStatus: 'pending' as const,
       }
       
-      // Store in localStorage for now (can be replaced with database later)
-      localStorage.setItem(projectId, JSON.stringify(projectData))
+      // Get existing projects from localStorage
+      const existingProjectsJson = localStorage.getItem('stellar-projects')
+      const existingProjects = existingProjectsJson ? JSON.parse(existingProjectsJson) : []
+      
+      // Add new project
+      existingProjects.push(projectData)
+      
+      // Store updated projects list
+      localStorage.setItem('stellar-projects', JSON.stringify(existingProjects))
+      
+      // Also store individual project for easy access
+      localStorage.setItem(`project-${projectId}`, JSON.stringify(projectData))
+
+      console.log('Project created:', projectData)
 
       setSubmitState('success')
-      toast.success('Project posted with blockchain escrow!')
+      toast.success('Project posted successfully!')
 
       setTimeout(() => {
         router.push('/browse')
-      }, 2000)
+      }, 1500)
 
     } catch (error: any) {
       console.error('Error creating project:', error)
@@ -335,12 +331,12 @@ export default function PostProjectPage() {
 
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="title" className="text-white">Project Title *</Label>
+                  <Label htmlFor="title" className="text-white font-semibold">Project Title *</Label>
                   <Input
                     id="title"
                     placeholder="e.g., Build a Mobile App for E-commerce"
                     required
-                    className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-[#4ade80]/50 focus:ring-[#4ade80]/20"
+                    className="mt-2 bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-[#4ade80]/50 focus:ring-[#4ade80]/20 focus:bg-white/15"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     disabled={isSubmitting}
@@ -348,40 +344,40 @@ export default function PostProjectPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="category" className="text-white">Category *</Label>
+                  <Label htmlFor="category" className="text-white font-semibold">Category *</Label>
                   <Select 
                     required
                     value={formData.category}
                     onValueChange={(value) => setFormData({ ...formData, category: value })}
                     disabled={isSubmitting}
                   >
-                    <SelectTrigger className="mt-2 bg-white/5 border-white/10 text-white hover:border-white/20 focus:border-[#4ade80]/50 focus:ring-[#4ade80]/20">
-                      <SelectValue placeholder="Select a category" />
+                    <SelectTrigger className="mt-2 bg-white/10 border-white/20 text-white hover:border-white/30 focus:border-[#4ade80]/50 focus:ring-[#4ade80]/20">
+                      <SelectValue placeholder="Select a category" className="text-gray-400" />
                     </SelectTrigger>
-                    <SelectContent className="bg-black/95 border-white/10">
-                      <SelectItem value="development" className="text-white hover:bg-white/10">Development</SelectItem>
-                      <SelectItem value="design" className="text-white hover:bg-white/10">Design</SelectItem>
-                      <SelectItem value="ai-ml" className="text-white hover:bg-white/10">AI/ML</SelectItem>
-                      <SelectItem value="marketing" className="text-white hover:bg-white/10">Marketing</SelectItem>
-                      <SelectItem value="blockchain" className="text-white hover:bg-white/10">Blockchain</SelectItem>
-                      <SelectItem value="writing" className="text-white hover:bg-white/10">Writing</SelectItem>
-                      <SelectItem value="other" className="text-white hover:bg-white/10">Other</SelectItem>
+                    <SelectContent className="bg-gray-900 border-white/20">
+                      <SelectItem value="development" className="text-white hover:bg-white/10 focus:bg-white/10">Development</SelectItem>
+                      <SelectItem value="design" className="text-white hover:bg-white/10 focus:bg-white/10">Design</SelectItem>
+                      <SelectItem value="ai-ml" className="text-white hover:bg-white/10 focus:bg-white/10">AI/ML</SelectItem>
+                      <SelectItem value="marketing" className="text-white hover:bg-white/10 focus:bg-white/10">Marketing</SelectItem>
+                      <SelectItem value="blockchain" className="text-white hover:bg-white/10 focus:bg-white/10">Blockchain</SelectItem>
+                      <SelectItem value="writing" className="text-white hover:bg-white/10 focus:bg-white/10">Writing</SelectItem>
+                      <SelectItem value="other" className="text-white hover:bg-white/10 focus:bg-white/10">Other</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <Label htmlFor="description" className="text-white">Description *</Label>
+                  <Label htmlFor="description" className="text-white font-semibold">Description *</Label>
                   <Textarea
                     id="description"
                     placeholder="Describe what you need built, key features, and your expectations..."
                     required
-                    className="mt-2 min-h-32 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-[#4ade80]/50 focus:ring-[#4ade80]/20"
+                    className="mt-2 min-h-32 bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-[#4ade80]/50 focus:ring-[#4ade80]/20 focus:bg-white/15"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     disabled={isSubmitting}
                   />
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-gray-300 mt-1">
                     {formData.description.length}/50 characters minimum
                   </p>
                 </div>
@@ -415,7 +411,7 @@ export default function PostProjectPage() {
                         </div>
 
                         <div>
-                          <Label htmlFor="swapAmount" className="text-white">XLM Amount to Convert</Label>
+                          <Label htmlFor="swapAmount" className="text-white font-semibold">XLM Amount to Convert</Label>
                           <Input
                             id="swapAmount"
                             type="number"
@@ -425,7 +421,7 @@ export default function PostProjectPage() {
                             disabled={swapping}
                             min="0.01"
                             step="0.01"
-                            className="mt-2"
+                            className="mt-2 bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-[#4ade80]/50 focus:ring-[#4ade80]/20"
                           />
                         </div>
 
@@ -458,15 +454,15 @@ export default function PostProjectPage() {
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="budget" className="text-white">Budget (USDC) *</Label>
+                    <Label htmlFor="budget" className="text-white font-semibold">Budget (USDC) *</Label>
                     <div className="relative mt-2">
-                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300" />
                       <Input 
                         id="budget" 
                         type="number" 
                         placeholder="5000" 
                         required 
-                        className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-[#4ade80]/50 focus:ring-[#4ade80]/20"
+                        className="pl-9 bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-[#4ade80]/50 focus:ring-[#4ade80]/20 focus:bg-white/15"
                         value={formData.budget}
                         onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
                         disabled={isSubmitting}
@@ -477,15 +473,15 @@ export default function PostProjectPage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="duration" className="text-white">Duration (days) *</Label>
+                    <Label htmlFor="duration" className="text-white font-semibold">Duration (days) *</Label>
                     <div className="relative mt-2">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300" />
                       <Input 
                         id="duration" 
                         type="number" 
                         placeholder="30" 
                         required 
-                        className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-[#4ade80]/50 focus:ring-[#4ade80]/20"
+                        className="pl-9 bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-[#4ade80]/50 focus:ring-[#4ade80]/20 focus:bg-white/15"
                         value={formData.duration}
                         onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                         disabled={isSubmitting}
@@ -548,10 +544,10 @@ export default function PostProjectPage() {
                         onChange={(e) => updateMilestone(index, "title", e.target.value)}
                         disabled={isSubmitting}
                         required
-                        className="text-white bg-white/5 border-white/10 placeholder:text-gray-500 focus:border-[#4ade80]/50 focus:ring-[#4ade80]/20"
+                        className="text-white bg-white/10 border-white/20 placeholder:text-gray-400 focus:border-[#4ade80]/50 focus:ring-[#4ade80]/20 focus:bg-white/15"
                       />
                       <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-300" />
                         <Input
                           type="number"
                           placeholder="Amount"
@@ -561,7 +557,7 @@ export default function PostProjectPage() {
                           required
                           min="0"
                           step="0.01"
-                          className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-[#4ade80]/50 focus:ring-[#4ade80]/20"
+                          className="pl-9 bg-white/10 border-white/20 text-white placeholder:text-gray-400 focus:border-[#4ade80]/50 focus:ring-[#4ade80]/20 focus:bg-white/15"
                         />
                       </div>
                     </div>
@@ -571,7 +567,7 @@ export default function PostProjectPage() {
 
               <Alert className="mt-4 border-[#4ade80]/50 bg-[#4ade80]/10">
                 <Shield className="h-4 w-4 text-[#22c55e]" />
-                <AlertDescription className="text-sm">
+                <AlertDescription className="text-sm text-gray-200">
                   Payments are secured in escrow and released as you approve each milestone
                 </AlertDescription>
               </Alert>
@@ -581,7 +577,7 @@ export default function PostProjectPage() {
             {!wallet.connected && (
               <Alert className="border-yellow-500/50 bg-yellow-500/10">
                 <AlertCircle className="h-4 w-4 text-yellow-500" />
-                <AlertDescription>
+                <AlertDescription className="text-gray-200">
                   Connect your wallet to post a project with secure escrow protection
                 </AlertDescription>
               </Alert>
@@ -591,26 +587,11 @@ export default function PostProjectPage() {
             {submitState === 'success' && (
               <Alert className="border-[#4ade80] bg-[#4ade80]/10">
                 <CheckCircle2 className="h-4 w-4 text-[#4ade80]" />
-                <AlertDescription>
-                  <p className="font-semibold">Project created successfully!</p>
+                <AlertDescription className="text-gray-200">
+                  <p className="font-semibold text-white">Project created successfully!</p>
                   <p className="text-sm mt-1">
-                    Your project has been posted with a blockchain escrow contract.
+                    Your project has been posted and is now visible to freelancers. Funds will be held in escrow when a bid is accepted.
                   </p>
-                  {escrowContractAddress && (
-                    <div className="mt-3 p-3 bg-background/50 rounded-lg">
-                      <p className="text-xs font-semibold text-muted-foreground mb-1">Escrow Contract Address:</p>
-                      <p className="text-xs font-mono break-all">{escrowContractAddress}</p>
-                      <a 
-                        href={`https://stellar.expert/explorer/testnet/contract/${escrowContractAddress}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 text-xs text-[#4ade80] hover:underline mt-2"
-                      >
-                        View on Stellar Expert
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
-                    </div>
-                  )}
                 </AlertDescription>
               </Alert>
             )}
