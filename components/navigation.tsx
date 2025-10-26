@@ -3,7 +3,6 @@
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { WalletConnectButton } from "@/components/wallet-connect-kit"
-import { NetworkIndicator } from "@/components/stellar"
 
 export function Navigation() {
   return (
@@ -40,7 +39,6 @@ export function Navigation() {
           </div>
 
           <div className="flex items-center gap-3">
-            <NetworkIndicator className="hidden md:flex" />
             <WalletConnectButton />
           </div>
         </div>
