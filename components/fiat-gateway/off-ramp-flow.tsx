@@ -224,7 +224,7 @@ export function OffRampFlow({
     try {
       setIsLoading(true);
       setError(null);
-      setStep('processing');
+      // Don't change step - stay on current step while loading
 
       // Check current status first
       const statusResponse = await fetch('/api/sep24/transaction', {
