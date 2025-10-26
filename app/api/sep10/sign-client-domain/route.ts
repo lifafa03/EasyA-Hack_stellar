@@ -55,10 +55,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Remove quotes if present (from .env.local format)
+    // Remove quotes and whitespace (from .env.local format)
     const originalLength = clientDomainSecret.length;
-    clientDomainSecret = clientDomainSecret.replace(/^["']|["']$/g, '');
-    console.log('🔍 Debug: Removed quotes?', originalLength !== clientDomainSecret.length);
+    clientDomainSecret = clientDomainSecret.replace(/^["']|["']$/g, '').trim();
+    console.log('🔍 Debug: Removed quotes/whitespace?', originalLength !== clientDomainSecret.length);
     console.log('🔍 Debug: After cleanup, first 10 chars:', clientDomainSecret.substring(0, 10));
     console.log('🔍 Debug: Total length:', clientDomainSecret.length);
 
