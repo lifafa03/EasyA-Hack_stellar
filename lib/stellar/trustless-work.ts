@@ -46,7 +46,39 @@ export const createEscrow = async (
   walletType: WalletType = 'freighter'
 ): Promise<{ escrowId: string; contractAddress: string; transaction: any }> => {
   try {
-    // Step 1: Call Trustless Work API to prepare escrow
+    // Generate unique escrow ID
+    const escrowId = `ESCROW_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const contractAddress = `GESCROW${Math.random().toString(36).substr(2, 9).toUpperCase()}DEMO`;
+
+    // DEMO MODE: For hackathon/testing without actual Trustless Work API
+    // In production, this would call the real Trustless Work API
+    const DEMO_MODE = !TRUSTLESS_WORK_CONFIG.contractId || TRUSTLESS_WORK_CONFIG.contractId === '';
+    
+    if (DEMO_MODE) {
+      console.log('🎭 DEMO MODE: Simulating escrow creation (no real Trustless Work API call)');
+      console.log('Escrow Parameters:', {
+        escrowId,
+        client: params.clientAddress,
+        freelancer: params.freelancerAddress || 'TBD',
+        amount: params.totalBudget,
+        currency: params.currency || 'USDC',
+        milestones: params.milestones.length,
+      });
+
+      // Simulate successful escrow creation
+      // In a real implementation, this would create an actual Stellar transaction
+      return {
+        escrowId,
+        contractAddress,
+        transaction: {
+          hash: `DEMO_TX_${Date.now()}`,
+          successful: true,
+          ledger: Math.floor(Math.random() * 1000000),
+        },
+      };
+    }
+
+    // PRODUCTION MODE: Call actual Trustless Work API
     const response = await axios.post(`${TRUSTLESS_WORK_CONFIG.apiUrl}/escrow/create`, {
       client: params.clientAddress,
       freelancer: params.freelancerAddress,
@@ -60,7 +92,7 @@ export const createEscrow = async (
       },
     });
 
-    const { escrowId, contractAddress, unsignedXdr } = response.data;
+    const { escrowId: apiEscrowId, contractAddress: apiContractAddress, unsignedXdr } = response.data;
 
     // Step 2: Sign and submit the transaction
     const transaction = StellarSdk.TransactionBuilder.fromXDR(
@@ -71,8 +103,8 @@ export const createEscrow = async (
     const result = await signAndSubmitTransaction(transaction as StellarSdk.Transaction, walletType);
 
     return {
-      escrowId,
-      contractAddress,
+      escrowId: apiEscrowId,
+      contractAddress: apiContractAddress,
       transaction: result,
     };
   } catch (error) {
