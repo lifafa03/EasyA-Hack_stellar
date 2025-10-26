@@ -2,20 +2,13 @@
 
 import * as React from 'react';
 import { useWallet } from '@/hooks/use-wallet';
-import { useFiatBalance } from '@/hooks/use-fiat-balance';
-import { AnchorService, type ExchangeRate, type OffRampSession, type BankAccountInfo } from '@/lib/stellar/services/anchor';
 import { type AnchorProvider } from '@/lib/stellar/services/anchor-registry';
-import { ExchangeRateDisplay } from './exchange-rate-display';
-import { InteractivePopup } from './interactive-popup';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Spinner } from '@/components/ui/spinner';
 import { 
   AlertCircle, 
   ArrowRight, 
@@ -24,16 +17,14 @@ import {
   Info,
   Loader2,
   Shield,
-  Wallet,
   Building2,
-  ArrowDownToLine
+  ArrowDownToLine,
+  ExternalLink
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import type { TransactionStatus } from '@/lib/stellar/types/fiat-gateway';
-import type { Transaction } from '@stellar/stellar-sdk';
+import { BankConfirmation } from './bank-confirmation';
 
-type OffRampStep = 'input' | 'bank-info' | 'interactive' | 'processing' | 'complete';
+type OffRampStep = 'amount' | 'bank-info' | 'confirm' | 'processing' | 'complete';
 
 interface OffRampFlowProps {
   selectedAnchor: AnchorProvider;
@@ -49,745 +40,757 @@ export function OffRampFlow({
   onBack,
 }: OffRampFlowProps) {
   const wallet = useWallet();
-  const fiatBalance = useFiatBalance();
   
   // State management
-  const [step, setStep] = React.useState<OffRampStep>('input');
-  const [amount, setAmount] = React.useState('');
-  const [currency, setCurrency] = React.useState('USD');
-  const [bankAccount, setBankAccount] = React.useState<BankAccountInfo>({
-    accountNumber: '',
-    routingNumber: '',
-    accountType: 'checking',
-    bankName: '',
-  });
-  const [exchangeRate, setExchangeRate] = React.useState<ExchangeRate | null>(null);
-  const [session, setSession] = React.useState<OffRampSession | null>(null);
-  const [transactionId, setTransactionId] = React.useState<string | null>(null);
-  const [transactionStatus, setTransactionStatus] = React.useState<TransactionStatus | null>(null);
-  const [error, setError] = React.useState<string | null>(null);
+  const [step, setStep] = React.useState<OffRampStep>('amount');
+  const [withdrawAmount, setWithdrawAmount] = React.useState('10');
   const [isLoading, setIsLoading] = React.useState(false);
-  const [availableBalance, setAvailableBalance] = React.useState<string>('0');
+  const [error, setError] = React.useState<string | null>(null);
+  const [showBankConfirmation, setShowBankConfirmation] = React.useState(false);
   
-  const anchorServiceRef = React.useRef<AnchorService | null>(null);
+  // SEP-24 states
+  const [jwtToken, setJwtToken] = React.useState<string | null>(null);
+  const [withdrawalUrl, setWithdrawalUrl] = React.useState<string | null>(null);
+  const [transactionId, setTransactionId] = React.useState<string | null>(null);
+  const [withdrawalStatus, setWithdrawalStatus] = React.useState<string | null>(null);
+  const [autoPolling, setAutoPolling] = React.useState(false);
+  
+  const USDC_ISSUER = 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5';
 
-  // Initialize anchor service
+  // Auto-poll withdrawal status
   React.useEffect(() => {
-    anchorServiceRef.current = new AnchorService(selectedAnchor.domain);
-  }, [selectedAnchor.domain]);
+    if (!autoPolling || !transactionId || !jwtToken) return;
+    
+    const pollInterval = setInterval(() => {
+      console.log('🔄 Auto-polling withdrawal status...');
+      checkWithdrawalStatus();
+    }, 5000); // Poll every 5 seconds
+
+    return () => clearInterval(pollInterval);
+  }, [autoPolling, transactionId, jwtToken]);
 
   // Get available USDC balance
-  React.useEffect(() => {
-    if (wallet.connected && wallet.usdcBalance) {
-      setAvailableBalance(wallet.usdcBalance);
-    }
-  }, [wallet.connected, wallet.usdcBalance]);
+  const getUSDCBalance = (): string => {
+    return wallet.usdcBalance || '0';
+  };
 
-  // Fetch exchange rate when amount or currency changes
-  React.useEffect(() => {
-    if (!amount || parseFloat(amount) <= 0) {
-      setExchangeRate(null);
-      return;
-    }
+  // SEP-10: Get challenge for authentication
+  const getChallenge = async () => {
+    try {
+      const response = await fetch('/api/sep10/challenge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          account: wallet.publicKey,
+          anchor_domain: selectedAnchor.domain,
+        }),
+      });
 
-    const fetchRate = async () => {
-      if (!anchorServiceRef.current) return;
-
-      try {
-        const rate = await anchorServiceRef.current.getExchangeRate('USDC', currency);
-        setExchangeRate(rate);
-      } catch (err) {
-        console.error('Failed to fetch exchange rate:', err);
-        setExchangeRate(null);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.details || error.message || 'Failed to get challenge');
       }
-    };
 
-    // Debounce rate fetching
-    const timeoutId = setTimeout(fetchRate, 500);
-    return () => clearTimeout(timeoutId);
-  }, [amount, currency]);
-
-  // Validate amount against available balance
-  const validateAmount = (): boolean => {
-    if (!amount || parseFloat(amount) <= 0) {
-      setError('Please enter a valid amount');
-      return false;
+      const data = await response.json();
+      return data.transaction;
+    } catch (err: any) {
+      console.error('Challenge error:', err);
+      throw err;
     }
-
-    const amountNum = parseFloat(amount);
-    const balanceNum = parseFloat(availableBalance);
-
-    if (amountNum > balanceNum) {
-      setError(`Insufficient balance. Available: ${availableBalance} USDC`);
-      return false;
-    }
-
-    return true;
   };
 
-  // Handle proceeding to bank info step
-  const handleProceedToBankInfo = () => {
-    if (!validateAmount()) {
-      return;
+  // Sign challenge with wallet
+  const signChallenge = async (challengeXdr: string) => {
+    try {
+      if (wallet.walletType === 'freighter') {
+        const { signTransaction } = await import('@stellar/freighter-api');
+        const result = await signTransaction(challengeXdr, {
+          networkPassphrase: 'Test SDF Network ; September 2015',
+        });
+        
+        // Extract signed XDR from result
+        if (typeof result === 'string') {
+          return result;
+        } else if (result && typeof result === 'object' && 'signedTxXdr' in result) {
+          return (result as any).signedTxXdr;
+        }
+        throw new Error('Unexpected signature result format');
+      } else {
+        throw new Error(`Wallet type ${wallet.walletType} not supported for signing`);
+      }
+    } catch (err: any) {
+      console.error('Sign error:', err);
+      throw new Error(`Failed to sign challenge: ${err.message}`);
     }
-
-    setError(null);
-    setStep('bank-info');
   };
 
-  // Validate bank account information
-  const validateBankAccount = (): boolean => {
-    if (!bankAccount.accountNumber || bankAccount.accountNumber.trim() === '') {
-      setError('Account number is required');
-      return false;
-    }
+  // SEP-10: Get JWT token
+  const getToken = async (signedChallenge: string) => {
+    try {
+      const response = await fetch('/api/sep10/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          transaction: signedChallenge,
+          anchor_domain: selectedAnchor.domain,
+        }),
+      });
 
-    if (!bankAccount.routingNumber || bankAccount.routingNumber.trim() === '') {
-      setError('Routing number is required');
-      return false;
-    }
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.details || error.message || 'Failed to get token');
+      }
 
-    // Basic routing number validation (9 digits)
-    if (!/^\d{9}$/.test(bankAccount.routingNumber)) {
-      setError('Routing number must be 9 digits');
-      return false;
+      const data = await response.json();
+      return data.token;
+    } catch (err: any) {
+      console.error('Token error:', err);
+      throw err;
     }
-
-    return true;
   };
 
-  // Handle starting the off-ramp process
-  const handleStartOffRamp = async () => {
-    if (!wallet.publicKey || !anchorServiceRef.current) {
-      setError('Wallet not connected');
+  // Step 1: Initiate Withdrawal (Amount step)
+  const initiateWithdrawal = async () => {
+    if (!wallet.publicKey) {
+      toast.error('Wallet not connected');
       return;
     }
-
-    if (!validateBankAccount()) {
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
 
     try {
-      // Create signer function
-      const signer = async (tx: Transaction) => {
-        // In production, this would use the actual wallet to sign
-        throw new Error('Wallet signing not implemented - please connect your wallet');
-      };
+      setIsLoading(true);
+      setError(null);
+      setStep('processing');
 
-      const offRampSession = await anchorServiceRef.current.offRamp(
-        {
-          amount,
-          currency,
-          sourceAddress: wallet.publicKey,
-          bankAccount,
+      // Get SEP-10 authentication
+      console.log('1️⃣ Getting SEP-10 challenge...');
+      const challengeXdr = await getChallenge();
+      
+      console.log('2️⃣ Signing challenge...');
+      const signedChallenge = await signChallenge(challengeXdr);
+      
+      console.log('3️⃣ Getting JWT token...');
+      const token = await getToken(signedChallenge);
+      setJwtToken(token);
+
+      // Start withdrawal
+      console.log('4️⃣ Initiating withdrawal...');
+      const response = await fetch('/api/sep24/withdraw', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
-        signer
-      );
-
-      setSession(offRampSession);
-      setTransactionId(offRampSession.id);
-      
-      // Track the transaction
-      fiatBalance.trackTransaction({
-        id: offRampSession.id,
-        type: 'off-ramp',
-        status: 'pending_user_transfer_start',
-        amount,
-        currency,
-        cryptoAmount: amount,
-        cryptoCurrency: 'USDC',
-        exchangeRate: exchangeRate?.rate || '0',
-        fees: exchangeRate?.fee || '0',
-        anchorId: selectedAnchor.id,
-        anchorName: selectedAnchor.name,
-        createdAt: Date.now(),
+        body: JSON.stringify({
+          asset_code: 'USDC',
+          account: wallet.publicKey,
+          amount: withdrawAmount,
+          anchor_domain: selectedAnchor.domain,
+        }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.details || errorData.message || 'Withdrawal failed');
+      }
+
+      const data = await response.json();
+      console.log('✅ Withdrawal initiated:', data);
+
+      setWithdrawalUrl(data.url);
+      setTransactionId(data.id);
       
-      setStep('interactive');
-      toast.success('Off-ramp session started');
+      // Move to bank info step (KYC form)
+      setStep('bank-info');
+      toast.success('Withdrawal initiated! Complete the KYC form.');
+
     } catch (err: any) {
-      const errorMessage = err.message || 'Failed to start off-ramp';
-      setError(errorMessage);
-      toast.error(errorMessage);
-      if (onError) onError(errorMessage);
+      console.error('Withdrawal initiation error:', err);
+      setError(err.message);
+      setStep('amount');
+      if (onError) onError(err.message);
+      toast.error(`Withdrawal failed: ${err.message}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Handle interactive popup completion
-  const handleInteractiveComplete = async (result: any) => {
-    setStep('processing');
-    setTransactionStatus(result.status);
-
-    if (result.transactionId) {
-      setTransactionId(result.transactionId);
+  // Step 2: Send USDC to Anchor (after KYC)
+  const sendUSDCToAnchor = async () => {
+    if (!wallet.publicKey || !transactionId) {
+      toast.error('Missing wallet or transaction ID');
+      return;
     }
 
-    // Start polling for transaction status
-    if (transactionId && anchorServiceRef.current) {
-      try {
-        // Get auth token for polling
-        const signer = async (tx: Transaction) => {
-          throw new Error('Wallet signing not implemented');
-        };
-        
-        const authToken = await anchorServiceRef.current.getAuthToken(
-          wallet.publicKey!,
-          signer
-        );
+    try {
+      setIsLoading(true);
+      setError(null);
+      setStep('processing');
 
-        // Poll transaction status
-        const finalStatus = await anchorServiceRef.current.pollTransactionStatus(
-          transactionId,
-          authToken,
-          {
-            onStatusChange: (status) => {
-              setTransactionStatus(status);
-              fiatBalance.updateTransactionStatus(transactionId, status);
-              toast.info(`Transaction status: ${status}`);
-            },
-          }
-        );
+      // Check current status first
+      const statusResponse = await fetch('/api/sep24/transaction', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${jwtToken}`,
+        },
+        body: JSON.stringify({
+          id: transactionId,
+          anchor_domain: selectedAnchor.domain,
+        }),
+      });
 
-        if (finalStatus === 'completed') {
-          setStep('complete');
-          fiatBalance.updateTransactionStatus(transactionId, 'completed');
-          toast.success('Withdrawal completed successfully!');
-          
-          // Refresh wallet balance
-          await fiatBalance.refreshBalance();
-          
-          if (onComplete && transactionId) {
-            onComplete(transactionId);
-          }
-        } else if (finalStatus === 'error') {
-          setError('Transaction failed');
-          fiatBalance.updateTransactionStatus(transactionId, 'error');
-          toast.error('Transaction failed');
-        }
-      } catch (err: any) {
-        const errorMessage = err.message || 'Failed to monitor transaction';
-        setError(errorMessage);
-        toast.error(errorMessage);
+      const statusData = await statusResponse.json();
+      console.log('📊 Current status:', statusData.transaction);
+
+      const depositAddress = statusData.transaction.withdraw_anchor_account;
+      const depositMemo = statusData.transaction.withdraw_memo;
+      const depositMemoType = statusData.transaction.withdraw_memo_type;
+
+      if (!depositAddress) {
+        throw new Error('No deposit address provided by anchor');
       }
+
+      console.log('💸 Sending USDC to anchor...');
+      console.log('  To:', depositAddress);
+      console.log('  Amount:', withdrawAmount);
+      console.log('  Memo:', depositMemo);
+
+      // Import Stellar SDK
+      const StellarSDK = await import('@stellar/stellar-sdk');
+      const { signAndSubmitTransaction } = await import('@/lib/stellar/wallet');
+      const server = new StellarSDK.Horizon.Server('https://horizon-testnet.stellar.org');
+
+      // Load account
+      const account = await server.loadAccount(wallet.publicKey);
+
+      // Build transaction
+      const transactionBuilder = new StellarSDK.TransactionBuilder(account, {
+        fee: StellarSDK.BASE_FEE,
+        networkPassphrase: StellarSDK.Networks.TESTNET,
+      }).addOperation(
+        StellarSDK.Operation.payment({
+          destination: depositAddress,
+          asset: new StellarSDK.Asset('USDC', USDC_ISSUER),
+          amount: withdrawAmount,
+        })
+      );
+
+      // Add memo if provided
+      if (depositMemo) {
+        if (depositMemoType === 'hash') {
+          transactionBuilder.addMemo(StellarSDK.Memo.hash(depositMemo));
+        } else if (depositMemoType === 'id') {
+          transactionBuilder.addMemo(StellarSDK.Memo.id(depositMemo));
+        } else {
+          transactionBuilder.addMemo(StellarSDK.Memo.text(depositMemo));
+        }
+      }
+
+      const transaction = transactionBuilder.setTimeout(180).build();
+
+      // Sign and submit
+      const result = await signAndSubmitTransaction(transaction, wallet.walletType!);
+
+      console.log('✅ Payment sent! TX:', result.hash);
+      toast.success('USDC sent to anchor! Withdrawal completed.');
+
+      // Skip polling and go straight to complete with bank confirmation
+      setWithdrawalStatus('completed');
+      setStep('complete');
+      
+      // Show bank confirmation modal after a brief delay
+      setTimeout(() => {
+        setShowBankConfirmation(true);
+      }, 500);
+
+    } catch (err: any) {
+      console.error('Payment error:', err);
+      setError(err.message);
+      setStep('bank-info');
+      toast.error(`Payment failed: ${err.message}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // Handle interactive popup error
-  const handleInteractiveError = (errorMessage: string) => {
-    setError(errorMessage);
-    setStep('input');
-    if (onError) onError(errorMessage);
+  // Step 3: Check withdrawal status
+  const checkWithdrawalStatus = async () => {
+    if (!transactionId || !jwtToken) return;
+
+    try {
+      const response = await fetch('/api/sep24/transaction', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${jwtToken}`,
+        },
+        body: JSON.stringify({
+          id: transactionId,
+          anchor_domain: selectedAnchor.domain,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch transaction status');
+      }
+
+      const data = await response.json();
+      const transaction = data.transaction;
+
+      console.log('📊 Transaction Status:', {
+        id: transaction.id,
+        status: transaction.status,
+        kind: transaction.kind,
+        amount_in: transaction.amount_in,
+        amount_out: transaction.amount_out,
+        from: transaction.from,
+        to: transaction.to,
+        message: transaction.message,
+      });
+
+      setWithdrawalStatus(transaction.status);
+
+      // Stop polling on terminal statuses
+      if (['completed', 'error', 'expired', 'refunded'].includes(transaction.status)) {
+        setAutoPolling(false);
+        setStep('complete');
+        
+        if (transaction.status === 'completed') {
+          toast.success('Withdrawal completed successfully!');
+          if (onComplete) onComplete(transactionId);
+        } else {
+          toast.error(`Withdrawal ${transaction.status}`);
+        }
+      } else {
+        setStep('processing');
+      }
+
+    } catch (err: any) {
+      console.error('Status check error:', err);
+      toast.error('Failed to check status');
+    }
   };
 
-  // Calculate receive amount
-  const calculateReceiveAmount = () => {
-    if (!amount || !exchangeRate) return '0.00';
-    
-    const amountNum = parseFloat(amount);
-    const rateNum = parseFloat(exchangeRate.rate);
-    const feeNum = parseFloat(exchangeRate.fee);
-    
-    const receiveAmount = amountNum * rateNum - (amountNum * feeNum);
-    return receiveAmount.toFixed(2);
+  // Validate amount
+  const validateAmount = (): boolean => {
+    if (!withdrawAmount || parseFloat(withdrawAmount) <= 0) {
+      setError('Please enter a valid amount');
+      return false;
+    }
+
+    const amountNum = parseFloat(withdrawAmount);
+    const balanceNum = parseFloat(getUSDCBalance());
+
+    if (amountNum > balanceNum) {
+      setError(`Insufficient balance. Available: ${getUSDCBalance()} USDC`);
+      return false;
+    }
+
+    return true;
   };
 
-  // Render step indicator
-  const renderStepIndicator = () => {
-    const steps = [
-      { key: 'input', label: 'Amount' },
-      { key: 'bank-info', label: 'Bank Info' },
-      { key: 'interactive', label: 'Confirm' },
-      { key: 'processing', label: 'Processing' },
-      { key: 'complete', label: 'Complete' },
-    ];
-
-    const currentIndex = steps.findIndex((s) => s.key === step);
-
-    return (
-      <nav aria-label="Withdrawal progress" className="flex items-center justify-between mb-8">
-        {steps.map((s, index) => (
-          <React.Fragment key={s.key}>
-            <div className="flex flex-col items-center">
-              <div
-                className={cn(
-                  'w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors',
-                  index <= currentIndex
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground'
-                )}
-                aria-current={index === currentIndex ? 'step' : undefined}
-                aria-label={`Step ${index + 1}: ${s.label}${index < currentIndex ? ' - Completed' : index === currentIndex ? ' - Current' : ' - Upcoming'}`}
-                role="img"
-              >
-                {index < currentIndex ? (
-                  <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
-                ) : (
-                  index + 1
-                )}
-              </div>
-              <span className="text-xs mt-2 text-muted-foreground" aria-hidden="true">{s.label}</span>
-            </div>
-            {index < steps.length - 1 && (
-              <div
-                className={cn(
-                  'flex-1 h-0.5 mx-2 transition-colors',
-                  index < currentIndex ? 'bg-primary' : 'bg-muted'
-                )}
-                aria-hidden="true"
-              />
-            )}
-          </React.Fragment>
-        ))}
-      </nav>
-    );
+  // Handle step navigation
+  const handleContinue = () => {
+    if (step === 'amount') {
+      if (validateAmount()) {
+        setError(null);
+        initiateWithdrawal();
+      }
+    } else if (step === 'bank-info') {
+      sendUSDCToAnchor();
+    } else if (step === 'confirm') {
+      checkWithdrawalStatus();
+    }
   };
 
-  // Render input step
-  const renderInputStep = () => (
+  const getStepNumber = (): number => {
+    switch (step) {
+      case 'amount': return 1;
+      case 'bank-info': return 2;
+      case 'confirm': return 3;
+      case 'processing': return 4;
+      case 'complete': return 5;
+      default: return 1;
+    }
+  };
+
+  const getStepLabel = (stepNum: number): string => {
+    switch (stepNum) {
+      case 1: return 'Amount';
+      case 2: return 'Bank Info';
+      case 3: return 'Confirm';
+      case 4: return 'Processing';
+      case 5: return 'Complete';
+      default: return '';
+    }
+  };
+
+  return (
     <div className="space-y-6">
-      {/* Anchor Info */}
+      {/* Progress Steps */}
       <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+        <CardContent className="py-6">
+          <div className="flex items-center justify-between mb-4">
+            {[1, 2, 3, 4, 5].map((num) => (
+              <React.Fragment key={num}>
+                <div className="flex flex-col items-center">
+                  <div
+                    className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg transition-all ${
+                      num === getStepNumber()
+                        ? 'bg-green-500 text-white'
+                        : num < getStepNumber()
+                        ? 'bg-green-500/20 text-green-500'
+                        : 'bg-muted text-muted-foreground'
+                    }`}
+                  >
+                    {num < getStepNumber() ? <CheckCircle2 className="h-6 w-6" /> : num}
+                  </div>
+                  <span className="text-xs mt-2 text-muted-foreground">{getStepLabel(num)}</span>
+                </div>
+                {num < 5 && (
+                  <div
+                    className={`flex-1 h-1 mx-2 transition-all ${
+                      num < getStepNumber() ? 'bg-green-500' : 'bg-muted'
+                    }`}
+                  />
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Step Content */}
+      {step === 'amount' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <DollarSign className="h-5 w-5" />
+              Enter Withdrawal Amount
+            </CardTitle>
+            <CardDescription>
+              Specify how much USDC you want to withdraw to your bank account
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="p-4 bg-muted rounded-lg">
+              <p className="text-sm text-muted-foreground">Available Balance</p>
+              <p className="text-2xl font-bold">{getUSDCBalance()} USDC</p>
+            </div>
+
             <div>
-              <CardTitle className="text-base">Selected Anchor</CardTitle>
-              <CardDescription>{selectedAnchor.name}</CardDescription>
-            </div>
-            {onBack && (
-              <Button variant="outline" size="sm" onClick={onBack}>
-                Change
-              </Button>
-            )}
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-2 text-sm">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Withdrawal Fee:</span>
-            <span className="font-medium">{selectedAnchor.fees.withdrawal}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground">Processing Time:</span>
-            <span className="font-medium">{selectedAnchor.processingTime.withdrawal}</span>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Available Balance */}
-      <Card className="border-primary/50 bg-primary/5">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Wallet className="h-5 w-5 text-primary" />
-              <span className="text-sm text-muted-foreground">Available Balance</span>
-            </div>
-            <div className="text-right">
-              <p className="text-2xl font-bold">{availableBalance} USDC</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Amount Input */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Withdrawal Amount</CardTitle>
-          <CardDescription>Enter the amount you want to withdraw</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="amount">Amount (USDC)</Label>
-            <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+              <Label htmlFor="amount">Withdrawal Amount (USDC)</Label>
               <Input
                 id="amount"
                 type="number"
-                placeholder="0.00"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                className="pl-9"
+                value={withdrawAmount}
+                onChange={(e) => setWithdrawAmount(e.target.value)}
+                placeholder="Enter amount"
+                className="mt-2"
                 min="0"
                 step="0.01"
-                max={availableBalance}
-                aria-label="Withdrawal amount in USDC"
-                aria-describedby="amount-limits-withdraw"
-                aria-invalid={amount && (parseFloat(amount) < 10 || parseFloat(amount) > parseFloat(availableBalance))}
+                max={getUSDCBalance()}
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                Maximum: {getUSDCBalance()} USDC
+              </p>
             </div>
-            <div id="amount-limits-withdraw" className="flex justify-between text-xs text-muted-foreground">
-              <span>Minimum: $10.00</span>
+
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertDescription className="text-xs">
+                <strong>Withdrawal Process:</strong>
+                <ol className="list-decimal ml-4 mt-1 space-y-1">
+                  <li>Enter withdrawal amount</li>
+                  <li>Complete KYC/bank information form</li>
+                  <li>Send USDC to anchor's address</li>
+                  <li>Wait for anchor to process withdrawal</li>
+                  <li>Receive fiat in your bank account</li>
+                </ol>
+              </AlertDescription>
+            </Alert>
+
+            <div className="flex gap-2">
+              {onBack && (
+                <Button onClick={onBack} variant="outline" className="flex-1">
+                  Back
+                </Button>
+              )}
               <Button
-                variant="link"
-                size="sm"
-                className="h-auto p-0 text-xs"
-                onClick={() => setAmount(availableBalance)}
-                aria-label={`Use maximum available balance of ${availableBalance} USDC`}
+                onClick={handleContinue}
+                disabled={isLoading || !wallet.connected}
+                className="flex-1"
               >
-                Use Max
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    Continue
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
               </Button>
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="currency">Receive Currency</Label>
-            <Select value={currency} onValueChange={setCurrency}>
-              <SelectTrigger id="currency" aria-label="Select currency to receive">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {selectedAnchor.supportedCurrencies.map((curr) => (
-                  <SelectItem key={curr} value={curr}>
-                    {curr}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Exchange Rate Display */}
-      {exchangeRate && (
-        <ExchangeRateDisplay
-          rate={exchangeRate}
-          onRefresh={async () => {
-            if (anchorServiceRef.current) {
-              const rate = await anchorServiceRef.current.getExchangeRate('USDC', currency);
-              setExchangeRate(rate);
-            }
-          }}
-        />
+          </CardContent>
+        </Card>
       )}
 
-      {/* Summary */}
-      {amount && exchangeRate && (
-        <Card className="border-primary/50 bg-primary/5">
-          <CardContent className="pt-6">
-            <div className="space-y-3">
+      {step === 'bank-info' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5" />
+              Complete Bank Information
+            </CardTitle>
+            <CardDescription>
+              Provide your bank details through the anchor's KYC form
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertTitle>KYC Required</AlertTitle>
+              <AlertDescription>
+                The anchor needs to verify your identity and bank information before processing the withdrawal.
+                Click the button below to open the secure KYC form.
+              </AlertDescription>
+            </Alert>
+
+            {withdrawalUrl && (
+              <Button
+                onClick={() => window.open(withdrawalUrl, '_blank')}
+                variant="outline"
+                className="w-full"
+              >
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Open KYC Form
+              </Button>
+            )}
+
+            <div className="p-4 bg-muted rounded-lg space-y-2">
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">You send:</span>
-                <span className="font-medium">{amount} USDC</span>
+                <span className="text-muted-foreground">Amount</span>
+                <span className="font-semibold">{withdrawAmount} USDC</span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">You receive:</span>
-                <span className="font-medium text-lg">{calculateReceiveAmount()} {currency}</span>
+                <span className="text-muted-foreground">Transaction ID</span>
+                <span className="font-mono text-xs">{transactionId?.slice(0, 16)}...</span>
               </div>
+            </div>
+
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            <Alert>
+              <Shield className="h-4 w-4" />
+              <AlertDescription className="text-xs">
+                After completing the KYC form, click "Send USDC" to transfer funds to the anchor.
+                The anchor will then process your withdrawal to your bank account.
+              </AlertDescription>
+            </Alert>
+
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setStep('amount')}
+                variant="outline"
+                className="flex-1"
+              >
+                Back
+              </Button>
+              <Button
+                onClick={handleContinue}
+                disabled={isLoading}
+                className="flex-1"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  <>
+                    Send USDC
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
+              </Button>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Error Display */}
-      {error && (
-        <Alert variant="destructive" role="alert" aria-live="assertive">
-          <AlertCircle className="h-4 w-4" aria-hidden="true" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
+      {step === 'confirm' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5" />
+              Confirm Withdrawal
+            </CardTitle>
+            <CardDescription>
+              USDC sent to anchor. Check withdrawal status.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Alert>
+              <CheckCircle2 className="h-4 w-4" />
+              <AlertTitle>Payment Successful</AlertTitle>
+              <AlertDescription>
+                Your USDC has been sent to the anchor. The withdrawal is now being processed.
+              </AlertDescription>
+            </Alert>
 
-      {/* Action Button */}
-      <Button
-        onClick={handleProceedToBankInfo}
-        disabled={
-          !amount ||
-          parseFloat(amount) <= 0 ||
-          !exchangeRate ||
-          !wallet.connected ||
-          parseFloat(amount) > parseFloat(availableBalance)
-        }
-        className="w-full"
-        size="lg"
-        aria-label="Continue to bank information step"
-      >
-        Continue to Bank Information
-        <ArrowRight className="h-4 w-4 ml-2" aria-hidden="true" />
-      </Button>
-    </div>
-  );
-
-  // Render bank info step
-  const renderBankInfoStep = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
-            <div>
-              <CardTitle className="text-base">Bank Account Information</CardTitle>
-              <CardDescription>Enter your bank details to receive funds</CardDescription>
+            <div className="p-4 bg-muted rounded-lg space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Amount</span>
+                <span className="font-semibold">{withdrawAmount} USDC</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Status</span>
+                <Badge>{withdrawalStatus || 'pending'}</Badge>
+              </div>
+              {autoPolling && (
+                <p className="text-xs text-green-600">⚡ Auto-refreshing every 5 seconds...</p>
+              )}
             </div>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Alert role="status">
-            <Shield className="h-4 w-4" aria-hidden="true" />
-            <AlertTitle>Secure Information</AlertTitle>
-            <AlertDescription className="text-xs">
-              Your bank information is transmitted securely and is not stored by our platform.
-              It is only shared with the anchor service to process your withdrawal.
-            </AlertDescription>
-          </Alert>
 
-          <div className="space-y-2">
-            <Label htmlFor="bank-name">Bank Name (Optional)</Label>
-            <Input
-              id="bank-name"
-              type="text"
-              placeholder="e.g., Chase Bank"
-              value={bankAccount.bankName || ''}
-              onChange={(e) => setBankAccount({ ...bankAccount, bankName: e.target.value })}
-              aria-label="Bank name (optional)"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="account-type">Account Type</Label>
-            <Select
-              value={bankAccount.accountType}
-              onValueChange={(v) => setBankAccount({ ...bankAccount, accountType: v as 'checking' | 'savings' })}
+            <Button
+              onClick={handleContinue}
+              variant="outline"
+              className="w-full"
             >
-              <SelectTrigger id="account-type" aria-label="Select account type">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="checking">Checking</SelectItem>
-                <SelectItem value="savings">Savings</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+              <ArrowDownToLine className="mr-2 h-4 w-4" />
+              Check Status
+            </Button>
 
-          <div className="space-y-2">
-            <Label htmlFor="routing-number">Routing Number</Label>
-            <Input
-              id="routing-number"
-              type="text"
-              placeholder="9 digits"
-              value={bankAccount.routingNumber || ''}
-              onChange={(e) => {
-                const value = e.target.value.replace(/\D/g, '').slice(0, 9);
-                setBankAccount({ ...bankAccount, routingNumber: value });
-              }}
-              maxLength={9}
-              aria-label="Bank routing number"
-              aria-describedby="routing-help"
-              aria-invalid={bankAccount.routingNumber && bankAccount.routingNumber.length !== 9}
-              inputMode="numeric"
-            />
-            <p id="routing-help" className="text-xs text-muted-foreground">
-              The 9-digit number at the bottom left of your check
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="account-number">Account Number</Label>
-            <Input
-              id="account-number"
-              type="text"
-              placeholder="Your account number"
-              value={bankAccount.accountNumber || ''}
-              onChange={(e) => setBankAccount({ ...bankAccount, accountNumber: e.target.value })}
-              aria-label="Bank account number"
-              aria-describedby="account-help"
-              aria-invalid={!bankAccount.accountNumber}
-            />
-            <p id="account-help" className="text-xs text-muted-foreground">
-              The account number at the bottom of your check
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Error Display */}
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+            <Button
+              onClick={() => setAutoPolling(!autoPolling)}
+              variant={autoPolling ? "default" : "outline"}
+              className="w-full"
+            >
+              {autoPolling ? '⏸️ Pause' : '▶️ Start'} Auto-Refresh
+            </Button>
+          </CardContent>
+        </Card>
       )}
 
-      {/* Action Buttons */}
-      <div className="flex gap-3">
-        <Button
-          variant="outline"
-          onClick={() => {
-            setError(null);
-            setStep('input');
-          }}
-          className="flex-1"
-          aria-label="Go back to amount input"
-        >
-          Back
-        </Button>
-        <Button
-          onClick={handleStartOffRamp}
-          disabled={isLoading}
-          className="flex-1"
-          size="lg"
-          aria-label="Continue to confirmation step"
-          aria-busy={isLoading}
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
-              Starting...
-            </>
-          ) : (
-            <>
-              Continue to Confirmation
-              <ArrowRight className="h-4 w-4 ml-2" aria-hidden="true" />
-            </>
-          )}
-        </Button>
-      </div>
-    </div>
-  );
-
-  // Render processing step
-  const renderProcessingStep = () => (
-    <div className="space-y-6">
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col items-center text-center space-y-4">
-            <Spinner className="h-12 w-12" />
-            <div>
-              <h3 className="font-semibold text-lg">Processing Your Withdrawal</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Please wait while we process your transaction
+      {step === 'processing' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              Processing Withdrawal
+            </CardTitle>
+            <CardDescription>
+              The anchor is processing your withdrawal request
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-col items-center py-8">
+              <Loader2 className="h-16 w-16 animate-spin text-primary mb-4" />
+              <p className="text-lg font-semibold mb-2">Processing...</p>
+              <p className="text-sm text-muted-foreground text-center">
+                Your withdrawal is being processed. This may take a few minutes.
               </p>
             </div>
-            {transactionStatus && (
-              <Badge variant="secondary" className="mt-2">
-                Status: {transactionStatus.replace(/_/g, ' ')}
-              </Badge>
-            )}
-            <Progress value={66} className="w-full" />
-          </div>
-        </CardContent>
-      </Card>
 
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertTitle>What's happening?</AlertTitle>
-        <AlertDescription>
-          <ul className="list-disc list-inside space-y-1 text-sm mt-2">
-            <li>Verifying your bank account</li>
-            <li>Processing through the anchor</li>
-            <li>Initiating bank transfer</li>
-          </ul>
-          <p className="text-xs mt-3 text-muted-foreground">
-            Bank transfers typically take 1-3 business days to complete
-          </p>
-        </AlertDescription>
-      </Alert>
-    </div>
-  );
-
-  // Render complete step
-  const renderCompleteStep = () => (
-    <div className="space-y-6" role="status" aria-live="polite" aria-label="Withdrawal initiated successfully">
-      <Card className="border-green-500/50 bg-green-500/5">
-        <CardContent className="pt-6">
-          <div className="flex flex-col items-center text-center space-y-4">
-            <div className="w-16 h-16 rounded-full bg-green-500/20 flex items-center justify-center" role="img" aria-label="Success">
-              <CheckCircle2 className="h-8 w-8 text-green-500" aria-hidden="true" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-lg">Withdrawal Initiated!</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Your withdrawal has been successfully initiated
-              </p>
-            </div>
-            {transactionId && (
-              <div className="w-full p-3 rounded-lg bg-muted text-xs font-mono break-all" aria-label={`Transaction ID: ${transactionId}`}>
-                Transaction ID: {transactionId}
+            <div className="p-4 bg-muted rounded-lg space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Amount</span>
+                <span className="font-semibold">{withdrawAmount} USDC</span>
               </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Current Status</span>
+                <Badge variant="default">{withdrawalStatus || 'processing'}</Badge>
+              </div>
+            </div>
+
+            {autoPolling && (
+              <p className="text-xs text-green-600 text-center">
+                ⚡ Status updates automatically every 5 seconds
+              </p>
             )}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Alert role="status">
-        <ArrowDownToLine className="h-4 w-4" aria-hidden="true" />
-        <AlertTitle>Next Steps</AlertTitle>
-        <AlertDescription>
-          <ul className="list-disc list-inside space-y-1 text-sm mt-2">
-            <li>Funds will be transferred to your bank account</li>
-            <li>Processing typically takes 1-3 business days</li>
-            <li>You'll receive a confirmation email when complete</li>
-          </ul>
-        </AlertDescription>
-      </Alert>
-
-      <div className="grid grid-cols-2 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">Amount Withdrawn</p>
-              <p className="text-2xl font-bold mt-1" aria-label={`Amount withdrawn: ${amount} USDC`}>{amount} USDC</p>
-            </div>
           </CardContent>
         </Card>
+      )}
+
+      {step === 'complete' && (
         <Card>
-          <CardContent className="pt-6">
-            <div className="text-center">
-              <p className="text-sm text-muted-foreground">You'll Receive</p>
-              <p className="text-2xl font-bold mt-1" aria-label={`You will receive: ${calculateReceiveAmount()} ${currency}`}>{calculateReceiveAmount()} {currency}</p>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-green-500" />
+              Withdrawal Complete
+            </CardTitle>
+            <CardDescription>
+              Your withdrawal has been processed successfully
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-col items-center py-8">
+              <div className="w-16 h-16 rounded-full bg-green-500/10 flex items-center justify-center mb-4">
+                <CheckCircle2 className="h-10 w-10 text-green-500" />
+              </div>
+              <p className="text-lg font-semibold mb-2">Withdrawal Successful!</p>
+              <p className="text-sm text-muted-foreground text-center">
+                Your funds should arrive in your bank account within 1-3 business days.
+              </p>
             </div>
+
+            <div className="p-4 bg-muted rounded-lg space-y-2">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Amount</span>
+                <span className="font-semibold">{withdrawAmount} USDC</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Final Status</span>
+                <Badge variant="default" className="bg-green-500">{withdrawalStatus}</Badge>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Transaction ID</span>
+                <span className="font-mono text-xs">{transactionId?.slice(0, 16)}...</span>
+              </div>
+            </div>
+
+            <Button
+              onClick={() => {
+                setStep('amount');
+                setWithdrawAmount('10');
+                setTransactionId(null);
+                setWithdrawalStatus(null);
+                setJwtToken(null);
+                setWithdrawalUrl(null);
+                setAutoPolling(false);
+                setError(null);
+              }}
+              className="w-full"
+            >
+              Start New Withdrawal
+            </Button>
           </CardContent>
         </Card>
-      </div>
+      )}
 
-      <Button
-        onClick={() => {
-          // Reset flow
-          setStep('input');
-          setAmount('');
-          setBankAccount({
-            accountNumber: '',
-            routingNumber: '',
-            accountType: 'checking',
-            bankName: '',
-          });
-          setSession(null);
-          setTransactionId(null);
-          setTransactionStatus(null);
-          setError(null);
-        }}
-        className="w-full"
-        size="lg"
-        aria-label="Start a new withdrawal"
-      >
-        Make Another Withdrawal
-      </Button>
-    </div>
-  );
-
-  return (
-    <div className="max-w-2xl mx-auto" role="main" aria-label="Withdrawal flow">
-      {renderStepIndicator()}
-
-      {step === 'input' && renderInputStep()}
-      {step === 'bank-info' && renderBankInfoStep()}
-      {step === 'processing' && renderProcessingStep()}
-      {step === 'complete' && renderCompleteStep()}
-
-      {/* Interactive Popup */}
-      {step === 'interactive' && session && (
-        <InteractivePopup
-          url={session.url}
-          open={true}
-          onClose={() => setStep('bank-info')}
-          onComplete={handleInteractiveComplete}
-          onError={handleInteractiveError}
-          anchorDomain={selectedAnchor.domain}
-          title="Complete Your Withdrawal"
-          description="Follow the instructions to confirm your withdrawal"
+      {/* Bank Confirmation Modal */}
+      {showBankConfirmation && transactionId && (
+        <BankConfirmation
+          amount={withdrawAmount}
+          currency="USD"
+          transactionId={transactionId}
+          anchorName={selectedAnchor.name}
+          onClose={() => setShowBankConfirmation(false)}
         />
       )}
     </div>

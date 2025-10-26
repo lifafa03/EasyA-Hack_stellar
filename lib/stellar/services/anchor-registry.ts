@@ -29,38 +29,21 @@ export class AnchorRegistry {
   
   private static readonly anchors: AnchorProvider[] = [
     {
-      id: 'moneygram',
-      name: 'MoneyGram Access',
-      domain: 'api.moneygram.com',
-      logo: '/anchors/moneygram-logo.png',
-      supportedCurrencies: ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'MXN', 'PHP', 'INR'],
-      supportedRegions: ['US', 'EU', 'UK', 'CA', 'AU', 'MX', 'PH', 'IN', 'GLOBAL'],
+      id: 'testanchor',
+      name: 'Test Anchor (Stellar Testnet)',
+      domain: 'testanchor.stellar.org',
+      logo: '/anchors/stellar-logo.png',
+      supportedCurrencies: ['USD', 'USDC', 'EUR'],
+      supportedRegions: ['GLOBAL'],
       fees: {
-        deposit: '1.5%',
-        withdrawal: '2.0%',
+        deposit: 'Free (Test)',
+        withdrawal: 'Free (Test)',
       },
       processingTime: {
-        deposit: '5-15 minutes',
-        withdrawal: '1-3 business days',
+        deposit: 'Instant',
+        withdrawal: '1-2 minutes',
       },
-      description: 'Global money transfer service with extensive coverage and competitive rates',
-    },
-    {
-      id: 'anchorusd',
-      name: 'AnchorUSD',
-      domain: 'api.anchorusd.com',
-      logo: '/anchors/anchorusd-logo.png',
-      supportedCurrencies: ['USD', 'USDC'],
-      supportedRegions: ['US'],
-      fees: {
-        deposit: '0.5%',
-        withdrawal: '1.0%',
-      },
-      processingTime: {
-        deposit: '2-10 minutes',
-        withdrawal: '1-2 business days',
-      },
-      description: 'US-focused anchor with low fees and fast processing times',
+      description: 'Official Stellar test anchor for SEP-24 testing on testnet',
     },
     {
       id: 'vibrant',
@@ -77,7 +60,7 @@ export class AnchorRegistry {
         deposit: '3-12 minutes',
         withdrawal: '1-2 business days',
       },
-      description: 'Multi-region anchor with strong presence in Africa and competitive European rates',
+      description: 'Multi-region anchor for Africa and Europe',
     },
   ];
 
