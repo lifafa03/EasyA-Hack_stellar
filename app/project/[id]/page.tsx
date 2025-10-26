@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, DollarSign, Users, Clock, CheckCircle2, Shield, Loader2, ExternalLink, AlertCircle, Target, TrendingUp, Download, FileText } from "lucide-react"
+import { Calendar, DollarSign, Users, Clock, CheckCircle2, Shield, Loader2, ExternalLink, AlertCircle, Target, TrendingUp, Download, FileText, Copy } from "lucide-react"
 import React from "react"
 import {
   Dialog,
@@ -152,6 +152,7 @@ export default function ProjectDetailPage() {
   const [isContributingToPool, setIsContributingToPool] = React.useState(false);
   const [fundAmount, setFundAmount] = React.useState('');
   const [isFunding, setIsFunding] = React.useState(false);
+  const [copiedTxHash, setCopiedTxHash] = React.useState(false);
 
   // Load bids from localStorage
   React.useEffect(() => {
@@ -182,7 +183,19 @@ export default function ProjectDetailPage() {
       portfolioLink: data.portfolioLink,
       milestonesApproach: data.milestonesApproach,
     }, wallet.publicKey!, walletType);
-    return { bidHash: bid.id, txHash: bid.txHash };
+    
+    // Show transaction success with link
+    const txHash = bid.txHash || bid.id;
+    toast.success('Bid submitted successfully!', {
+      description: `Transferred ${data.bidAmount} USDC to project pool`,
+      action: {
+        label: 'View Transaction',
+        onClick: () => window.open(`https://stellar.expert/explorer/testnet/tx/${txHash}`, '_blank'),
+      },
+      duration: 10000,
+    });
+    
+    return { bidHash: bid.id, txHash: txHash };
   };
 
   const fetchEscrowBidsData = async () => {
@@ -1217,11 +1230,47 @@ export default function ProjectDetailPage() {
                               </Alert>
                             )}
                             
-                            {submitState === 'success' && (
+                            {submitState === 'success' && transactionHash && (
                               <Alert className="bg-green-500/10 border-green-500/20">
                                 <CheckCircle2 className="h-4 w-4 text-green-500" />
-                                <AlertDescription className="text-green-500">
-                                  Bid submitted successfully! Your bid has been cryptographically signed.
+                                <AlertDescription>
+                                  <p className="font-semibold text-green-500 mb-2">Bid submitted successfully!</p>
+                                  <p className="text-sm text-gray-300 mb-2">Your USDC has been transferred to the project pool.</p>
+                                  <div className="mt-2 p-2 bg-black/30 rounded">
+                                    <div className="flex items-center justify-between mb-1">
+                                      <p className="text-xs text-gray-400">Transaction ID:</p>
+                                      <button
+                                        onClick={() => {
+                                          navigator.clipboard.writeText(transactionHash);
+                                          setCopiedTxHash(true);
+                                          toast.success('Transaction ID copied!');
+                                          setTimeout(() => setCopiedTxHash(false), 2000);
+                                        }}
+                                        className="text-xs text-gray-400 hover:text-green-500 transition-colors flex items-center gap-1"
+                                      >
+                                        {copiedTxHash ? (
+                                          <>
+                                            <CheckCircle2 className="h-3 w-3" />
+                                            Copied!
+                                          </>
+                                        ) : (
+                                          <>
+                                            <Copy className="h-3 w-3" />
+                                            Copy
+                                          </>
+                                        )}
+                                      </button>
+                                    </div>
+                                    <p className="text-xs font-mono text-gray-300 break-all mb-2">{transactionHash}</p>
+                                    <a 
+                                      href={`https://stellar.expert/explorer/testnet/tx/${transactionHash}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-xs text-green-500 hover:text-green-400 flex items-center gap-1"
+                                    >
+                                      View on Stellar Expert <ExternalLink className="h-3 w-3" />
+                                    </a>
+                                  </div>
                                 </AlertDescription>
                               </Alert>
                             )}
