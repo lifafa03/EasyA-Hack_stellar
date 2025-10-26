@@ -295,13 +295,18 @@ export default function HomePage() {
                 className="mt-20 w-full max-w-6xl mx-auto"
               >
                 <div className="relative rounded-2xl overflow-hidden border border-[#4ade80]/30 shadow-2xl shadow-[#4ade80]/20">
-                  <div className="absolute inset-0 bg-linear-to-br from-purple-600/20 to-[#4ade80]/20 backdrop-blur-sm z-10" />
-                  <img
-                    src="https://images.unsplash.com/photo-1639762681485-074b7f938ba0?w=1200&h=675&fit=crop"
-                    alt="Decentralized marketplace interface"
+                  <div className="absolute inset-0 bg-linear-to-br from-purple-600/20 to-[#4ade80]/20 backdrop-blur-sm z-10 pointer-events-none" />
+                  <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
                     className="w-full h-auto object-cover opacity-80"
-                  />
-                  <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-transparent z-10" />
+                  >
+                    <source src="/video/blockchain.mp4" type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
+                  <div className="absolute inset-0 bg-linear-to-t from-black via-transparent to-transparent z-10 pointer-events-none" />
                 </div>
               </motion.div>
             </motion.div>

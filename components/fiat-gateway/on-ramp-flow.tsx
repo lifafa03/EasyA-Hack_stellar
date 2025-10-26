@@ -331,8 +331,8 @@ export function OnRampFlow({
                 className={cn(
                   'w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors',
                   index <= currentIndex
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted text-muted-foreground'
+                    ? 'bg-[#4ade80] text-white'
+                    : 'bg-white/5 text-gray-400'
                 )}
                 aria-current={index === currentIndex ? 'step' : undefined}
                 aria-label={`Step ${index + 1}: ${s.label}${index < currentIndex ? ' - Completed' : index === currentIndex ? ' - Current' : ' - Upcoming'}`}
@@ -344,13 +344,13 @@ export function OnRampFlow({
                   index + 1
                 )}
               </div>
-              <span className="text-xs mt-2 text-muted-foreground" aria-hidden="true">{s.label}</span>
+              <span className="text-xs mt-2 text-gray-400" aria-hidden="true">{s.label}</span>
             </div>
             {index < steps.length - 1 && (
               <div
                 className={cn(
                   'flex-1 h-0.5 mx-2 transition-colors',
-                  index < currentIndex ? 'bg-primary' : 'bg-muted'
+                  index < currentIndex ? 'bg-[#4ade80]' : 'bg-white/10'
                 )}
                 aria-hidden="true"
               />
@@ -365,18 +365,19 @@ export function OnRampFlow({
   const renderInputStep = () => (
     <div className="space-y-6">
       {/* Anchor Info */}
-      <Card>
+      <Card className="bg-white/5 backdrop-blur-sm border-white/10">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-base" id="anchor-info-title">Selected Anchor</CardTitle>
-              <CardDescription>{selectedAnchor.name}</CardDescription>
+              <CardTitle className="text-base text-white" id="anchor-info-title">Selected Anchor</CardTitle>
+              <CardDescription className="text-gray-400">{selectedAnchor.name}</CardDescription>
             </div>
             {onBack && (
               <Button 
                 variant="outline" 
                 size="sm" 
                 onClick={onBack}
+                className="border-white/20 bg-white/5 hover:bg-white/10 text-white"
                 aria-label="Change anchor provider"
               >
                 Change
@@ -386,12 +387,12 @@ export function OnRampFlow({
         </CardHeader>
         <CardContent className="space-y-2 text-sm" aria-labelledby="anchor-info-title">
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Deposit Fee:</span>
-            <span className="font-medium" aria-label={`Deposit fee is ${selectedAnchor.fees.deposit}`}>{selectedAnchor.fees.deposit}</span>
+            <span className="text-gray-400">Deposit Fee:</span>
+            <span className="font-medium text-white" aria-label={`Deposit fee is ${selectedAnchor.fees.deposit}`}>{selectedAnchor.fees.deposit}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground">Processing Time:</span>
-            <span className="font-medium" aria-label={`Processing time is ${selectedAnchor.processingTime.deposit}`}>{selectedAnchor.processingTime.deposit}</span>
+            <span className="text-gray-400">Processing Time:</span>
+            <span className="font-medium text-white" aria-label={`Processing time is ${selectedAnchor.processingTime.deposit}`}>{selectedAnchor.processingTime.deposit}</span>
           </div>
         </CardContent>
       </Card>
