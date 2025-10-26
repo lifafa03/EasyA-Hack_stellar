@@ -45,6 +45,7 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import type { FiatTransaction } from '@/lib/stellar/types/fiat-gateway';
 import { StellarErrorBoundary } from '@/components/stellar/error-boundary';
@@ -214,6 +215,8 @@ const statusColors = {
 
 function DashboardContent() {
   const wallet = useWallet();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [isEditing, setIsEditing] = React.useState(false);
   const [selectedAnchor, setSelectedAnchor] = React.useState<AnchorProvider | null>(null);
   const [showAnchorSelector, setShowAnchorSelector] = React.useState(false);
@@ -229,12 +232,17 @@ function DashboardContent() {
 
   // Handle URL query parameters for tab navigation
   React.useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const tab = params.get('tab');
+    const tab = searchParams.get('tab');
     if (tab && ['profile', 'bids', 'investments', 'deposit', 'withdraw', 'history', 'settings'].includes(tab)) {
       setActiveTab(tab);
     }
-  }, []);
+  }, [searchParams]);
+
+  // Update URL when tab changes
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+    router.push(`/dashboard?tab=${newTab}`, { scroll: false });
+  };
 
   // Load preferred anchor on mount
   React.useEffect(() => {
@@ -428,7 +436,7 @@ function DashboardContent() {
           </div>
 
         {/* Main Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <div className="space-y-4">
             <div className="overflow-x-auto">
               <TabsList className="inline-flex w-auto min-w-full bg-white/5 border border-white/10">

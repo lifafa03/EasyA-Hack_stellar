@@ -169,7 +169,7 @@ export function ErrorHandler({
     return (
       <InsufficientFundsPrompt
         currentBalance={wallet.usdcBalance || '0'}
-        onAddFunds={() => router.push('/profile?tab=deposit')}
+        onAddFunds={() => router.push('/dashboard?tab=deposit')}
         onDismiss={onDismiss}
         className={className}
       />

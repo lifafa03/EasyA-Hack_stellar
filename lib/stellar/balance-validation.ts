@@ -140,7 +140,7 @@ export function getBalanceValidationMessage(result: BalanceValidationResult): {
       title: 'Insufficient USDC Balance',
       message: result.message,
       action: 'Deposit USDC',
-      actionLink: '/profile?tab=deposit',
+      actionLink: '/dashboard?tab=deposit',
     };
   }
 

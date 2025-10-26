@@ -48,8 +48,8 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/profile" className="text-gray-400 hover:text-[#4ade80] transition-colors">
-                  Profile & Wallet
+                <Link href="/dashboard" className="text-gray-400 hover:text-[#4ade80] transition-colors">
+                  Dashboard
                 </Link>
               </li>
             </ul>
