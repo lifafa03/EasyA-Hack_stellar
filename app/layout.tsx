@@ -23,16 +23,18 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className="bg-black">
       <head>
         <link rel="stylesheet" href="https://unpkg.com/@creit.tech/stellar-wallets-kit/build/stellar-wallets-kit.min.css" />
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.className} bg-black min-h-screen flex flex-col`}>
         <ThemeProvider>
           <WalletKitProvider>
             <WalletProvider>
               <Navigation />
-              {children}
+              <div className="flex-1">
+                {children}
+              </div>
               <Footer />
               <Toaster position="top-right" richColors />
             </WalletProvider>

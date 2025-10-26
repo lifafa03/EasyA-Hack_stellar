@@ -440,31 +440,31 @@ function DashboardContent() {
           <div className="space-y-4">
             <div className="overflow-x-auto">
               <TabsList className="inline-flex w-auto min-w-full bg-white/5 border border-white/10">
-                <TabsTrigger value="profile" className="gap-2 data-[state=active]:bg-[#4ade80] data-[state=active]:text-white">
+                <TabsTrigger value="profile" className="gap-2 text-white data-[state=active]:bg-[#4ade80] data-[state=active]:text-white">
                   <User className="h-4 w-4" />
                   <span className="hidden sm:inline">Profile</span>
                 </TabsTrigger>
-                <TabsTrigger value="bids" className="gap-2 data-[state=active]:bg-[#4ade80] data-[state=active]:text-white">
+                <TabsTrigger value="bids" className="gap-2 text-white data-[state=active]:bg-[#4ade80] data-[state=active]:text-white">
                 <Briefcase className="h-4 w-4" />
                   <span className="hidden sm:inline">My Bids</span>
               </TabsTrigger>
-                <TabsTrigger value="investments" className="gap-2 data-[state=active]:bg-[#4ade80] data-[state=active]:text-white">
+                <TabsTrigger value="investments" className="gap-2 text-white data-[state=active]:bg-[#4ade80] data-[state=active]:text-white">
                 <TrendingUp className="h-4 w-4" />
                   <span className="hidden sm:inline">Investments</span>
                 </TabsTrigger>
-                <TabsTrigger value="deposit" className="gap-2 data-[state=active]:bg-[#4ade80] data-[state=active]:text-white" disabled={!wallet.connected}>
+                <TabsTrigger value="deposit" className="gap-2 text-white data-[state=active]:bg-[#4ade80] data-[state=active]:text-white" disabled={!wallet.connected}>
                   <ArrowDownToLine className="h-4 w-4" />
                   <span className="hidden sm:inline">Deposit</span>
               </TabsTrigger>
-                <TabsTrigger value="withdraw" className="gap-2 data-[state=active]:bg-[#4ade80] data-[state=active]:text-white" disabled={!wallet.connected}>
+                <TabsTrigger value="withdraw" className="gap-2 text-white data-[state=active]:bg-[#4ade80] data-[state=active]:text-white" disabled={!wallet.connected}>
                   <ArrowUpFromLine className="h-4 w-4" />
                   <span className="hidden sm:inline">Withdraw</span>
                             </TabsTrigger>
-                <TabsTrigger value="history" className="gap-2 data-[state=active]:bg-[#4ade80] data-[state=active]:text-white" disabled={!wallet.connected}>
+                <TabsTrigger value="history" className="gap-2 text-white data-[state=active]:bg-[#4ade80] data-[state=active]:text-white" disabled={!wallet.connected}>
                   <History className="h-4 w-4" />
                   <span className="hidden sm:inline">History</span>
                             </TabsTrigger>
-                <TabsTrigger value="settings" className="gap-2 data-[state=active]:bg-[#4ade80] data-[state=active]:text-white" disabled={!wallet.connected}>
+                <TabsTrigger value="settings" className="gap-2 text-white data-[state=active]:bg-[#4ade80] data-[state=active]:text-white" disabled={!wallet.connected}>
                   <Settings className="h-4 w-4" />
                   <span className="hidden sm:inline">Settings</span>
               </TabsTrigger>

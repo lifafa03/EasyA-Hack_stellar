@@ -51,25 +51,25 @@ export function WalletConnectButton() {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="border-[#4ade80]/30 bg-[#4ade80]/5 hover:bg-[#4ade80]/10">
+          <Button variant="outline" className="border-[#4ade80]/30 bg-[#4ade80]/5 hover:bg-[#4ade80]/10 text-white hover:text-white">
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="bg-[#4ade80]/10 text-[#22c55e] border-[#4ade80]/20 px-1.5 py-0.5">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse mr-1" />
                 <span className="text-xs">Connected</span>
               </Badge>
-              <span className="font-mono text-sm">{formatAddress(wallet.publicKey)}</span>
-              <ChevronDown className="h-4 w-4 opacity-50" />
+              <span className="font-mono text-sm text-white">{formatAddress(wallet.publicKey)}</span>
+              <ChevronDown className="h-4 w-4 opacity-50 text-white" />
             </div>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-80 bg-background/95 backdrop-blur-xl border-white/10">
+        <DropdownMenuContent align="end" className="w-80 bg-black/95 backdrop-blur-xl border-white/10">
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-2">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium leading-none">Wallet Address</p>
+                <p className="text-sm font-medium leading-none text-white">Wallet Address</p>
                 <button
                   onClick={handleCopyAddress}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-gray-400 hover:text-white transition-colors"
                   title="Copy address"
                 >
                   {copied ? (
@@ -79,7 +79,7 @@ export function WalletConnectButton() {
                   )}
                 </button>
               </div>
-              <p className="text-xs font-mono leading-none text-muted-foreground break-all">
+              <p className="text-xs font-mono leading-none text-gray-400 break-all">
                 {wallet.publicKey}
               </p>
             </div>
@@ -88,7 +88,7 @@ export function WalletConnectButton() {
           <div className="px-2 py-3">
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">USDC Balance</span>
+                <span className="text-gray-400">USDC Balance</span>
                 <span className="font-semibold text-[#4ade80]">
                   ${formatBalance(wallet.usdcBalance)}
                   {parseFloat(fiatBalance.pendingOnRampAmount) > 0 && (
@@ -99,8 +99,8 @@ export function WalletConnectButton() {
                 </span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">XLM Balance</span>
-                <span className="font-semibold">{formatBalance(wallet.balance)}</span>
+                <span className="text-gray-400">XLM Balance</span>
+                <span className="font-semibold text-white">{formatBalance(wallet.balance)}</span>
               </div>
               {fiatBalance.hasPendingTransactions && (
                 <div className="flex items-center gap-2 text-xs bg-yellow-500/10 text-yellow-500 rounded-md px-2 py-1.5 mt-2">
