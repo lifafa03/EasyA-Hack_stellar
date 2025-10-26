@@ -143,6 +143,8 @@ export default function ProjectDetailPage() {
   
   // Escrow and pool management state
   const [loadingEscrow, setLoadingEscrow] = React.useState(false);
+  const [escrowBids, setEscrowBids] = React.useState<any[]>([]);
+  const [loadingBids, setLoadingBids] = React.useState(false);
   const [isCompletingMilestone, setIsCompletingMilestone] = React.useState(false);
   const [isWithdrawing, setIsWithdrawing] = React.useState(false);
   const [selectedMilestoneId, setSelectedMilestoneId] = React.useState<number | null>(null);
@@ -150,6 +152,71 @@ export default function ProjectDetailPage() {
   const [isContributingToPool, setIsContributingToPool] = React.useState(false);
   const [fundAmount, setFundAmount] = React.useState('');
   const [isFunding, setIsFunding] = React.useState(false);
+
+  // Load bids from localStorage
+  React.useEffect(() => {
+    const loadBids = async () => {
+      try {
+        setLoadingBids(true);
+        const { getProjectBids } = await import('@/lib/stellar/simple-escrow');
+        const bids = getProjectBids(projectData.id.toString());
+        setEscrowBids(bids);
+      } catch (error) {
+        console.error('Error loading bids:', error);
+      } finally {
+        setLoadingBids(false);
+      }
+    };
+    loadBids();
+  }, []);
+
+  // Stub functions that are referenced but not defined
+  const submitBid = async (data: any, walletType: any) => {
+    const { submitBidWithPayment } = await import('@/lib/stellar/simple-escrow');
+    const bid = await submitBidWithPayment({
+      projectId: projectData.id.toString(),
+      freelancerAddress: data.freelancerAddress,
+      bidAmount: parseFloat(data.bidAmount),
+      deliveryDays: data.deliveryDays,
+      proposal: data.proposal,
+      portfolioLink: data.portfolioLink,
+      milestonesApproach: data.milestonesApproach,
+    }, wallet.publicKey!, walletType);
+    return { bidHash: bid.id, txHash: bid.txHash };
+  };
+
+  const fetchEscrowBidsData = async () => {
+    try {
+      setLoadingBids(true);
+      const { getProjectBids } = await import('@/lib/stellar/simple-escrow');
+      const bids = getProjectBids(projectData.id.toString());
+      setEscrowBids(bids);
+    } catch (error) {
+      console.error('Error loading bids:', error);
+    } finally {
+      setLoadingBids(false);
+    }
+  };
+
+  // Create escrow status from project data
+  const escrowStatus = React.useMemo(() => ({
+    status: projectData.escrowStatus,
+    contractAddress: projectData.escrowContractAddress,
+    totalAmount: projectData.escrowTotalAmount,
+    releasedAmount: projectData.escrowReleasedAmount,
+    availableToWithdraw: projectData.escrowReleasedAmount,
+    clientAddress: wallet.publicKey || '',
+    freelancerAddress: null,
+    yieldGenerated: 0,
+    milestones: projectData.milestones.map((m, i) => ({
+      id: i,
+      title: m.title,
+      description: '',
+      budget: m.budget.toString(),
+      status: m.status,
+      completedAt: m.status === 'completed' ? Date.now() : null,
+    })),
+  }), [wallet.publicKey]);
 
   const handleBidSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

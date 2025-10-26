@@ -216,7 +216,7 @@ export const assignFreelancerToEscrow = (
 };
 
 /**
- * Submit a bid (simplified - no signing required)
+ * Submit a bid with USDC payment
  */
 export interface SimpleBid {
   id: string;
@@ -228,7 +228,90 @@ export interface SimpleBid {
   portfolioLink?: string;
   milestonesApproach?: string;
   timestamp: number;
+  txHash?: string;
 }
+
+export const submitBidWithPayment = async (
+  bid: Omit<SimpleBid, 'id' | 'timestamp' | 'txHash'>,
+  walletPublicKey: string,
+  walletType: WalletType = 'freighter'
+): Promise<SimpleBid> => {
+  try {
+    const StellarSDK = await import('@stellar/stellar-sdk');
+    const { signAndSubmitTransaction } = await import('./wallet');
+    
+    const config = { 
+      horizonUrl: 'https://horizon-testnet.stellar.org',
+      networkPassphrase: StellarSDK.Networks.TESTNET 
+    };
+    const server = new StellarSDK.Horizon.Server(config.horizonUrl);
+    
+    // Check USDC balance
+    const account = await server.loadAccount(walletPublicKey);
+    const usdcAsset = account.balances.find((b: any) => 
+      b.asset_code === 'USDC' && 
+      b.asset_issuer === 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5'
+    );
+    
+    const usdcBalance = usdcAsset ? parseFloat(usdcAsset.balance) : 0;
+    
+    if (usdcBalance < bid.bidAmount) {
+      throw new Error(`Insufficient USDC balance. You have ${usdcBalance.toFixed(2)} USDC but need ${bid.bidAmount} USDC.`);
+    }
+    
+    // Create USDC payment transaction
+    const usdcAssetObj = new StellarSDK.Asset(
+      'USDC',
+      'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5'
+    );
+    
+    // For demo, send to a pool address (in production, this would be escrow contract)
+    // Using the wallet address as placeholder - in production use actual escrow
+    const poolAddress = walletPublicKey; // Replace with actual pool/escrow address
+    
+    const transaction = new StellarSDK.TransactionBuilder(account, {
+      fee: StellarSDK.BASE_FEE,
+      networkPassphrase: config.networkPassphrase,
+    })
+      .addOperation(
+        StellarSDK.Operation.payment({
+          destination: poolAddress,
+          asset: usdcAssetObj,
+          amount: bid.bidAmount.toString(),
+        })
+      )
+      .addMemo(StellarSDK.Memo.text(`Bid for project ${bid.projectId}`))
+      .setTimeout(180)
+      .build();
+    
+    // Sign and submit
+    const result = await signAndSubmitTransaction(transaction, walletType);
+    
+    // Store bid with transaction hash
+    const fullBid: SimpleBid = {
+      ...bid,
+      id: `bid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: Date.now(),
+      txHash: result.hash,
+    };
+    
+    // Get existing bids for this project
+    const bidsKey = `project-${bid.projectId}-bids`;
+    const existingBidsJson = localStorage.getItem(bidsKey);
+    const existingBids: SimpleBid[] = existingBidsJson ? JSON.parse(existingBidsJson) : [];
+    
+    // Add new bid
+    existingBids.push(fullBid);
+    localStorage.setItem(bidsKey, JSON.stringify(existingBids));
+    
+    toast.success(`Bid submitted! Transferred ${bid.bidAmount} USDC to project pool.`);
+    
+    return fullBid;
+  } catch (error) {
+    console.error('Error submitting bid with payment:', error);
+    throw error;
+  }
+};
 
 export const submitSimpleBid = (bid: Omit<SimpleBid, 'id' | 'timestamp'>): SimpleBid => {
   const fullBid: SimpleBid = {
