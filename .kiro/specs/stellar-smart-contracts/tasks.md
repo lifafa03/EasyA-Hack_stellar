@@ -81,8 +81,8 @@
     - Add deployment verification and testing
     - _Requirements: 7.1, 7.2_
 
-- [ ] 4. Build SDK service layer
-  - [ ] 4.1 Implement base StellarSDK class
+- [x] 4. Build SDK service layer
+  - [x] 4.1 Implement base StellarSDK class
     - Create StellarSDK class with Server and Network configuration
     - Implement transaction building utilities
     - Implement transaction submission with retry logic
@@ -90,7 +90,7 @@
     - Implement event subscription mechanism
     - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.7_
 
-  - [ ] 4.2 Implement EscrowService
+  - [x] 4.2 Implement EscrowService
     - Create EscrowService class with SDK dependency
     - Implement createEscrow method with parameter validation
     - Implement completeMilestone method for milestone releases
@@ -100,7 +100,7 @@
     - Add watchEscrow method for real-time monitoring
     - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 2.1, 2.2, 2.3, 2.4, 2.5, 9.1, 9.2, 9.3, 9.4_
 
-  - [ ] 4.3 Implement CrowdfundingService
+  - [x] 4.3 Implement CrowdfundingService
     - Create CrowdfundingService class with SDK dependency
     - Implement createPool method with goal and deadline
     - Implement contribute method with amount validation
@@ -110,7 +110,7 @@
     - Add watchPool method for real-time updates
     - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 9.1, 9.2, 9.3, 9.4_
 
-  - [ ] 4.4 Implement AnchorService for fiat on/off-ramping
+  - [x] 4.4 Implement AnchorService for fiat on/off-ramping
     - Create AnchorService class with anchor domain configuration
     - Implement onRamp method with SEP-24 integration
     - Implement offRamp method with SEP-24 integration
@@ -127,8 +127,8 @@
     - Test error handling and retry logic
     - _Requirements: 6.1, 6.2, 6.3, 6.4_
 
-- [ ] 5. Create React components for wallet integration
-  - [ ] 5.1 Build WalletConnector component
+- [x] 5. Create React components for wallet integration
+  - [x] 5.1 Build WalletConnector component
     - Create wallet selection UI with all supported wallets
     - Implement wallet connection flow with loading states
     - Display connected wallet public key and balance
@@ -137,7 +137,7 @@
     - Add error handling and user feedback
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.7_
 
-  - [ ] 5.2 Create WalletProvider context
+  - [x] 5.2 Create WalletProvider context
     - Implement React context for wallet state management
     - Create useWallet hook for component access
     - Add wallet connection persistence (session storage)

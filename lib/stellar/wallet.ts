@@ -8,7 +8,7 @@ import * as StellarSdk from '@stellar/stellar-sdk';
 import { isConnected, getAddress, signTransaction, requestAccess } from '@stellar/freighter-api';
 import { getNetworkConfig } from './config';
 
-export type WalletType = 'freighter' | 'albedo' | 'lobstr' | 'rabet';
+export type WalletType = 'freighter' | 'albedo' | 'lobstr' | 'xbull';
 
 export interface WalletState {
   connected: boolean;
@@ -71,19 +71,63 @@ export const connectAlbedo = async (): Promise<string> => {
  */
 export const connectLobstr = async (): Promise<string> => {
   try {
-    // @ts-ignore - Lobstr is loaded from external script
-    if (!window.lobstr) {
-      throw new Error('Lobstr wallet not found. Please use the Lobstr mobile app or browser extension');
+    // Try different possible Lobstr APIs
+    // @ts-ignore
+    const lobstrAPI = window.lobstr || window.lobstrWallet || (window.stellar && window.stellar.lobstr);
+    
+    if (!lobstrAPI) {
+      throw new Error('Lobstr wallet not found. Please install the Lobstr extension from Chrome Web Store');
+    }
+
+    // Try to get public key - Lobstr might use different methods
+    let publicKey: string | null = null;
+    
+    // Method 1: connect()
+    if (typeof lobstrAPI.connect === 'function') {
+      const result = await lobstrAPI.connect();
+      publicKey = result?.publicKey || result?.address || result;
+    }
+    // Method 2: getPublicKey()
+    else if (typeof lobstrAPI.getPublicKey === 'function') {
+      publicKey = await lobstrAPI.getPublicKey();
+    }
+    // Method 3: requestAccess() (similar to Freighter)
+    else if (typeof lobstrAPI.requestAccess === 'function') {
+      const result = await lobstrAPI.requestAccess();
+      publicKey = result?.publicKey || result?.address;
+    }
+    
+    if (!publicKey || typeof publicKey !== 'string') {
+      throw new Error('Failed to get public key from Lobstr wallet');
+    }
+    
+    return publicKey;
+  } catch (error) {
+    console.error('Lobstr connection error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Connect to xBull wallet
+ */
+export const connectXBull = async (): Promise<string> => {
+  try {
+    // @ts-ignore
+    if (!window.xBullSDK) {
+      throw new Error('xBull wallet not found. Please install from https://xbull.app');
     }
 
     // @ts-ignore
-    const result = await window.lobstr.connect();
-    if (!result || !result.publicKey) {
-      throw new Error('Failed to get public key from Lobstr');
+    const result = await window.xBullSDK.connect();
+    
+    if (!result.publicKey) {
+      throw new Error('Failed to get public key from xBull');
     }
+
     return result.publicKey;
   } catch (error) {
-    console.error('Lobstr connection error:', error);
+    console.error('xBull connection error:', error);
     throw error;
   }
 };
@@ -99,6 +143,8 @@ export const connectWallet = async (walletType: WalletType = 'freighter'): Promi
       return await connectAlbedo();
     case 'lobstr':
       return await connectLobstr();
+    case 'xbull':
+      return await connectXBull();
     default:
       throw new Error(`Wallet type ${walletType} not supported`);
   }
@@ -173,6 +219,16 @@ export const signAndSubmitTransaction = async (
         networkPassphrase: config.networkPassphrase,
       });
       signedXdr = result.signedXDR;
+    } else if (walletType === 'xbull') {
+      // @ts-ignore
+      const network = config.networkPassphrase.includes('Test') ? 'TESTNET' : 'PUBLIC';
+      // @ts-ignore
+      const result = await window.xBullSDK.sign({
+        xdr: transaction.toXDR(),
+        publicKey: transaction.source,
+        network,
+      });
+      signedXdr = result.response;
     } else {
       throw new Error(`Signing not supported for wallet type: ${walletType}`);
     }
@@ -250,18 +306,29 @@ export const checkWalletConnection = async (): Promise<boolean> => {
 export const isWalletAvailable = (walletType: WalletType): boolean => {
   if (typeof window === 'undefined') return false;
 
-  switch (walletType) {
-    case 'freighter':
-      // Freighter injects itself into window
-      return typeof window !== 'undefined' && 'freighter' in window;
-    case 'albedo':
-      // @ts-ignore
-      return typeof window !== 'undefined' && window.albedo !== undefined;
-    case 'lobstr':
-      // @ts-ignore
-      return typeof window !== 'undefined' && window.lobstr !== undefined;
-    default:
-      return false;
+  try {
+    switch (walletType) {
+      case 'freighter':
+        // Freighter injects itself into window
+        return 'freighter' in window;
+      case 'albedo':
+        // @ts-ignore
+        return window.albedo !== undefined;
+      case 'lobstr':
+        // Lobstr extension might inject as 'lobstrWallet' or check for the extension
+        // @ts-ignore
+        return window.lobstr !== undefined || window.lobstrWallet !== undefined || 
+               // @ts-ignore
+               (window.stellar && window.stellar.lobstr !== undefined);
+      case 'xbull':
+        // @ts-ignore
+        return window.xBullSDK !== undefined && typeof window.xBullSDK.isAvailable === 'function' && window.xBullSDK.isAvailable();
+      default:
+        return false;
+    }
+  } catch (error) {
+    console.error(`Error checking ${walletType} availability:`, error);
+    return false;
   }
 };
 
@@ -274,8 +341,34 @@ export const getAvailableWallets = (): WalletType[] => {
   if (isWalletAvailable('freighter')) wallets.push('freighter');
   if (isWalletAvailable('albedo')) wallets.push('albedo');
   if (isWalletAvailable('lobstr')) wallets.push('lobstr');
+  if (isWalletAvailable('xbull')) wallets.push('xbull');
   
   return wallets;
+};
+
+/**
+ * Debug function to check what wallet APIs are available
+ */
+export const debugWalletAPIs = (): void => {
+  if (typeof window === 'undefined') {
+    console.log('Window is undefined (SSR)');
+    return;
+  }
+  
+  console.log('=== Wallet API Debug ===');
+  // @ts-ignore
+  console.log('window.freighter:', typeof window.freighter, window.freighter);
+  // @ts-ignore
+  console.log('window.albedo:', typeof window.albedo, window.albedo);
+  // @ts-ignore
+  console.log('window.lobstr:', typeof window.lobstr, window.lobstr);
+  // @ts-ignore
+  console.log('window.lobstrWallet:', typeof window.lobstrWallet, window.lobstrWallet);
+  // @ts-ignore
+  console.log('window.xBullSDK:', typeof window.xBullSDK, window.xBullSDK);
+  // @ts-ignore
+  console.log('window.stellar:', typeof window.stellar, window.stellar);
+  console.log('=======================');
 };
 
 /**
