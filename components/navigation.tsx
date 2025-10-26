@@ -19,10 +19,7 @@ export function Navigation() {
       
       <div className="container mx-auto px-4 py-4 relative z-10">
         <div className="flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-[#4ade80] to-[#22c55e] flex items-center justify-center shadow-lg shadow-[#4ade80]/30">
-              <span className="text-white font-bold text-xl">✦</span>
-            </div>
+          <Link href="/" className="flex items-center">
             <span className="font-bold text-xl text-white">StellaNova</span>
           </Link>
 
