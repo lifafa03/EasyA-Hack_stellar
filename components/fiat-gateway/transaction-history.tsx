@@ -26,11 +26,21 @@ import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { FiatTransaction, TransactionStatus, TransactionType } from "@/lib/stellar/types/fiat-gateway"
 import { TransactionHash } from "@/components/stellar/transaction-hash"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination"
 
 interface TransactionHistoryProps {
   transactions: FiatTransaction[]
   network?: "testnet" | "mainnet"
   className?: string
+  itemsPerPage?: number
 }
 
 const STATUS_CONFIG: Record<TransactionStatus, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; color: string }> = {
@@ -209,13 +219,15 @@ function TransactionCard({
 export function TransactionHistory({ 
   transactions, 
   network = "testnet",
-  className 
+  className,
+  itemsPerPage = 10
 }: TransactionHistoryProps) {
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
   const [typeFilter, setTypeFilter] = useState<TransactionType | "all">("all")
   const [statusFilter, setStatusFilter] = useState<TransactionStatus | "all">("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [dateRange, setDateRange] = useState<"all" | "7d" | "30d" | "90d">("all")
+  const [currentPage, setCurrentPage] = useState(1)
 
   const toggleExpanded = (id: string) => {
     setExpandedIds(prev => {
@@ -270,6 +282,54 @@ export function TransactionHistory({
 
     return filtered
   }, [transactions, typeFilter, statusFilter, dateRange, searchQuery])
+
+  // Reset to page 1 when filters change
+  React.useEffect(() => {
+    setCurrentPage(1)
+  }, [typeFilter, statusFilter, dateRange, searchQuery])
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedTransactions = filteredTransactions.slice(startIndex, endIndex)
+
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pages: (number | 'ellipsis')[] = []
+    const maxVisiblePages = 5
+    
+    if (totalPages <= maxVisiblePages) {
+      // Show all pages if total is small
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i)
+      }
+    } else {
+      // Always show first page
+      pages.push(1)
+      
+      if (currentPage > 3) {
+        pages.push('ellipsis')
+      }
+      
+      // Show pages around current page
+      const start = Math.max(2, currentPage - 1)
+      const end = Math.min(totalPages - 1, currentPage + 1)
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i)
+      }
+      
+      if (currentPage < totalPages - 2) {
+        pages.push('ellipsis')
+      }
+      
+      // Always show last page
+      pages.push(totalPages)
+    }
+    
+    return pages
+  }
 
   const exportToCSV = () => {
     const headers = [
@@ -419,8 +479,9 @@ export function TransactionHistory({
 
           {/* Results Summary */}
           <div className="flex items-center justify-between text-sm text-muted-foreground" role="status" aria-live="polite">
-            <p aria-label={`Showing ${filteredTransactions.length} of ${transactions.length} transactions`}>
-              Showing {filteredTransactions.length} of {transactions.length} transactions
+            <p aria-label={`Showing ${startIndex + 1} to ${Math.min(endIndex, filteredTransactions.length)} of ${filteredTransactions.length} transactions`}>
+              Showing {filteredTransactions.length > 0 ? startIndex + 1 : 0} to {Math.min(endIndex, filteredTransactions.length)} of {filteredTransactions.length} transactions
+              {transactions.length !== filteredTransactions.length && ` (filtered from ${transactions.length})`}
             </p>
             {(typeFilter !== "all" || statusFilter !== "all" || dateRange !== "all" || searchQuery) && (
               <Button
@@ -453,17 +514,64 @@ export function TransactionHistory({
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3" role="list" aria-label="Transaction list" aria-labelledby="transaction-history-title">
-          {filteredTransactions.map((transaction) => (
-            <TransactionCard
-              key={transaction.id}
-              transaction={transaction}
-              network={network}
-              isExpanded={expandedIds.has(transaction.id)}
-              onToggle={() => toggleExpanded(transaction.id)}
-            />
-          ))}
-        </div>
+        <>
+          <div className="space-y-3" role="list" aria-label="Transaction list" aria-labelledby="transaction-history-title">
+            {paginatedTransactions.map((transaction) => (
+              <TransactionCard
+                key={transaction.id}
+                transaction={transaction}
+                network={network}
+                isExpanded={expandedIds.has(transaction.id)}
+                onToggle={() => toggleExpanded(transaction.id)}
+              />
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <Card>
+              <CardContent className="py-4">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        aria-disabled={currentPage === 1}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                    
+                    {getPageNumbers().map((page, index) => (
+                      <PaginationItem key={index}>
+                        {page === 'ellipsis' ? (
+                          <PaginationEllipsis />
+                        ) : (
+                          <PaginationLink
+                            onClick={() => setCurrentPage(page)}
+                            isActive={currentPage === page}
+                            className="cursor-pointer"
+                            aria-label={`Go to page ${page}`}
+                            aria-current={currentPage === page ? 'page' : undefined}
+                          >
+                            {page}
+                          </PaginationLink>
+                        )}
+                      </PaginationItem>
+                    ))}
+                    
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        aria-disabled={currentPage === totalPages}
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </CardContent>
+            </Card>
+          )}
+        </>
       )}
     </div>
   )

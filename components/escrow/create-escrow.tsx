@@ -17,6 +17,8 @@ import { useWallet } from '@/hooks/use-wallet';
 import { EscrowService, CreateEscrowParams, MilestoneConfig, TimeReleaseConfig } from '@/lib/stellar/services/escrow';
 import { getStellarSDK } from '@/lib/stellar/sdk';
 import { toast } from 'sonner';
+import { preTransactionValidation } from '@/lib/stellar/balance-validation';
+import { BalanceValidationAlert, TransactionWarnings } from '@/components/balance-validation-alert';
 
 type ReleaseType = 'milestone-based' | 'time-based';
 
@@ -46,9 +48,10 @@ export function CreateEscrow() {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [balanceValidation, setBalanceValidation] = useState<any>(null);
 
   // Validation
-  const validateForm = (): boolean => {
+  const validateForm = async (): Promise<boolean> => {
     const newErrors: Record<string, string> = {};
 
     if (!providerAddress.trim()) {
@@ -61,9 +64,22 @@ export function CreateEscrow() {
       newErrors.totalAmount = 'Total amount must be greater than 0';
     }
 
-    // Check wallet balance
-    if (wallet.usdcBalance && parseFloat(totalAmount) > parseFloat(wallet.usdcBalance)) {
-      newErrors.totalAmount = 'Insufficient USDC balance';
+    // Validate USDC balance using the validation utility
+    if (wallet.publicKey && totalAmount) {
+      try {
+        const validation = await preTransactionValidation(
+          wallet.publicKey,
+          totalAmount,
+          'escrow'
+        );
+        setBalanceValidation(validation);
+        
+        if (!validation.canProceed) {
+          newErrors.totalAmount = 'Insufficient USDC balance';
+        }
+      } catch (error) {
+        console.error('Balance validation error:', error);
+      }
     }
 
     if (releaseType === 'milestone-based') {
@@ -152,7 +168,7 @@ export function CreateEscrow() {
   };
 
   // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!wallet.connected) {
@@ -160,7 +176,8 @@ export function CreateEscrow() {
       return;
     }
 
-    if (validateForm()) {
+    const isValid = await validateForm();
+    if (isValid) {
       setShowConfirmation(true);
     }
   };
@@ -250,6 +267,19 @@ export function CreateEscrow() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Balance Validation Alert */}
+            {balanceValidation && !balanceValidation.canProceed && (
+              <BalanceValidationAlert 
+                validationResult={balanceValidation.validationResult}
+                showDetails={true}
+              />
+            )}
+
+            {/* Transaction Warnings */}
+            {balanceValidation?.warnings && balanceValidation.canProceed && (
+              <TransactionWarnings warnings={balanceValidation.warnings} />
+            )}
+
             {/* Provider Address */}
             <div className="space-y-2">
               <Label htmlFor="provider">Service Provider Address</Label>

@@ -29,6 +29,8 @@ import {
   Link as LinkIcon
 } from 'lucide-react';
 import { BidFormData } from '@/lib/stellar/bid-validation';
+import { preTransactionValidation } from '@/lib/stellar/balance-validation';
+import { BalanceValidationAlert, BalanceDisplay, TransactionWarnings } from '@/components/balance-validation-alert';
 
 type SubmitState = 
   | 'idle'
@@ -45,6 +47,8 @@ interface BidSubmissionDialogProps {
   projectBudget: number;
   onSubmit: (formData: BidFormData) => Promise<void>;
   isWalletConnected: boolean;
+  walletPublicKey?: string | null;
+  usdcBalance?: string | null;
 }
 
 export function BidSubmissionDialog({
@@ -53,6 +57,8 @@ export function BidSubmissionDialog({
   projectBudget,
   onSubmit,
   isWalletConnected,
+  walletPublicKey,
+  usdcBalance,
 }: BidSubmissionDialogProps) {
   const [formData, setFormData] = React.useState<BidFormData>({
     bidAmount: '',
@@ -65,6 +71,8 @@ export function BidSubmissionDialog({
   const [submitState, setSubmitState] = React.useState<SubmitState>('idle');
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const [transactionHash, setTransactionHash] = React.useState<string | null>(null);
+  const [balanceValidation, setBalanceValidation] = React.useState<any>(null);
+  const [showBalanceCheck, setShowBalanceCheck] = React.useState(false);
 
   const isSubmitting = submitState !== 'idle' && submitState !== 'success' && submitState !== 'error';
 
@@ -95,11 +103,42 @@ export function BidSubmissionDialog({
     }
   };
 
+  // Check balance when bid amount changes
+  React.useEffect(() => {
+    const checkBalance = async () => {
+      if (formData.bidAmount && walletPublicKey && isWalletConnected) {
+        const bidAmount = parseFloat(formData.bidAmount);
+        if (!isNaN(bidAmount) && bidAmount > 0) {
+          try {
+            const validation = await preTransactionValidation(
+              walletPublicKey,
+              formData.bidAmount,
+              'bid'
+            );
+            setBalanceValidation(validation);
+            setShowBalanceCheck(true);
+          } catch (error) {
+            console.error('Balance check error:', error);
+          }
+        }
+      }
+    };
+
+    const debounce = setTimeout(checkBalance, 500);
+    return () => clearTimeout(debounce);
+  }, [formData.bidAmount, walletPublicKey, isWalletConnected]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!isWalletConnected) {
       setErrorMessage('Please connect your wallet first');
+      setSubmitState('error');
+      return;
+    }
+
+    if (!walletPublicKey) {
+      setErrorMessage('Wallet public key not available');
       setSubmitState('error');
       return;
     }
@@ -125,6 +164,21 @@ export function BidSubmissionDialog({
 
       if (formData.proposal.trim().length < 50) {
         throw new Error('Proposal must be at least 50 characters long');
+      }
+
+      // Validate USDC balance
+      const validation = await preTransactionValidation(
+        walletPublicKey,
+        formData.bidAmount,
+        'bid'
+      );
+
+      if (!validation.canProceed) {
+        setBalanceValidation(validation);
+        setShowBalanceCheck(true);
+        setSubmitState('error');
+        setErrorMessage('Insufficient USDC balance to place this bid');
+        return;
       }
 
       // Move to signing state
@@ -159,6 +213,8 @@ export function BidSubmissionDialog({
       setSubmitState('idle');
       setErrorMessage(null);
       setTransactionHash(null);
+      setBalanceValidation(null);
+      setShowBalanceCheck(false);
       onOpenChange(false);
     }
   };
@@ -193,8 +249,21 @@ export function BidSubmissionDialog({
               </div>
             )}
 
+            {/* Balance Validation */}
+            {showBalanceCheck && balanceValidation && !balanceValidation.canProceed && (
+              <BalanceValidationAlert 
+                validationResult={balanceValidation.validationResult}
+                showDetails={true}
+              />
+            )}
+
+            {/* Transaction Warnings */}
+            {balanceValidation?.warnings && balanceValidation.canProceed && (
+              <TransactionWarnings warnings={balanceValidation.warnings} />
+            )}
+
             {/* Error Alert */}
-            {submitState === 'error' && errorMessage && (
+            {submitState === 'error' && errorMessage && !balanceValidation && (
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{errorMessage}</AlertDescription>
@@ -209,6 +278,14 @@ export function BidSubmissionDialog({
                   Bid submitted successfully! Your bid has been cryptographically signed and verified.
                 </AlertDescription>
               </Alert>
+            )}
+
+            {/* Balance Display */}
+            {formData.bidAmount && usdcBalance && isWalletConnected && (
+              <BalanceDisplay 
+                available={usdcBalance}
+                required={formData.bidAmount}
+              />
             )}
 
             {/* Form Fields */}

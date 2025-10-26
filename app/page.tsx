@@ -15,7 +15,7 @@ import { WalletConnectButton } from "@/components/wallet-connect"
 const stats = [
   { label: "Active Projects", value: "2,500+", icon: Rocket },
   { label: "Freelancers", value: "15,000+", icon: Users },
-  { label: "Total Funded", value: "$12M+", icon: DollarSign },
+  { label: "Total Funded", value: "$12M+ USDC", icon: DollarSign },
   { label: "Success Rate", value: "94%", icon: TrendingUp },
 ]
 
@@ -23,7 +23,7 @@ const userJourneys = [
   {
     icon: Briefcase,
     title: "For Businesses",
-    description: "Post projects and get them funded",
+    description: "Fund projects and ship faster",
     gradient: "from-blue-500 to-cyan-400",
     steps: [
       "Create detailed project with milestones",
@@ -32,13 +32,13 @@ const userJourneys = [
       "Get crowdfunding from investors",
       "Release payments as milestones complete",
     ],
-    cta: "Post a Project",
+    cta: "Fund a Project",
     ctaLink: "/post-project",
   },
   {
     icon: Users,
     title: "For Freelancers",
-    description: "Find work and showcase your skills",
+    description: "Find projects and get paid instantly",
     gradient: "from-purple-500 to-pink-400",
     steps: [
       "Browse available projects",
@@ -47,7 +47,7 @@ const userJourneys = [
       "Complete milestones and get paid instantly",
       "Build reputation and portfolio",
     ],
-    cta: "Browse Projects",
+    cta: "Find Projects",
     ctaLink: "/browse",
   },
   {
@@ -211,11 +211,11 @@ export default function HomePage() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
                 <Button size="lg" className="bg-[#4ade80] hover:bg-[#22c55e] text-white text-lg px-8" asChild>
                   <Link href="/browse">
-                    Explore Projects <ArrowRight className="ml-2 h-5 w-5" />
+                    Find Projects <ArrowRight className="ml-2 h-5 w-5" />
                   </Link>
                 </Button>
                 <Button size="lg" variant="outline" className="border-border bg-transparent text-lg px-8" asChild>
-                  <Link href="/post-project">Post a Project</Link>
+                  <Link href="/post-project">Fund a Project</Link>
                 </Button>
               </div>
 
@@ -247,7 +247,7 @@ export default function HomePage() {
         </section>
       </div>
 
-      {/* How It Works - User Journeys */}
+      {/* Problem & Solution */}
       <div>
         <section className="py-24 relative">
           <div className="container mx-auto px-4">
@@ -257,9 +257,14 @@ export default function HomePage() {
               viewport={{ once: true }}
               className="text-center mb-16"
             >
-              <h2 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">How It Works</h2>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">The Problem</h2>
+              <p className="text-muted-foreground text-lg md:text-xl max-w-3xl mx-auto mb-12">
+                Traditional freelance platforms are slow, expensive, and opaque. Payment delays, high fees, and zero transparency kill momentum. Businesses struggle to fund projects, freelancers wait weeks for payment, and investors have no way to participate in the upside.
+              </p>
+              
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 text-foreground">The Solution</h2>
               <p className="text-muted-foreground text-lg md:text-xl max-w-3xl mx-auto">
-                A seamless three-sided marketplace connecting businesses, freelancers, and investors
+                We're building the future of decentralized work. Instant payments. Zero middlemen. Full transparency. Fund projects, find work, or invest—all on-chain, all trustless, all degen-approved.
               </p>
             </motion.div>
 
@@ -400,7 +405,7 @@ export default function HomePage() {
                           <div className="flex items-center justify-between text-sm mb-2">
                             <span className="text-muted-foreground">Funded</span>
                             <span className="font-semibold text-card-foreground">
-                              ${project.funded.toLocaleString()} / ${project.budget.toLocaleString()}
+                              ${project.funded.toLocaleString()} USDC / ${project.budget.toLocaleString()} USDC
                             </span>
                           </div>
                           <div className="h-2 bg-muted rounded-full overflow-hidden">
@@ -588,7 +593,7 @@ export default function HomePage() {
                   className="border-border bg-transparent text-lg px-8"
                   asChild
                 >
-                  <Link href="/browse">Explore Projects</Link>
+                  <Link href="/browse">Find Projects</Link>
                 </Button>
               </div>
               

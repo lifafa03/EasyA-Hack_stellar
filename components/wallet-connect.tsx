@@ -161,17 +161,17 @@ export function WalletConnectButton() {
                   </Badge>
                 )}
               </div>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  {formatBalance(wallet.usdcBalance)} USDC
+              <div className="flex items-center gap-3 text-xs">
+                <span className="flex items-center gap-1 font-semibold text-[#22c55e]">
+                  ${formatBalance(wallet.usdcBalance)} USDC
                   {parseFloat(fiatBalance.pendingOnRampAmount) > 0 && (
                     <span className="text-yellow-500" title="Pending deposits">
                       (+{fiatBalance.pendingOnRampAmount})
                     </span>
                   )}
                 </span>
-                <span>•</span>
-                <span>{formatBalance(wallet.balance)} XLM</span>
+                <span className="text-muted-foreground">•</span>
+                <span className="text-muted-foreground">{formatBalance(wallet.balance)} XLM</span>
               </div>
             </div>
           </div>

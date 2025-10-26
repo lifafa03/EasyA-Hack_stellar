@@ -40,6 +40,7 @@ import {
   TrustlessWorkError
 } from "@/lib/stellar/trustless-work"
 import { getAccountBalance } from "@/lib/stellar/wallet"
+import { STELLAR_CONFIG } from "@/lib/stellar/config"
 
 // Mock project data
 const projectData = {
@@ -395,12 +396,24 @@ export default function ProjectDetailPage() {
       );
       
       if (result.success) {
-        toast.success('Milestone completed successfully!', {
-          description: 'Funds have been released to the freelancer',
+        // Find the milestone to get its budget
+        const milestone = escrowStatus?.milestones.find(m => m.id.toString() === milestoneId);
+        const milestoneAmount = milestone?.budget || '0';
+        
+        // Show success with transaction details and explorer link
+        const network = STELLAR_CONFIG.network === 'mainnet' ? 'public' : 'testnet';
+        const explorerUrl = `https://stellar.expert/explorer/${network}/tx/${result.transactionHash}`;
+        
+        toast.success('Milestone Completed!', {
+          description: `Released ${parseFloat(milestoneAmount).toLocaleString()} USDC to freelancer. View on Stellar Explorer: ${explorerUrl}`,
+          duration: 10000,
         });
         
-        // Refresh escrow status
+        // Refresh escrow status to show real-time updates
         await refreshEscrowStatus();
+        
+        // Refresh wallet balance
+        await wallet.refreshBalance();
       } else {
         throw new Error('Milestone release failed');
       }
@@ -443,11 +456,19 @@ export default function ProjectDetailPage() {
       );
       
       if (result.success) {
-        toast.success('Funds withdrawn successfully!', {
-          description: `Transaction hash: ${result.transactionHash?.slice(0, 8)}...`,
+        // Get the withdrawn amount from escrow status
+        const withdrawnAmount = escrowStatus?.availableToWithdraw || '0';
+        
+        // Show success with transaction details and explorer link
+        const network = STELLAR_CONFIG.network === 'mainnet' ? 'public' : 'testnet';
+        const explorerUrl = `https://stellar.expert/explorer/${network}/tx/${result.transactionHash}`;
+        
+        toast.success('Withdrawal Successful!', {
+          description: `You withdrew ${parseFloat(withdrawnAmount).toLocaleString()} USDC. View on Stellar Explorer: ${explorerUrl}`,
+          duration: 10000,
         });
         
-        // Refresh escrow status and wallet balance
+        // Refresh escrow status and wallet balance for real-time updates
         await refreshEscrowStatus();
         await wallet.refreshBalance();
       } else {
@@ -534,7 +555,7 @@ export default function ProjectDetailPage() {
                     {projectData.bids} bids
                   </span>
                   <span className="flex items-center gap-1">
-                    <DollarSign className="h-4 w-4" />${projectData.budget.toLocaleString()} budget
+                    <DollarSign className="h-4 w-4" />${projectData.budget.toLocaleString()} USDC budget
                   </span>
                 </div>
               </motion.div>
@@ -1034,7 +1055,7 @@ export default function ProjectDetailPage() {
                                 <div>
                                   <p className="text-sm text-muted">Avg. Contribution</p>
                                   <p className="text-xl font-bold">
-                                    ${(parseFloat(projectData.poolRaised) / projectData.poolContributors).toFixed(0)}
+                                    ${(parseFloat(projectData.poolRaised) / projectData.poolContributors).toFixed(0)} USDC
                                   </p>
                                 </div>
                               </div>
@@ -1115,7 +1136,7 @@ export default function ProjectDetailPage() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-lg">${bid.amount.toLocaleString()}</p>
+                          <p className="font-bold text-lg">${bid.amount.toLocaleString()} USDC</p>
                           <p className="text-sm text-muted">{bid.deliveryDays} days</p>
                         </div>
                       </div>
@@ -1133,8 +1154,8 @@ export default function ProjectDetailPage() {
 
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-2xl font-bold text-[#22c55e]">${projectData.funded.toLocaleString()}</span>
-                      <span className="text-muted">of ${projectData.budget.toLocaleString()}</span>
+                      <span className="text-2xl font-bold text-[#22c55e]">${projectData.funded.toLocaleString()} USDC</span>
+                      <span className="text-muted">of ${projectData.budget.toLocaleString()} USDC</span>
                     </div>
                     <div className="h-3 bg-surface-dark rounded-full overflow-hidden mb-2">
                       <motion.div

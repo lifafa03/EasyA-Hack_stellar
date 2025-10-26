@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -14,23 +14,16 @@ import {
   Calendar,
   Shield,
   CheckCircle,
-  Download,
   ExternalLink,
-  AlertCircle,
-  Loader2,
   FileText,
   TrendingUp,
   Target,
-  RefreshCw,
   Briefcase,
   Wallet,
   ArrowRight,
 } from 'lucide-react';
 import Link from 'next/link';
 import { GradientBackground } from '@/components/gradient-background';
-import { useState } from 'react';
-import { useWalletKit } from '@/hooks/use-wallet-kit';
-import { toast } from 'sonner';
 
 // Mock data for bids
 const myBids = [
@@ -158,10 +151,6 @@ const statusColors = {
 };
 
 export default function DashboardPage() {
-  const wallet = useWalletKit();
-  const [isWithdrawing, setIsWithdrawing] = useState<string | null>(null);
-  const [isRefunding, setIsRefunding] = useState<string | null>(null);
-
   const totalInvested = myInvestments.reduce((sum, inv) => sum + inv.amountInvested, 0);
   const totalEarned = myBids
     .filter((bid) => bid.escrowReleasedAmount)
@@ -169,61 +158,23 @@ export default function DashboardPage() {
   const activeBids = myBids.filter((bid) => bid.status === 'accepted').length;
   const activeInvestments = myInvestments.filter((inv) => inv.status === 'active').length;
 
-  const handleWithdrawFunds = async (escrowId: string, amount: number) => {
-    if (!wallet.connected) {
-      toast.error('Please connect your wallet first');
-      return;
-    }
-
-    setIsWithdrawing(escrowId);
-
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      toast.success('Funds withdrawn successfully!', {
-        description: `${amount} USDC has been transferred to your wallet`,
-      });
-      await wallet.refreshBalance();
-    } catch (error: any) {
-      console.error('Failed to withdraw funds:', error);
-      toast.error('Failed to withdraw funds', {
-        description: error.message || 'Please try again',
-      });
-    } finally {
-      setIsWithdrawing(null);
-    }
-  };
-
-  const handleRequestRefund = async (poolId: string, amount: number) => {
-    if (!wallet.connected) {
-      toast.error('Please connect your wallet first');
-      return;
-    }
-
-    setIsRefunding(poolId);
-
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      toast.success('Refund processed successfully!', {
-        description: `${amount} USDC has been returned to your wallet`,
-      });
-      await wallet.refreshBalance();
-    } catch (error: any) {
-      console.error('Failed to request refund:', error);
-      toast.error('Failed to request refund', {
-        description: error.message || 'Please try again',
-      });
-    } finally {
-      setIsRefunding(null);
-    }
-  };
-
   return (
     <GradientBackground variant="default">
       <main className="min-h-screen py-12">
         <div className="container mx-auto px-4 max-w-7xl">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Dashboard</h1>
-            <p className="text-muted text-lg mb-8">Manage your bids, investments, and earnings</p>
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h1 className="text-4xl md:text-5xl font-bold mb-4">Dashboard</h1>
+                <p className="text-muted text-lg">Track your active bids and investments</p>
+              </div>
+              <Button variant="outline" asChild>
+                <Link href="/profile">
+                  <Wallet className="h-4 w-4 mr-2" />
+                  Manage Wallet
+                </Link>
+              </Button>
+            </div>
           </motion.div>
 
           {/* Stats Overview */}
@@ -246,11 +197,11 @@ export default function DashboardPage() {
               <Card className="p-6">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                    <Wallet className="h-5 w-5 text-blue-500" />
+                    <DollarSign className="h-5 w-5 text-blue-500" />
                   </div>
                   <div>
                     <p className="text-sm text-muted">Total Earned</p>
-                    <p className="text-2xl font-bold">${totalEarned.toLocaleString()}</p>
+                    <p className="text-2xl font-bold">${totalEarned.toLocaleString()} USDC</p>
                   </div>
                 </div>
               </Card>
@@ -274,11 +225,11 @@ export default function DashboardPage() {
               <Card className="p-6">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-lg bg-[#fbbf24]/10 flex items-center justify-center">
-                    <DollarSign className="h-5 w-5 text-[#fbbf24]" />
+                    <Wallet className="h-5 w-5 text-[#fbbf24]" />
                   </div>
                   <div>
                     <p className="text-sm text-muted">Total Invested</p>
-                    <p className="text-2xl font-bold">${totalInvested.toLocaleString()}</p>
+                    <p className="text-2xl font-bold">${totalInvested.toLocaleString()} USDC</p>
                   </div>
                 </div>
               </Card>
@@ -332,7 +283,7 @@ export default function DashboardPage() {
                           <div className="flex flex-wrap gap-4 text-sm text-muted">
                             <span className="flex items-center gap-1">
                               <DollarSign className="h-4 w-4" />
-                              Bid: ${bid.bidAmount.toLocaleString()}
+                              Bid: ${bid.bidAmount.toLocaleString()} USDC
                             </span>
                             <span className="flex items-center gap-1">
                               <Clock className="h-4 w-4" />
@@ -383,7 +334,7 @@ export default function DashboardPage() {
                                     <div className="flex-1">
                                       <div className="flex items-center justify-between mb-2">
                                         <h4 className="font-semibold">{milestone.title}</h4>
-                                        <span className="text-sm font-semibold">${milestone.amount.toLocaleString()}</span>
+                                        <span className="text-sm font-semibold">${milestone.amount.toLocaleString()} USDC</span>
                                       </div>
                                       <Badge
                                         variant="outline"
@@ -413,7 +364,7 @@ export default function DashboardPage() {
                                 <div className="flex items-center justify-between text-sm mb-2">
                                   <span className="text-muted">Funds Released</span>
                                   <span className="font-semibold">
-                                    ${bid.escrowReleasedAmount?.toLocaleString()} / ${bid.escrowTotalAmount?.toLocaleString()}
+                                    ${bid.escrowReleasedAmount?.toLocaleString()} USDC / ${bid.escrowTotalAmount?.toLocaleString()} USDC
                                   </span>
                                 </div>
                                 <Progress value={((bid.escrowReleasedAmount || 0) / (bid.escrowTotalAmount || 1)) * 100} className="h-3" />
@@ -424,38 +375,34 @@ export default function DashboardPage() {
                               <div className="grid grid-cols-2 gap-4">
                                 <div className="p-3 bg-surface-dark rounded-lg">
                                   <p className="text-sm text-muted mb-1">Total Contract</p>
-                                  <p className="text-xl font-bold">${bid.escrowTotalAmount?.toLocaleString()}</p>
+                                  <p className="text-xl font-bold">${bid.escrowTotalAmount?.toLocaleString()} USDC</p>
                                 </div>
                                 <div className="p-3 bg-surface-dark rounded-lg">
                                   <p className="text-sm text-muted mb-1">Available to Withdraw</p>
-                                  <p className="text-xl font-bold text-[#22c55e]">${bid.escrowReleasedAmount?.toLocaleString()}</p>
+                                  <p className="text-xl font-bold text-[#22c55e]">${bid.escrowReleasedAmount?.toLocaleString()} USDC</p>
                                 </div>
                               </div>
 
                               {(bid.escrowReleasedAmount || 0) > 0 && (
-                                <Button
-                                  onClick={() => handleWithdrawFunds(bid.escrowId!, bid.escrowReleasedAmount!)}
-                                  disabled={isWithdrawing === bid.escrowId}
-                                  className="w-full bg-[#4ade80] hover:bg-[#22c55e] text-white"
-                                >
-                                  {isWithdrawing === bid.escrowId ? (
-                                    <>
-                                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                      Withdrawing...
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Download className="h-4 w-4 mr-2" />
-                                      Withdraw ${bid.escrowReleasedAmount?.toLocaleString()}
-                                    </>
-                                  )}
-                                </Button>
+                                <Alert className="border-blue-500/50 bg-blue-500/10">
+                                  <Wallet className="h-4 w-4 text-blue-500" />
+                                  <AlertDescription className="text-sm">
+                                    <div className="flex items-center justify-between">
+                                      <span>You have ${bid.escrowReleasedAmount?.toLocaleString()} USDC available to withdraw</span>
+                                      <Button variant="outline" size="sm" asChild>
+                                        <Link href={`/project/${bid.projectId}`}>
+                                          Withdraw <ArrowRight className="ml-2 h-4 w-4" />
+                                        </Link>
+                                      </Button>
+                                    </div>
+                                  </AlertDescription>
+                                </Alert>
                               )}
 
                               <Alert className="border-[#4ade80]/50 bg-[#4ade80]/10">
                                 <Shield className="h-4 w-4 text-[#22c55e]" />
                                 <AlertDescription className="text-sm">
-                                  Your funds are secured in a smart contract. Payments are released automatically as milestones are completed.
+                                  Your funds are secured in a smart contract. Payments are released automatically as milestones are completed. Manage withdrawals from the Project Detail page.
                                 </AlertDescription>
                               </Alert>
                             </div>
@@ -474,7 +421,7 @@ export default function DashboardPage() {
                                       <div className="flex-1">
                                         <div className="flex items-center justify-between mb-1">
                                           <p className="text-sm font-medium">{payment.milestone}</p>
-                                          <span className="text-sm font-semibold text-[#22c55e]">+${payment.amount.toLocaleString()}</span>
+                                          <span className="text-sm font-semibold text-[#22c55e]">+${payment.amount.toLocaleString()} USDC</span>
                                         </div>
                                         <p className="text-xs text-muted mb-2">
                                           {new Date(payment.date).toLocaleDateString()} at {new Date(payment.date).toLocaleTimeString()}
@@ -558,7 +505,7 @@ export default function DashboardPage() {
                           <div className="grid md:grid-cols-2 gap-4">
                             <div>
                               <p className="text-sm text-muted mb-1">Your Investment</p>
-                              <p className="text-xl font-bold text-[#22c55e]">${investment.amountInvested.toLocaleString()}</p>
+                              <p className="text-xl font-bold text-[#22c55e]">${investment.amountInvested.toLocaleString()} USDC</p>
                             </div>
                             <div>
                               <p className="text-sm text-muted mb-1">Expected Return</p>
@@ -570,7 +517,7 @@ export default function DashboardPage() {
                             <div className="flex items-center justify-between text-sm mb-2">
                               <span className="text-muted">Project Funding Progress</span>
                               <span className="font-semibold">
-                                ${investment.currentFunding.toLocaleString()} / ${investment.totalBudget.toLocaleString()}
+                                ${investment.currentFunding.toLocaleString()} USDC / ${investment.totalBudget.toLocaleString()} USDC
                               </span>
                             </div>
                             <Progress value={investment.progress} className="h-2" />
@@ -600,7 +547,7 @@ export default function DashboardPage() {
                               <div className="flex items-center justify-between text-sm mb-2">
                                 <span className="text-muted">Pool Progress</span>
                                 <span className="font-semibold">
-                                  ${investment.poolRaised.toLocaleString()} / ${investment.poolGoal.toLocaleString()}
+                                  ${investment.poolRaised.toLocaleString()} USDC / ${investment.poolGoal.toLocaleString()} USDC
                                 </span>
                               </div>
                               <Progress value={(investment.poolRaised / investment.poolGoal) * 100} className="h-2" />
@@ -611,7 +558,7 @@ export default function DashboardPage() {
                             <div className="grid grid-cols-2 gap-4 text-sm">
                               <div>
                                 <p className="text-muted mb-1">Your Contribution</p>
-                                <p className="font-semibold">${investment.amountInvested.toLocaleString()}</p>
+                                <p className="font-semibold">${investment.amountInvested.toLocaleString()} USDC</p>
                               </div>
                               <div>
                                 <p className="text-muted mb-1">{investment.poolStatus === 'funding' ? 'Days Left' : 'Ended'}</p>
@@ -622,36 +569,6 @@ export default function DashboardPage() {
                                 </p>
                               </div>
                             </div>
-
-                            {investment.poolStatus === 'failed' && (
-                              <Alert className="border-red-500/50 bg-red-500/10">
-                                <AlertCircle className="h-4 w-4 text-red-500" />
-                                <AlertDescription>
-                                  <div className="space-y-3">
-                                    <p className="text-sm">This pool failed to reach its funding goal. You can request a refund of your contribution.</p>
-                                    <Button
-                                      size="sm"
-                                      variant="destructive"
-                                      onClick={() => handleRequestRefund(investment.poolId, investment.amountInvested)}
-                                      disabled={isRefunding === investment.poolId}
-                                      className="w-full"
-                                    >
-                                      {isRefunding === investment.poolId ? (
-                                        <>
-                                          <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                                          Processing Refund...
-                                        </>
-                                      ) : (
-                                        <>
-                                          <RefreshCw className="h-4 w-4 mr-2" />
-                                          Request Refund (${investment.amountInvested})
-                                        </>
-                                      )}
-                                    </Button>
-                                  </div>
-                                </AlertDescription>
-                              </Alert>
-                            )}
 
                             {investment.poolStatus === 'funded' && investment.escrowId && (
                               <Alert className="border-green-500/50 bg-green-500/10">
@@ -684,7 +601,7 @@ export default function DashboardPage() {
                                 <div className="flex items-center justify-between text-sm mb-2">
                                   <span className="text-muted">Funds Released</span>
                                   <span className="font-semibold">
-                                    ${investment.escrowReleased.toLocaleString()} / ${investment.totalBudget.toLocaleString()}
+                                    ${investment.escrowReleased.toLocaleString()} USDC / ${investment.totalBudget.toLocaleString()} USDC
                                   </span>
                                 </div>
                                 <Progress value={(investment.escrowReleased / investment.totalBudget) * 100} className="h-2" />
@@ -700,7 +617,7 @@ export default function DashboardPage() {
                                 <div>
                                   <p className="text-muted mb-1">Your Returns</p>
                                   <p className="font-semibold text-[#22c55e]">
-                                    ${((investment.amountInvested / investment.poolGoal) * investment.escrowReleased).toFixed(2)}
+                                    ${((investment.amountInvested / investment.poolGoal) * investment.escrowReleased).toFixed(2)} USDC
                                   </p>
                                 </div>
                               </div>

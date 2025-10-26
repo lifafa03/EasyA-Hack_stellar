@@ -369,7 +369,7 @@ function ProfileContent() {
                       </div>
                       <div>
                         <p className="text-sm text-muted">Total Earned</p>
-                        <p className="text-2xl font-bold">${profileData.stats.totalEarned.toLocaleString()}</p>
+                        <p className="text-2xl font-bold">${profileData.stats.totalEarned.toLocaleString()} USDC</p>
                       </div>
                     </div>
                   </Card>

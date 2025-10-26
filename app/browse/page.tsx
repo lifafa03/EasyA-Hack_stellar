@@ -183,8 +183,8 @@ export default function BrowsePage() {
                         <DollarSign className="h-6 w-6 text-white" />
                       </div>
                       <div>
-                        <p className="text-2xl font-bold text-foreground">${(totalFunding / 1000).toFixed(0)}K</p>
-                        <p className="text-xs text-muted-foreground">Total USDC Funding</p>
+                        <p className="text-2xl font-bold text-foreground">${(totalFunding / 1000).toFixed(0)}K USDC</p>
+                        <p className="text-xs text-muted-foreground">Total Funding</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">

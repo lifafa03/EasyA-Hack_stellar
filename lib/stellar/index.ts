@@ -11,6 +11,7 @@ export * from './storage';
 export * from './errors';
 export * from './retry';
 export * from './events';
+export * from './balance-validation';
 export { StellarSDK, getStellarSDK, resetStellarSDK } from './sdk';
 export { getStellarConfig, validateConfig } from './config';
 export {
