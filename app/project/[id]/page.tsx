@@ -26,6 +26,8 @@ import { toast } from "sonner"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { getAccountBalance } from "@/lib/stellar/wallet"
+import { fundEscrow } from "@/lib/stellar/escrow"
 
 // Simplified bid form interface
 interface BidFormData {
@@ -304,11 +306,7 @@ export default function ProjectDetailPage() {
       }, 2000);
     } catch (error) {
       setSubmitState('error');
-      if (error instanceof TrustlessWorkError) {
-        setErrorMessage(error.message);
-      } else {
-        setErrorMessage(error instanceof Error ? error.message : 'Unknown error occurred');
-      }
+      setErrorMessage(error instanceof Error ? error.message : 'Unknown error occurred');
       console.error('Bid submission error:', error);
       
       toast.error('Failed to submit bid', {
@@ -366,8 +364,17 @@ export default function ProjectDetailPage() {
       );
       
       if (result.success) {
+        // Determine network for explorer link
+        const network = process.env.NEXT_PUBLIC_STELLAR_NETWORK === 'mainnet' ? 'public' : 'testnet';
+        const explorerUrl = `https://stellar.expert/explorer/${network}/tx/${result.transactionHash}`;
+        
         toast.success('Project funded successfully!', {
           description: `You contributed ${amount.toFixed(2)} USDC to this project.`,
+          action: {
+            label: 'View Transaction',
+            onClick: () => window.open(explorerUrl, '_blank'),
+          },
+          duration: 10000,
         });
         
         // Refresh escrow status and wallet balance
@@ -382,15 +389,9 @@ export default function ProjectDetailPage() {
     } catch (error) {
       console.error('Funding error:', error);
       
-      if (error instanceof TrustlessWorkError) {
-        toast.error('Funding Failed', {
-          description: error.message,
-        });
-      } else {
-        toast.error('Failed to fund project', {
-          description: error instanceof Error ? error.message : 'Please try again',
-        });
-      }
+      toast.error('Failed to fund project', {
+        description: error instanceof Error ? error.message : 'Please try again',
+      });
     } finally {
       setIsFunding(false);
     }
@@ -443,15 +444,9 @@ export default function ProjectDetailPage() {
     } catch (error: any) {
       console.error('Failed to complete milestone:', error);
       
-      if (error instanceof TrustlessWorkError) {
-        toast.error('Failed to complete milestone', {
-          description: error.message,
-        });
-      } else {
-        toast.error('Failed to complete milestone', {
-          description: error.message || 'Please try again',
-        });
-      }
+      toast.error('Failed to complete milestone', {
+        description: error instanceof Error ? error.message : 'Please try again',
+      });
     } finally {
       setIsCompletingMilestone(false);
       setSelectedMilestoneId(null);

@@ -153,7 +153,7 @@ export const releaseMilestonePayment = async (
           amount: milestone.amount.toString(),
         })
       )
-      .addMemo(StellarSdk.Memo.text(`Milestone: ${milestone.title}`))
+      .addMemo(StellarSdk.Memo.text('Milestone Payment'))
       .setTimeout(180)
       .build();
     
@@ -280,7 +280,7 @@ export const submitBidWithPayment = async (
           amount: bid.bidAmount.toString(),
         })
       )
-      .addMemo(StellarSDK.Memo.text(`Bid for project ${bid.projectId}`))
+      .addMemo(StellarSDK.Memo.text('Project Bid'))
       .setTimeout(180)
       .build();
     

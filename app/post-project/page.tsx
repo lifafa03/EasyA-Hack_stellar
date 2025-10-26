@@ -15,7 +15,8 @@ import { useRouter } from "next/navigation"
 import { GradientBackground } from "@/components/gradient-background"
 import { useWalletKit } from "@/hooks/use-wallet-kit"
 import { toast } from "sonner"
-// Removed TrustlessWork dependency - using simple Stellar USDC instead
+import { createEscrow, type EscrowParams } from "@/lib/stellar/escrow"
+import { STELLAR_CONFIG } from "@/lib/stellar/config"
 
 interface Milestone {
   title: string
@@ -133,7 +134,18 @@ export default function PostProjectPage() {
       // Sign and submit
       const result = await signAndSubmitTransaction(transaction, wallet.walletType as any)
 
-      toast.success(`Swapped ${swapAmount} XLM → ${parseFloat(bestPath.destination_amount).toFixed(2)} USDC`)
+      // Determine network for explorer link
+      const network = process.env.NEXT_PUBLIC_STELLAR_NETWORK === 'mainnet' ? 'public' : 'testnet'
+      const explorerUrl = `https://stellar.expert/explorer/${network}/tx/${result.hash}`
+
+      toast.success(`Swapped ${swapAmount} XLM → ${parseFloat(bestPath.destination_amount).toFixed(2)} USDC`, {
+        description: 'Transaction confirmed on Stellar',
+        action: {
+          label: 'View Transaction',
+          onClick: () => window.open(explorerUrl, '_blank'),
+        },
+        duration: 10000,
+      })
       
       // Refresh balance
       await fetchUSDCBalance()
@@ -239,11 +251,53 @@ export default function PostProjectPage() {
       }
 
       setSubmitState('submitting')
-      toast.info('Creating project with USDC escrow...')
+      toast.info('Creating escrow smart contract...')
 
       const projectId = `project-${Date.now()}`
       
-      // Prepare milestones
+      // Prepare milestones for escrow
+      const escrowMilestones = milestones
+        .filter(m => m.title.trim() && m.budget)
+        .map((m, index) => ({
+          id: `milestone-${index}`,
+          title: m.title,
+          description: m.title,
+          budget: parseFloat(m.budget),
+          status: 'pending' as const,
+          deliverables: [],
+        }))
+
+      // Create escrow smart contract with USDC funds
+      toast.info('Locking USDC in escrow smart contract...')
+      
+      const escrowParams: EscrowParams = {
+        clientAddress: wallet.publicKey!,
+        totalBudget: parseFloat(formData.budget),
+        milestones: escrowMilestones,
+        projectId: projectId,
+        currency: 'USDC',
+        enableYield: false, // Can be enabled for yield-bearing escrows
+      }
+
+      const escrowResult = await createEscrow(
+        escrowParams,
+        wallet.walletType as any
+      )
+
+      // Generate explorer link for the escrow transaction
+      const network = STELLAR_CONFIG.network === 'mainnet' ? 'public' : 'testnet'
+      const explorerUrl = `https://stellar.expert/explorer/${network}/tx/${escrowResult.transaction.hash}`
+
+      toast.success('Escrow created successfully!', {
+        description: `${formData.budget} USDC locked in smart contract`,
+        action: {
+          label: 'View Transaction',
+          onClick: () => window.open(explorerUrl, '_blank'),
+        },
+        duration: 10000,
+      })
+
+      // Prepare project data with escrow info
       const projectMilestones = milestones
         .filter(m => m.title.trim() && m.budget)
         .map((m, index) => ({
@@ -255,7 +309,7 @@ export default function PostProjectPage() {
           completedAt: null,
         }))
 
-      // Store project data
+      // Store project data with escrow details
       const projectData = {
         id: projectId,
         ...formData,
@@ -266,7 +320,11 @@ export default function PostProjectPage() {
         clientAddress: wallet.publicKey,
         status: 'open' as const,
         bids: [],
-        escrowStatus: 'pending' as const,
+        escrowId: escrowResult.escrowId,
+        escrowContractAddress: escrowResult.contractAddress,
+        escrowTransactionHash: escrowResult.transaction.hash,
+        escrowStatus: 'active' as const,
+        escrowExplorerUrl: explorerUrl,
       }
       
       // Get existing projects from localStorage
@@ -282,7 +340,12 @@ export default function PostProjectPage() {
       // Also store individual project for easy access
       localStorage.setItem(`project-${projectId}`, JSON.stringify(projectData))
 
-      console.log('Project created:', projectData)
+      console.log('Project created with escrow:', projectData)
+
+      // Refresh wallet balance to show deducted USDC
+      if (wallet.refreshBalance) {
+        await wallet.refreshBalance()
+      }
 
       setSubmitState('success')
       toast.success('Project posted successfully!')

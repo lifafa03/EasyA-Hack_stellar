@@ -188,9 +188,10 @@ export const transferUSDC = async (
         })
       );
 
-    // Add memo if provided
+    // Add memo if provided (max 28 bytes for text memo)
     if (memo) {
-      txBuilder.addMemo(StellarSdk.Memo.text(memo));
+      const truncatedMemo = memo.substring(0, 28);
+      txBuilder.addMemo(StellarSdk.Memo.text(truncatedMemo));
     }
 
     const transaction = txBuilder.setTimeout(180).build();
@@ -253,9 +254,10 @@ export const transferXLM = async (
         })
       );
 
-    // Add memo if provided
+    // Add memo if provided (max 28 bytes for text memo)
     if (memo) {
-      txBuilder.addMemo(StellarSdk.Memo.text(memo));
+      const truncatedMemo = memo.substring(0, 28);
+      txBuilder.addMemo(StellarSdk.Memo.text(truncatedMemo));
     }
 
     const transaction = txBuilder.setTimeout(180).build();

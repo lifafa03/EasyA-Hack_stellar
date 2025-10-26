@@ -707,15 +707,15 @@ function DashboardContent() {
                       {bid.status === 'accepted' && bid.escrowId && (
                         <Tabs defaultValue="milestones" className="w-full">
                         <TabsList className="grid w-full grid-cols-3 bg-white/5 border border-white/10">
-                          <TabsTrigger value="milestones" className="data-[state=active]:bg-[#4ade80] data-[state=active]:text-white">
+                          <TabsTrigger value="milestones" className="text-white data-[state=active]:bg-[#4ade80] data-[state=active]:text-white">
                               <CheckCircle className="h-4 w-4 mr-2" />
                               Milestones
                             </TabsTrigger>
-                          <TabsTrigger value="escrow" className="data-[state=active]:bg-[#4ade80] data-[state=active]:text-white">
+                          <TabsTrigger value="escrow" className="text-white data-[state=active]:bg-[#4ade80] data-[state=active]:text-white">
                               <Shield className="h-4 w-4 mr-2" />
                               Escrow
                             </TabsTrigger>
-                          <TabsTrigger value="payments" className="data-[state=active]:bg-[#4ade80] data-[state=active]:text-white">
+                          <TabsTrigger value="payments" className="text-white data-[state=active]:bg-[#4ade80] data-[state=active]:text-white">
                               <DollarSign className="h-4 w-4 mr-2" />
                               Payments
                             </TabsTrigger>
@@ -898,12 +898,12 @@ function DashboardContent() {
 
                       <Tabs defaultValue="overview" className="w-full">
                       <TabsList className="grid w-full grid-cols-3 bg-white/5 border border-white/10">
-                        <TabsTrigger value="overview" className="data-[state=active]:bg-[#4ade80] data-[state=active]:text-white">Overview</TabsTrigger>
-                        <TabsTrigger value="pool" className="data-[state=active]:bg-[#4ade80] data-[state=active]:text-white">
+                        <TabsTrigger value="overview" className="text-white data-[state=active]:bg-[#4ade80] data-[state=active]:text-white">Overview</TabsTrigger>
+                        <TabsTrigger value="pool" className="text-white data-[state=active]:bg-[#4ade80] data-[state=active]:text-white">
                             <Target className="h-4 w-4 mr-2" />
                             Pool
                           </TabsTrigger>
-                        <TabsTrigger value="escrow" disabled={!investment.escrowId} className="data-[state=active]:bg-[#4ade80] data-[state=active]:text-white">
+                        <TabsTrigger value="escrow" disabled={!investment.escrowId} className="text-white data-[state=active]:bg-[#4ade80] data-[state=active]:text-white">
                             <Shield className="h-4 w-4 mr-2" />
                             Escrow
                           </TabsTrigger>
@@ -1063,13 +1063,13 @@ function DashboardContent() {
               <Card className="bg-white/5 backdrop-blur-sm border-white/10">
                 <CardHeader>
                   <CardTitle className="text-white">Connect Wallet</CardTitle>
-                  <CardDescription className="text-gray-400">Connect your wallet to deposit funds</CardDescription>
+                  <CardDescription className="text-gray-300">Connect your wallet to deposit funds</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Alert className="bg-white/5 border-white/10">
+                  <Alert className="bg-white/5 border-white/10 backdrop-blur-sm">
                     <AlertCircle className="h-4 w-4 text-[#4ade80]" />
                     <AlertTitle className="text-white">Wallet Not Connected</AlertTitle>
-                    <AlertDescription className="text-gray-400">
+                    <AlertDescription className="text-gray-300">
                       Please connect your Stellar wallet to deposit fiat currency and receive USDC.
                     </AlertDescription>
                   </Alert>
@@ -1079,13 +1079,13 @@ function DashboardContent() {
               <Card className="bg-white/5 backdrop-blur-sm border-white/10">
                 <CardHeader>
                   <CardTitle className="text-white">Select Anchor Provider</CardTitle>
-                  <CardDescription className="text-gray-400">Choose a trusted anchor to convert fiat to crypto</CardDescription>
+                  <CardDescription className="text-gray-300">Choose a trusted anchor to convert fiat to crypto</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Alert className="bg-white/5 border-white/10">
+                  <Alert className="bg-white/5 border-white/10 backdrop-blur-sm">
                     <Info className="h-4 w-4 text-[#4ade80]" />
                     <AlertTitle className="text-white">What is an Anchor?</AlertTitle>
-                    <AlertDescription className="text-gray-400">
+                    <AlertDescription className="text-gray-300">
                       Anchors are trusted entities that hold deposits and issue credits on the Stellar network.
                     </AlertDescription>
                   </Alert>
@@ -1132,13 +1132,13 @@ function DashboardContent() {
               <Card className="bg-white/5 backdrop-blur-sm border-white/10">
                 <CardHeader>
                   <CardTitle className="text-white">Connect Wallet</CardTitle>
-                  <CardDescription className="text-gray-400">Connect your wallet to withdraw funds</CardDescription>
+                  <CardDescription className="text-gray-300">Connect your wallet to withdraw funds</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <Alert className="bg-white/5 border-white/10">
+                  <Alert className="bg-white/5 border-white/10 backdrop-blur-sm">
                     <AlertCircle className="h-4 w-4 text-[#4ade80]" />
                     <AlertTitle className="text-white">Wallet Not Connected</AlertTitle>
-                    <AlertDescription className="text-gray-400">
+                    <AlertDescription className="text-gray-300">
                       Please connect your Stellar wallet to withdraw USDC to your bank account.
                     </AlertDescription>
                   </Alert>
@@ -1148,13 +1148,13 @@ function DashboardContent() {
               <Card className="bg-white/5 backdrop-blur-sm border-white/10">
                 <CardHeader>
                   <CardTitle className="text-white">Select Anchor Provider</CardTitle>
-                  <CardDescription className="text-gray-400">Choose a trusted anchor to convert crypto to fiat</CardDescription>
+                  <CardDescription className="text-gray-300">Choose a trusted anchor to convert crypto to fiat</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <Alert className="bg-white/5 border-white/10">
+                  <Alert className="bg-white/5 border-white/10 backdrop-blur-sm">
                     <Info className="h-4 w-4 text-[#4ade80]" />
                     <AlertTitle className="text-white">What is an Anchor?</AlertTitle>
-                    <AlertDescription className="text-gray-400">
+                    <AlertDescription className="text-gray-300">
                       Anchors are trusted entities that hold deposits and issue credits on the Stellar network.
                     </AlertDescription>
                   </Alert>
@@ -1205,56 +1205,47 @@ function DashboardContent() {
                                   className="bg-[#4ade80] hover:bg-[#22c55e] text-white"
                                   onClick={async () => {
                                     try {
-                                      toast.info('Withdrawing funds from escrow...')
-                                      
-                                      // Import Stellar SDK
-                                      const StellarSDK = await import('@stellar/stellar-sdk')
-                                      const { signAndSubmitTransaction } = await import('@/lib/stellar/wallet')
-                                      
-                                      const config = {
-                                        horizonUrl: 'https://horizon-testnet.stellar.org',
-                                        networkPassphrase: StellarSDK.Networks.TESTNET
-                                      }
-                                      const server = new StellarSDK.Horizon.Server(config.horizonUrl)
-                                      const account = await server.loadAccount(wallet.publicKey!)
-                                      
                                       const withdrawAmount = bid.escrowReleasedAmount || 0
                                       
-                                      // Create USDC asset
-                                      const usdcAsset = new StellarSDK.Asset(
-                                        'USDC',
-                                        'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5'
+                                      if (withdrawAmount <= 0) {
+                                        toast.error('No funds available to withdraw')
+                                        return
+                                      }
+
+                                      if (!wallet.connected || !wallet.publicKey) {
+                                        toast.error('Please connect your wallet')
+                                        return
+                                      }
+
+                                      toast.info('Processing withdrawal from escrow...')
+                                      
+                                      // Import escrow withdrawal function
+                                      const { withdrawFunds } = await import('@/lib/stellar/escrow')
+                                      const { STELLAR_CONFIG } = await import('@/lib/stellar/config')
+                                      
+                                      // Check if escrow exists
+                                      if (!bid.escrowId) {
+                                        toast.error('No escrow found for this project')
+                                        return
+                                      }
+
+                                      // Call the escrow withdrawal function
+                                      const result = await withdrawFunds(
+                                        bid.escrowId,
+                                        wallet.publicKey,
+                                        wallet.walletType as any
                                       )
                                       
-                                      // In a real escrow, funds would be held in an escrow account
-                                      // For demo, we'll simulate by sending from a test account to user
-                                      // In production, this would call the escrow smart contract
-                                      
-                                      // Create payment transaction to user's wallet
-                                      const transaction = new StellarSDK.TransactionBuilder(account, {
-                                        fee: StellarSDK.BASE_FEE,
-                                        networkPassphrase: config.networkPassphrase,
-                                      })
-                                        .addOperation(
-                                          StellarSDK.Operation.payment({
-                                            destination: wallet.publicKey!,
-                                            asset: usdcAsset,
-                                            amount: withdrawAmount.toString(),
-                                          })
-                                        )
-                                        .addMemo(StellarSDK.Memo.text(`Escrow withdrawal: ${bid.projectTitle.substring(0, 20)}`))
-                                        .setTimeout(180)
-                                        .build()
-                                      
-                                      // Sign and submit the transaction
-                                      const result = await signAndSubmitTransaction(transaction, wallet.walletType as any)
+                                      // Determine network for explorer link
+                                      const network = STELLAR_CONFIG.network === 'mainnet' ? 'public' : 'testnet'
+                                      const explorerUrl = `https://stellar.expert/explorer/${network}/tx/${result.transactionHash}`
                                       
                                       // Show success with transaction link
                                       toast.success(`Withdrawn ${withdrawAmount} USDC from escrow`, {
                                         description: 'Transaction confirmed on Stellar',
                                         action: {
                                           label: 'View Transaction',
-                                          onClick: () => window.open(`https://stellar.expert/explorer/testnet/tx/${result.hash}`, '_blank'),
+                                          onClick: () => window.open(explorerUrl, '_blank'),
                                         },
                                         duration: 10000,
                                       })
@@ -1350,19 +1341,19 @@ function DashboardContent() {
             <Card className="bg-white/5 backdrop-blur-sm border-white/10">
               <CardHeader>
                 <CardTitle className="text-white">Anchor Settings</CardTitle>
-                <CardDescription className="text-gray-400">Manage your preferred anchor provider</CardDescription>
+                <CardDescription className="text-gray-300">Manage your preferred anchor provider</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {selectedAnchor ? (
                   <>
-                    <div className="flex items-center justify-between p-4 border border-white/10 rounded-lg bg-white/5">
+                    <div className="flex items-center justify-between p-4 border border-white/10 rounded-lg bg-white/5 backdrop-blur-sm">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-lg bg-[#4ade80]/10 flex items-center justify-center">
                           <Wallet className="h-6 w-6 text-[#4ade80]" />
                         </div>
                         <div>
                           <p className="font-medium text-white">{selectedAnchor.name}</p>
-                          <p className="text-sm text-gray-400">
+                          <p className="text-sm text-gray-300">
                             Deposit: {selectedAnchor.fees.deposit} • Withdrawal: {selectedAnchor.fees.withdrawal}
                           </p>
                         </div>
@@ -1371,9 +1362,9 @@ function DashboardContent() {
                         Change Anchor
                       </Button>
                     </div>
-                    <Alert className="bg-white/5 border-white/10">
+                    <Alert className="bg-white/5 border-white/10 backdrop-blur-sm">
                       <Info className="h-4 w-4 text-[#4ade80]" />
-                      <AlertDescription className="text-gray-400">
+                      <AlertDescription className="text-gray-300">
                         Your preferred anchor is saved and will be used for all future transactions.
                       </AlertDescription>
                     </Alert>

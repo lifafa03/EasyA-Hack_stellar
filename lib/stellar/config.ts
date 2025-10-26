@@ -67,7 +67,4 @@ export const USDC_ASSET = new StellarSdk.Asset(
   process.env.NEXT_PUBLIC_USDC_ISSUER || 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5'
 );
 
-export const TRUSTLESS_WORK_CONFIG = {
-  apiUrl: process.env.NEXT_PUBLIC_TRUSTLESS_WORK_API || 'https://api.trustlesswork.com',
-  contractId: process.env.NEXT_PUBLIC_TRUSTLESS_WORK_CONTRACT || '',
-};
+// Removed TrustlessWork - using direct Stellar escrow instead
