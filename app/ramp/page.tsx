@@ -36,8 +36,22 @@ export default function RampPage() {
   const [jwtToken, setJwtToken] = useState<string | null>(null);
   const [withdrawalUrl, setWithdrawalUrl] = useState<string | null>(null);
   const [transactionId, setTransactionId] = useState<string | null>(null);
+  const [withdrawalStatus, setWithdrawalStatus] = useState<string | null>(null);
+  const [autoPolling, setAutoPolling] = useState(false);
 
   const USDC_ISSUER = 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5';
+
+  // Auto-poll withdrawal status
+  useEffect(() => {
+    if (!autoPolling || !transactionId || !jwtToken) return;
+    
+    const pollInterval = setInterval(() => {
+      console.log('🔄 Auto-polling withdrawal status...');
+      checkWithdrawalStatus();
+    }, 5000); // Poll every 5 seconds
+
+    return () => clearInterval(pollInterval);
+  }, [autoPolling, transactionId, jwtToken]);
 
   // Fetch balances when wallet connects
   useEffect(() => {
@@ -366,12 +380,34 @@ export default function RampPage() {
 
       const tx = data.transaction;
       
+      console.log('📊 Full transaction details:', JSON.stringify(tx, null, 2));
+      
+      // Save current status
+      setWithdrawalStatus(tx.status);
+      
+      // Stop auto-polling if withdrawal is in terminal state
+      if (tx.status === 'completed' || tx.status === 'error' || tx.status === 'expired') {
+        setAutoPolling(false);
+        console.log('🛑 Stopping auto-poll - withdrawal in terminal state:', tx.status);
+      }
+      
       // Show detailed status message
-      let statusMessage = tx.message || 'Check the details below';
+      let statusMessage = tx.message || tx.status_message || 'Check the details below';
       
       // If waiting for user transfer, show the deposit instructions
-      if (tx.status === 'pending_user_transfer_start' && tx.deposit_memo) {
-        statusMessage = `Send ${withdrawAmount} USDC to the anchor's account with memo: ${tx.deposit_memo}`;
+      if (tx.status === 'pending_user_transfer_start') {
+        statusMessage = `Please click "💸 Send USDC" to transfer ${withdrawAmount} USDC to the anchor`;
+        if (tx.deposit_memo) {
+          statusMessage += `\nMemo: ${tx.deposit_memo}`;
+        }
+      } else if (tx.status === 'pending_anchor') {
+        statusMessage = 'Anchor has received your USDC and is processing the withdrawal. This may take a while on testnet.';
+      } else if (tx.status === 'pending_external') {
+        statusMessage = 'Withdrawal is being processed by external systems (banking)';
+      } else if (tx.status === 'completed') {
+        statusMessage = `✅ Withdrawal complete! Check your bank account.`;
+      } else if (tx.status === 'error' || tx.status === 'expired') {
+        statusMessage = `❌ Withdrawal failed: ${tx.message || 'Unknown error'}`;
       }
       
       toast.info(`Status: ${tx.status}`, {
@@ -379,12 +415,21 @@ export default function RampPage() {
         duration: 10000,
       });
 
-      setStatus(`Withdrawal status: ${tx.status}\n${statusMessage}`);
+      setStatus(`Withdrawal status: ${tx.status}\n${statusMessage}\n\nFull status: ${tx.status_eta || 'Processing...'}`);
       
-      // If we have deposit instructions, store them for the send button
-      if (tx.status === 'pending_user_transfer_start') {
-        console.log('📋 Transaction details:', tx);
-      }
+      // Log all transaction fields
+      console.log('🔍 Transaction fields:', {
+        id: tx.id,
+        status: tx.status,
+        status_eta: tx.status_eta,
+        message: tx.message,
+        amount_in: tx.amount_in,
+        amount_out: tx.amount_out,
+        deposit_address: tx.deposit_address || tx.withdraw_anchor_account,
+        deposit_memo: tx.deposit_memo,
+        completed_at: tx.completed_at,
+        started_at: tx.started_at,
+      });
       
       return tx;
     } catch (err: any) {
@@ -481,6 +526,10 @@ export default function RampPage() {
       // Refresh balances
       await fetchBalances(wallet.publicKey!);
       await wallet.refreshBalance();
+
+      // Start auto-polling
+      setAutoPolling(true);
+      console.log('✅ Started auto-polling withdrawal status');
 
       // Wait a bit then check status
       setTimeout(() => {
@@ -675,6 +724,16 @@ export default function RampPage() {
                     <div className="space-y-1">
                       <p className="font-semibold">Withdrawal in progress</p>
                       <p className="text-xs">Transaction ID: {transactionId}</p>
+                      {withdrawalStatus && (
+                        <p className="text-xs font-mono">
+                          Current Status: <span className="font-bold">{withdrawalStatus}</span>
+                        </p>
+                      )}
+                      {autoPolling && (
+                        <p className="text-xs text-green-600">
+                          ⚡ Auto-refreshing every 5 seconds...
+                        </p>
+                      )}
                       {withdrawalUrl && (
                         <p className="text-xs">
                           <a 
@@ -706,7 +765,7 @@ export default function RampPage() {
                     <Button 
                       onClick={sendUSDCToAnchor} 
                       variant="default"
-                      disabled={isLoading}
+                      disabled={isLoading || withdrawalStatus === 'completed'}
                       className="flex-1"
                     >
                       💸 Send USDC
@@ -717,6 +776,13 @@ export default function RampPage() {
                       disabled={isLoading}
                     >
                       🔄 Status
+                    </Button>
+                    <Button 
+                      onClick={() => setAutoPolling(!autoPolling)} 
+                      variant={autoPolling ? "default" : "outline"}
+                      size="sm"
+                    >
+                      {autoPolling ? '⏸️' : '▶️'}
                     </Button>
                   </>
                 )}
