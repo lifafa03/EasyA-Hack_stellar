@@ -45,6 +45,13 @@ export function WalletConnectButton() {
     return `${address.slice(0, 6)}...${address.slice(-6)}`;
   };
 
+  const copyAddress = (address: string) => {
+    navigator.clipboard.writeText(address);
+    toast.success('Address copied!', {
+      description: address,
+    });
+  };
+
   const formatBalance = (balance: string | null) => {
     if (!balance || balance === '0' || balance === '0.0000000') return '0.00';
     const num = parseFloat(balance);
@@ -65,7 +72,13 @@ export function WalletConnectButton() {
           <div className="flex items-center gap-3">
             <div className="text-sm">
               <div className="flex items-center gap-2 mb-1">
-                <span className="font-mono font-semibold">{formatAddress(wallet.publicKey)}</span>
+                <span 
+                  className="font-mono font-semibold cursor-pointer hover:text-blue-500" 
+                  onClick={() => copyAddress(wallet.publicKey!)}
+                  title="Click to copy full address"
+                >
+                  {formatAddress(wallet.publicKey)}
+                </span>
                 <Badge variant="outline" className="text-xs bg-[#4ade80]/10 text-[#22c55e] border-[#4ade80]/20">
                   Connected
                 </Badge>

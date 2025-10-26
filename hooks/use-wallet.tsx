@@ -104,6 +104,8 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       console.log('🔌 Connecting to', walletType, 'wallet...');
       const publicKey = await connectWallet(walletType);
       console.log('✅ Connected! Public Key:', publicKey);
+      console.log('📋 COPY THIS ADDRESS:', publicKey);
+      console.log('🔗 Stellar Expert:', `https://stellar.expert/explorer/testnet/account/${publicKey}`);
       
       // Get initial balance
       console.log('💰 Fetching initial balance...');
