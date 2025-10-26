@@ -335,12 +335,12 @@ export default function PostProjectPage() {
 
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="title">Project Title *</Label>
+                  <Label htmlFor="title" className="text-white">Project Title *</Label>
                   <Input
                     id="title"
                     placeholder="e.g., Build a Mobile App for E-commerce"
                     required
-                    className="mt-2"
+                    className="mt-2 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-[#4ade80]/50 focus:ring-[#4ade80]/20"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     disabled={isSubmitting}
@@ -348,40 +348,40 @@ export default function PostProjectPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="category">Category *</Label>
+                  <Label htmlFor="category" className="text-white">Category *</Label>
                   <Select 
                     required
                     value={formData.category}
                     onValueChange={(value) => setFormData({ ...formData, category: value })}
                     disabled={isSubmitting}
                   >
-                    <SelectTrigger className="mt-2">
+                    <SelectTrigger className="mt-2 bg-white/5 border-white/10 text-white hover:border-white/20 focus:border-[#4ade80]/50 focus:ring-[#4ade80]/20">
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="development">Development</SelectItem>
-                      <SelectItem value="design">Design</SelectItem>
-                      <SelectItem value="ai-ml">AI/ML</SelectItem>
-                      <SelectItem value="marketing">Marketing</SelectItem>
-                      <SelectItem value="blockchain">Blockchain</SelectItem>
-                      <SelectItem value="writing">Writing</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                    <SelectContent className="bg-black/95 border-white/10">
+                      <SelectItem value="development" className="text-white hover:bg-white/10">Development</SelectItem>
+                      <SelectItem value="design" className="text-white hover:bg-white/10">Design</SelectItem>
+                      <SelectItem value="ai-ml" className="text-white hover:bg-white/10">AI/ML</SelectItem>
+                      <SelectItem value="marketing" className="text-white hover:bg-white/10">Marketing</SelectItem>
+                      <SelectItem value="blockchain" className="text-white hover:bg-white/10">Blockchain</SelectItem>
+                      <SelectItem value="writing" className="text-white hover:bg-white/10">Writing</SelectItem>
+                      <SelectItem value="other" className="text-white hover:bg-white/10">Other</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div>
-                  <Label htmlFor="description">Description *</Label>
+                  <Label htmlFor="description" className="text-white">Description *</Label>
                   <Textarea
                     id="description"
                     placeholder="Describe what you need built, key features, and your expectations..."
                     required
-                    className="mt-2 min-h-32"
+                    className="mt-2 min-h-32 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-[#4ade80]/50 focus:ring-[#4ade80]/20"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     disabled={isSubmitting}
                   />
-                  <p className="text-xs text-muted mt-1">
+                  <p className="text-xs text-gray-400 mt-1">
                     {formData.description.length}/50 characters minimum
                   </p>
                 </div>
@@ -415,7 +415,7 @@ export default function PostProjectPage() {
                         </div>
 
                         <div>
-                          <Label htmlFor="swapAmount">XLM Amount to Convert</Label>
+                          <Label htmlFor="swapAmount" className="text-white">XLM Amount to Convert</Label>
                           <Input
                             id="swapAmount"
                             type="number"
@@ -458,15 +458,15 @@ export default function PostProjectPage() {
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="budget">Budget (USDC) *</Label>
+                    <Label htmlFor="budget" className="text-white">Budget (USDC) *</Label>
                     <div className="relative mt-2">
-                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
+                      <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input 
                         id="budget" 
                         type="number" 
                         placeholder="5000" 
                         required 
-                        className="pl-9"
+                        className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-[#4ade80]/50 focus:ring-[#4ade80]/20"
                         value={formData.budget}
                         onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
                         disabled={isSubmitting}
@@ -477,15 +477,15 @@ export default function PostProjectPage() {
                   </div>
 
                   <div>
-                    <Label htmlFor="duration">Duration (days) *</Label>
+                    <Label htmlFor="duration" className="text-white">Duration (days) *</Label>
                     <div className="relative mt-2">
-                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
+                      <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input 
                         id="duration" 
                         type="number" 
                         placeholder="30" 
                         required 
-                        className="pl-9"
+                        className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-[#4ade80]/50 focus:ring-[#4ade80]/20"
                         value={formData.duration}
                         onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
                         disabled={isSubmitting}
@@ -548,9 +548,10 @@ export default function PostProjectPage() {
                         onChange={(e) => updateMilestone(index, "title", e.target.value)}
                         disabled={isSubmitting}
                         required
+                        className="text-white bg-white/5 border-white/10 placeholder:text-gray-500 focus:border-[#4ade80]/50 focus:ring-[#4ade80]/20"
                       />
                       <div className="relative">
-                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
+                        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                         <Input
                           type="number"
                           placeholder="Amount"
@@ -560,7 +561,7 @@ export default function PostProjectPage() {
                           required
                           min="0"
                           step="0.01"
-                          className="pl-9"
+                          className="pl-9 bg-white/5 border-white/10 text-white placeholder:text-gray-500 focus:border-[#4ade80]/50 focus:ring-[#4ade80]/20"
                         />
                       </div>
                     </div>
