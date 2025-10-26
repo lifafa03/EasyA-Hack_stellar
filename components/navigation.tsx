@@ -5,6 +5,7 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Moon, Sun } from "lucide-react"
 import { useTheme } from "@/components/theme-provider"
+import { WalletConnectButton } from "@/components/wallet-connect"
 
 export function Navigation() {
   const { theme, toggleTheme } = useTheme()
@@ -43,12 +44,7 @@ export function Navigation() {
             <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
               {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
             </Button>
-            <Button variant="ghost" asChild>
-              <Link href="/login">Sign In</Link>
-            </Button>
-            <Button className="bg-[#4ade80] hover:bg-[#22c55e] text-white" asChild>
-              <Link href="/signup">Get Started</Link>
-            </Button>
+            <WalletConnectButton />
           </div>
         </div>
       </div>
