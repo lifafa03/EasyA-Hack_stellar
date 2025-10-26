@@ -73,14 +73,16 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     if (!walletState.publicKey) return;
 
     try {
+      console.log('🔄 Refreshing balance for:', walletState.publicKey);
       const { xlm, usdc } = await getAccountBalance(walletState.publicKey);
+      console.log('✅ Balance refreshed - XLM:', xlm, 'USDC:', usdc);
       setWalletState((prev) => ({
         ...prev,
         balance: xlm,
         usdcBalance: usdc,
       }));
     } catch (error) {
-      console.error('Failed to refresh balance:', error);
+      console.error('❌ Failed to refresh balance:', error);
     }
   }, [walletState.publicKey]);
 
@@ -99,10 +101,14 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     setError(null);
 
     try {
+      console.log('🔌 Connecting to', walletType, 'wallet...');
       const publicKey = await connectWallet(walletType);
+      console.log('✅ Connected! Public Key:', publicKey);
       
       // Get initial balance
+      console.log('💰 Fetching initial balance...');
       const { xlm, usdc } = await getAccountBalance(publicKey);
+      console.log('✅ Balance fetched - XLM:', xlm, 'USDC:', usdc);
 
       setWalletState({
         connected: true,
@@ -119,10 +125,10 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       toast.success('Wallet connected successfully!', {
-        description: `Connected to ${publicKey.slice(0, 8)}...${publicKey.slice(-8)}`,
+        description: `XLM: ${xlm} | USDC: ${usdc}`,
       });
     } catch (error: any) {
-      console.error('Wallet connection error:', error);
+      console.error('❌ Wallet connection error:', error);
       setError(error.message || 'Failed to connect wallet');
       toast.error('Failed to connect wallet', {
         description: error.message || 'Please try again',

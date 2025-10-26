@@ -8,7 +8,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Wallet, LogOut, ExternalLink } from 'lucide-react';
+import { Wallet, LogOut, ExternalLink, RefreshCw } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useWallet } from '@/hooks/use-wallet';
@@ -16,6 +16,7 @@ import { toast } from 'sonner';
 
 export function WalletConnectButton() {
   const [showDialog, setShowDialog] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const wallet = useWallet();
 
   const handleConnect = async (walletType: 'freighter' | 'albedo') => {
@@ -28,13 +29,33 @@ export function WalletConnectButton() {
     }
   };
 
+  const handleRefreshBalance = async () => {
+    setIsRefreshing(true);
+    try {
+      await wallet.refreshBalance();
+      toast.success('Balance refreshed!');
+    } catch (error) {
+      toast.error('Failed to refresh balance');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   const formatAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-6)}`;
   };
 
   const formatBalance = (balance: string | null) => {
-    if (!balance) return '0.00';
-    return parseFloat(balance).toFixed(2);
+    if (!balance || balance === '0' || balance === '0.0000000') return '0.00';
+    const num = parseFloat(balance);
+    // Show up to 7 decimal places for small amounts, 2 for larger
+    if (num < 0.01 && num > 0) {
+      return num.toFixed(7);
+    }
+    return num.toLocaleString('en-US', { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    });
   };
 
   if (wallet.connected && wallet.publicKey) {
@@ -50,13 +71,23 @@ export function WalletConnectButton() {
                 </Badge>
               </div>
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span>{formatBalance(wallet.usdcBalance)} USDC</span>
+                <span className="font-mono">{formatBalance(wallet.usdcBalance)} USDC</span>
                 <span>•</span>
-                <span>{formatBalance(wallet.balance)} XLM</span>
+                <span className="font-mono">{formatBalance(wallet.balance)} XLM</span>
               </div>
             </div>
           </div>
         </Card>
+        
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleRefreshBalance}
+          disabled={isRefreshing}
+          className="border border-border hover:bg-surface-dark"
+        >
+          <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+        </Button>
         
         <Button
           variant="outline"

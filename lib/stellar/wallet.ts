@@ -88,25 +88,31 @@ export const getAccountBalance = async (publicKey: string): Promise<{ xlm: strin
     const config = getNetworkConfig();
     const server = new StellarSdk.Horizon.Server(config.horizonUrl);
     
+    console.log('🔍 Fetching balance for:', publicKey);
     const account = await server.loadAccount(publicKey);
     
     let xlmBalance = '0';
     let usdcBalance = '0';
 
+    console.log('📊 All balances:', account.balances);
+
     account.balances.forEach((balance) => {
       if (balance.asset_type === 'native') {
         xlmBalance = balance.balance;
+        console.log('💰 XLM Balance:', xlmBalance);
       } else if (
         'asset_code' in balance &&
-        balance.asset_code === process.env.NEXT_PUBLIC_USDC_ASSET_CODE
+        balance.asset_code === 'USDC'
       ) {
         usdcBalance = balance.balance;
+        console.log('💵 USDC Balance:', usdcBalance, 'Issuer:', 'asset_issuer' in balance ? balance.asset_issuer : 'N/A');
       }
     });
 
+    console.log('✅ Final balances - XLM:', xlmBalance, 'USDC:', usdcBalance);
     return { xlm: xlmBalance, usdc: usdcBalance };
   } catch (error) {
-    console.error('Error fetching balance:', error);
+    console.error('❌ Error fetching balance:', error);
     throw error;
   }
 };
