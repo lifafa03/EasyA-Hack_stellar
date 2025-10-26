@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get client domain signing key from environment
-    const clientDomainSecret = process.env.SIGNING_SECRET_KEY;
+    let clientDomainSecret = process.env.SIGNING_SECRET_KEY;
     
     if (!clientDomainSecret) {
       console.error('❌ SIGNING_SECRET_KEY not found in environment');
@@ -37,6 +37,9 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Remove quotes if present (from .env.local format)
+    clientDomainSecret = clientDomainSecret.replace(/^["']|["']$/g, '');
 
     console.log('🔐 Adding client_domain signature for MoneyGram');
 
