@@ -276,7 +276,7 @@ export const createEscrow = async (
       enableYield: params.enableYield || false,
       metadata: {
         projectId: params.projectId,
-        platform: 'StellarWork+',
+        platform: 'StellaNova',
         createdAt: Date.now(),
       },
     });

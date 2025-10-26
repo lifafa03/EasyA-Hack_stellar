@@ -216,7 +216,7 @@ export function WalletConnectButton() {
           <DialogHeader>
             <DialogTitle>Connect Your Wallet</DialogTitle>
             <DialogDescription>
-              Choose a wallet to connect to StellarWork+. Your wallet will be used for all transactions.
+              Choose a wallet to connect to StellaNova. Your wallet will be used for all transactions.
             </DialogDescription>
           </DialogHeader>
 

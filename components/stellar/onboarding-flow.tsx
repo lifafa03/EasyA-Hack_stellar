@@ -16,13 +16,13 @@ interface OnboardingFlowProps {
 
 const steps = [
   {
-    title: "Welcome to StellarWork+",
+    title: "Welcome to StellaNova",
     description: "Let's get you started with blockchain-powered work",
     icon: StellarLogo,
     content: (
       <div className="space-y-4">
         <p className="text-muted-foreground">
-          StellarWork+ uses blockchain technology to provide secure, transparent, and instant payments
+          StellaNova uses blockchain technology to provide secure, transparent, and instant payments
           for freelance work and project funding.
         </p>
         <div className="grid gap-3">
@@ -123,7 +123,7 @@ const steps = [
     content: (
       <div className="space-y-4">
         <p className="text-muted-foreground">
-          You now understand the basics of how StellarWork+ uses blockchain technology to create
+          You now understand the basics of how StellaNova uses blockchain technology to create
           a secure, transparent marketplace.
         </p>
         <div className="space-y-3">

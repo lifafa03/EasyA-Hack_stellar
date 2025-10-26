@@ -21,9 +21,9 @@ export function Navigation() {
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-xl bg-linear-to-br from-[#4ade80] to-[#22c55e] flex items-center justify-center shadow-lg shadow-[#4ade80]/30">
-              <span className="text-white font-bold text-xl">S+</span>
+              <span className="text-white font-bold text-xl">✦</span>
             </div>
-            <span className="font-bold text-xl text-white">StellarWork+</span>
+            <span className="font-bold text-xl text-white">StellaNova</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-6">

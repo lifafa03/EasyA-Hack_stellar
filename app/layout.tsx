@@ -12,7 +12,7 @@ import { Footer } from "@/components/stellar"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "StellarWork+ | Decentralized Marketplace",
+  title: "StellaNova | Decentralized Marketplace",
   description: "Where work meets funding - Post projects, hire talent, crowdfund ideas",
     generator: 'v0.app'
 }

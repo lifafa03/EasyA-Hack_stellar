@@ -148,7 +148,7 @@ const testimonials = [
   {
     name: "Sarah Chen",
     role: "Startup Founder",
-    content: "StellarWork+ helped us find amazing developers and secure funding simultaneously. Game changer!",
+    content: "StellaNova helped us find amazing developers and secure funding simultaneously. Game changer!",
     avatar: "/professional-woman-diverse.png",
     rating: 5,
   },
@@ -422,7 +422,7 @@ export default function HomePage() {
                 viewport={{ once: true }}
                 className="text-4xl md:text-6xl font-bold mb-4 text-white"
               >
-                Why Choose <span className="bg-linear-to-r from-[#4ade80] to-cyan-400 bg-clip-text text-transparent">StellarWork+</span>
+                Why Choose <span className="bg-linear-to-r from-[#4ade80] to-cyan-400 bg-clip-text text-transparent">StellaNova</span>
               </motion.h2>
               <motion.p 
                 initial={{ opacity: 0, y: 20 }}
@@ -719,7 +719,7 @@ export default function HomePage() {
                 transition={{ delay: 0.1 }}
                 className="text-gray-300 text-lg max-w-2xl mx-auto"
               >
-                Everything you need to know about StellarWork+
+                Everything you need to know about StellaNova
               </motion.p>
             </motion.div>
             

@@ -19,9 +19,9 @@ export function Footer() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-linear-to-br from-[#4ade80] to-[#22c55e] flex items-center justify-center shadow-lg shadow-[#4ade80]/30">
-                <span className="text-white font-bold text-sm">S+</span>
+                <span className="text-white font-bold text-lg">✦</span>
               </div>
-              <span className="font-bold text-lg text-white">StellarWork+</span>
+              <span className="font-bold text-lg text-white">StellaNova</span>
             </div>
             <p className="text-sm text-gray-400 leading-relaxed">
               Decentralized marketplace powered by blockchain technology
@@ -113,7 +113,7 @@ export function Footer() {
 
         <div className="mt-8 pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-gray-400">
-            © {new Date().getFullYear()} StellarWork+. All rights reserved.
+            © {new Date().getFullYear()} StellaNova. All rights reserved.
           </p>
           <p className="text-xs text-gray-400">
             Built on Stellar blockchain for secure, transparent transactions
