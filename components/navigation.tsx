@@ -5,7 +5,7 @@ import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
 import { Moon, Sun } from "lucide-react"
 import { useTheme } from "@/components/theme-provider"
-import { WalletConnectButton } from "@/components/wallet-connect"
+import { WalletConnectButton } from "@/components/wallet-connect-kit"
 import { NetworkIndicator } from "@/components/stellar"
 
 export function Navigation() {
@@ -35,9 +35,6 @@ export function Navigation() {
             </Link>
             <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
               Dashboard
-            </Link>
-            <Link href="/how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
-              How It Works
             </Link>
           </div>
 

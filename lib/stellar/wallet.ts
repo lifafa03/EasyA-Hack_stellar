@@ -135,7 +135,13 @@ export const getAccountBalance = async (publicKey: string): Promise<{ xlm: strin
     });
 
     return { xlm: xlmBalance, usdc: usdcBalance };
-  } catch (error) {
+  } catch (error: any) {
+    // Handle unfunded account (404 error)
+    if (error?.response?.status === 404 || error?.name === 'NotFoundError') {
+      console.log('Account not yet funded on network:', publicKey);
+      return { xlm: '0', usdc: '0' };
+    }
+    
     console.error('Error fetching balance:', error);
     throw error;
   }

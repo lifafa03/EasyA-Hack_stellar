@@ -5,13 +5,13 @@ import { StellarBadge } from "./stellar-logo"
 
 export function Footer() {
   return (
-    <footer className="border-t border-border/50 bg-background/60 backdrop-blur-xl mt-20">
+    <footer className="border-t border-border/20 bg-transparent mt-20">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand Section */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4ade80] to-[#22c55e] flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-linear-to-br from-[#4ade80] to-[#22c55e] flex items-center justify-center">
                 <span className="text-white font-bold text-sm">S+</span>
               </div>
               <span className="font-bold text-lg">StellarWork+</span>

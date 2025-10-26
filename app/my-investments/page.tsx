@@ -8,7 +8,7 @@ import { DollarSign, TrendingUp, Calendar, ArrowRight, Target, Shield, AlertCirc
 import Link from "next/link"
 import { GradientBackground } from "@/components/gradient-background"
 import { useState } from "react"
-import { useWallet } from "@/hooks/use-wallet"
+import { useWalletKit } from "@/hooks/use-wallet-kit"
 import { toast } from "sonner"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
@@ -114,7 +114,7 @@ const statusColors = {
 }
 
 export default function MyInvestmentsPage() {
-  const wallet = useWallet()
+  const wallet = useWalletKit()
   const [isRefunding, setIsRefunding] = useState<string | null>(null)
   
   const totalInvested = myInvestments.reduce((sum, inv) => sum + inv.amountInvested, 0)

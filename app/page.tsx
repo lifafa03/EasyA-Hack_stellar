@@ -168,15 +168,20 @@ const testimonials = [
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen relative overflow-hidden">
+      {/* Global background gradient */}
+      <div className="absolute inset-0 bg-linear-to-b from-surface via-background to-surface -z-10" />
+      
+      {/* Decorative gradient blobs */}
+      <div className="absolute top-20 left-10 w-72 h-72 bg-[#4ade80]/5 dark:bg-[#4ade80]/10 rounded-full blur-3xl -z-10" />
+      <div className="absolute top-1/3 right-10 w-96 h-96 bg-[#22c55e]/5 dark:bg-[#22c55e]/10 rounded-full blur-3xl -z-10" />
+      <div className="absolute top-2/3 left-1/4 w-64 h-64 bg-[#4ade80]/3 dark:bg-[#4ade80]/5 rounded-full blur-3xl -z-10" />
+      <div className="absolute bottom-20 right-1/3 w-80 h-80 bg-[#22c55e]/5 dark:bg-[#22c55e]/10 rounded-full blur-3xl -z-10" />
+      
       {/* Hero Section */}
-      <GradientBackground variant="default">
-        <section className="relative py-24 md:py-32 overflow-hidden">
-          {/* Decorative elements */}
-          <div className="absolute top-20 right-10 w-72 h-72 bg-[#4ade80]/10 rounded-full blur-3xl" />
-          <div className="absolute bottom-20 left-10 w-96 h-96 bg-[#22c55e]/10 rounded-full blur-3xl" />
-          
-          <div className="container mx-auto px-4 relative z-10">
+      <div>
+        <section className="relative py-24 md:py-32">
+          <div className="container mx-auto px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -240,11 +245,11 @@ export default function HomePage() {
             </motion.div>
           </div>
         </section>
-      </GradientBackground>
+      </div>
 
       {/* How It Works - User Journeys */}
-      <GradientBackground variant="minimal">
-        <section className="py-24">
+      <div>
+        <section className="py-24 relative">
           <div className="container mx-auto px-4">
             <motion.div
               initial={{ opacity: 0 }}
@@ -299,11 +304,11 @@ export default function HomePage() {
             </div>
           </div>
         </section>
-      </GradientBackground>
+      </div>
 
       {/* Key Features */}
-      <GradientBackground variant="surface">
-        <section className="py-24">
+      <div>
+        <section className="py-24 relative">
           <div className="container mx-auto px-4">
             <motion.div
               initial={{ opacity: 0 }}
@@ -340,11 +345,11 @@ export default function HomePage() {
             </div>
           </div>
         </section>
-      </GradientBackground>
+      </div>
 
       {/* Featured Projects */}
-      <GradientBackground variant="minimal">
-        <section className="py-24">
+      <div>
+        <section className="py-24 relative">
           <div className="container mx-auto px-4">
             <div className="flex items-center justify-between mb-12">
               <div>
@@ -425,11 +430,11 @@ export default function HomePage() {
             </div>
           </div>
         </section>
-      </GradientBackground>
+      </div>
 
       {/* Stellar Benefits */}
-      <GradientBackground variant="surface">
-        <section className="py-24">
+      <div>
+        <section className="py-24 relative">
           <div className="container mx-auto px-4 max-w-6xl">
             <motion.div
               initial={{ opacity: 0 }}
@@ -506,11 +511,11 @@ export default function HomePage() {
             <StellarFAQ />
           </div>
         </section>
-      </GradientBackground>
+      </div>
 
       {/* Testimonials */}
-      <GradientBackground variant="minimal">
-        <section className="py-24">
+      <div>
+        <section className="py-24 relative">
           <div className="container mx-auto px-4">
             <motion.div
               initial={{ opacity: 0 }}
@@ -557,46 +562,44 @@ export default function HomePage() {
             </div>
           </div>
         </section>
-      </GradientBackground>
+      </div>
 
       {/* CTA Section */}
-      <section className="py-24 bg-linear-to-br from-[#4ade80] to-[#22c55e] text-white relative overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-0 w-96 h-96 bg-white/10 rounded-full blur-3xl" />
-        
-        <div className="container mx-auto px-4 relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="max-w-4xl mx-auto text-center"
-          >
-            <h2 className="text-4xl md:text-6xl font-bold mb-6 text-balance">Ready to Start Your Journey?</h2>
-            <p className="text-xl md:text-2xl mb-10 text-white/90 text-pretty leading-relaxed max-w-2xl mx-auto">
-              Join thousands of businesses, freelancers, and investors building the future of work
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button size="lg" className="bg-white text-[#22c55e] hover:bg-white/90 text-lg px-8" asChild>
-                <Link href="/signup">Create Account</Link>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-white text-white hover:bg-white/10 bg-transparent text-lg px-8"
-                asChild
-              >
-                <Link href="/browse">Explore Projects</Link>
-              </Button>
-            </div>
-            
-            <div className="mt-12 flex items-center justify-center gap-2 text-white/80">
-              <CheckCircle2 className="h-5 w-5" />
-              <span className="text-sm">No credit card required • Free to join • Start in minutes</span>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+      <div>
+        <section className="py-24 relative">
+          <div className="container mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="max-w-4xl mx-auto text-center"
+            >
+              <h2 className="text-4xl md:text-6xl font-bold mb-6 text-balance text-foreground">Ready to Start Your Journey?</h2>
+              <p className="text-xl md:text-2xl mb-10 text-muted-foreground text-pretty leading-relaxed max-w-2xl mx-auto">
+                Join thousands of businesses, freelancers, and investors building the future of work
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <Button size="lg" className="bg-[#4ade80] hover:bg-[#22c55e] text-white text-lg px-8" asChild>
+                  <Link href="/signup">Create Account</Link>
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-border bg-transparent text-lg px-8"
+                  asChild
+                >
+                  <Link href="/browse">Explore Projects</Link>
+                </Button>
+              </div>
+              
+              <div className="mt-12 flex items-center justify-center gap-2 text-muted-foreground">
+                <CheckCircle2 className="h-5 w-5 text-[#22c55e]" />
+                <span className="text-sm">No credit card required • Free to join • Start in minutes</span>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+      </div>
     </main>
   )
 }

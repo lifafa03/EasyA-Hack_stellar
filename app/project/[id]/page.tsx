@@ -20,7 +20,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { GradientBackground } from "@/components/gradient-background"
-import { useWallet } from "@/hooks/use-wallet"
+import { useWalletKit } from "@/hooks/use-wallet-kit"
 import { submitBidWithCheckpoints, BidFormData } from "@/lib/stellar/bid-validation"
 import { SignedBid, fetchEscrowBids, verifyBidSignature } from "@/lib/stellar/contracts"
 import { toast } from "sonner"
@@ -111,7 +111,7 @@ type SubmitState =
   | 'error';
 
 export default function ProjectDetailPage() {
-  const wallet = useWallet();
+  const wallet = useWalletKit();
   const fundedPercentage = (projectData.funded / projectData.budget) * 100
   const [bidDialogOpen, setBidDialogOpen] = React.useState(false)
   const [fundDialogOpen, setFundDialogOpen] = React.useState(false)

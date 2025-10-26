@@ -14,7 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Plus, X, DollarSign, Calendar, Loader2, CheckCircle2, ExternalLink, AlertCircle, Target, Shield } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { GradientBackground } from "@/components/gradient-background"
-import { useWallet } from "@/hooks/use-wallet"
+import { useWalletKit } from "@/hooks/use-wallet-kit"
 import { createEscrow } from "@/lib/stellar/trustless-work"
 import { validateEscrowCreation, executeWithRetry } from "@/lib/stellar/validation"
 import { checkUSDCTrustline } from "@/lib/stellar/payments"
@@ -42,7 +42,7 @@ type FundingType = 'escrow-only' | 'crowdfunding' | 'hybrid'
 
 export default function PostProjectPage() {
   const router = useRouter()
-  const wallet = useWallet()
+  const wallet = useWalletKit()
   
   const [formData, setFormData] = useState<FormData>({
     title: "",

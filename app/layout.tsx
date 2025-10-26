@@ -4,7 +4,7 @@ import { Inter } from "next/font/google"
 import "./globals.css"
 import { Navigation } from "@/components/navigation"
 import { ThemeProvider } from "@/components/theme-provider"
-import { WalletProvider } from "@/hooks/use-wallet"
+import { WalletKitProvider } from "@/hooks/use-wallet-kit"
 import { Toaster } from "@/components/ui/sonner"
 import { Footer } from "@/components/stellar"
 
@@ -23,14 +23,17 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="stylesheet" href="https://unpkg.com/@creit.tech/stellar-wallets-kit/build/stellar-wallets-kit.min.css" />
+      </head>
       <body className={inter.className}>
         <ThemeProvider>
-          <WalletProvider>
+          <WalletKitProvider>
             <Navigation />
             {children}
             <Footer />
             <Toaster position="top-right" richColors />
-          </WalletProvider>
+          </WalletKitProvider>
         </ThemeProvider>
       </body>
     </html>
