@@ -590,20 +590,20 @@ export default function ProjectDetailPage() {
                     }
                   }}>
                     <TabsList className="grid w-full grid-cols-4 bg-white/5 border border-white/10">
-                      <TabsTrigger value="milestones">
+                      <TabsTrigger value="milestones" className="text-white">
                         <CheckCircle2 className="h-4 w-4 mr-2" />
                         Milestones
                       </TabsTrigger>
-                      <TabsTrigger value="escrow">
+                      <TabsTrigger value="escrow" className="text-white">
                         <Shield className="h-4 w-4 mr-2" />
                         Escrow
                       </TabsTrigger>
-                      <TabsTrigger value="bids">
+                      <TabsTrigger value="bids" className="text-white">
                         <Users className="h-4 w-4 mr-2" />
                         Bids
                       </TabsTrigger>
                       {projectData.hasCrowdfunding && (
-                        <TabsTrigger value="crowdfunding">
+                        <TabsTrigger value="crowdfunding" className="text-white">
                           <Target className="h-4 w-4 mr-2" />
                           Crowdfunding
                         </TabsTrigger>
