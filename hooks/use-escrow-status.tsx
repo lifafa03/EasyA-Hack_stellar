@@ -1,16 +1,19 @@
 /**
  * Escrow Status Hook
- * Real-time monitoring of escrow status using Horizon streaming and Trustless Work API
- * Provides live updates on funding, milestones, and transaction history
+ * Real-time monitoring of escrow status using simple localStorage-based escrow
+ * Provides updates on funding, milestones, and transaction history
  */
 
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { getEscrowStatus, getEscrowYield, EscrowStatus } from '@/lib/stellar/trustless-work';
+import { getEscrowDetails, SimpleEscrow } from '@/lib/stellar/simple-escrow';
 import * as StellarSdk from '@stellar/stellar-sdk';
 import { getNetworkConfig } from '@/lib/stellar/config';
 import { toast } from 'sonner';
+
+// Type alias for compatibility
+type EscrowStatus = SimpleEscrow;
 
 export interface EscrowTransaction {
   id: string;

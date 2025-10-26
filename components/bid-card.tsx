@@ -11,12 +11,12 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { CheckCircle2, AlertCircle, ExternalLink, Shield, Clock, DollarSign } from 'lucide-react';
-import { SignedBid } from '@/lib/stellar/trustless-work';
+import { SimpleBid } from '@/lib/stellar/simple-escrow';
 
 interface BidCardProps {
-  bid: SignedBid;
+  bid: SimpleBid;
   isClient?: boolean;
-  onAcceptBid?: (bid: SignedBid) => void;
+  onAcceptBid?: (bid: SimpleBid) => void;
   isAccepting?: boolean;
 }
 
