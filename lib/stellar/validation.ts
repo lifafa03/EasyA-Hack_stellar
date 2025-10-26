@@ -111,7 +111,8 @@ export const validateTransaction = async (
 
     // Check transaction fee
     const fee = parseInt(transaction.fee);
-    const recommendedFee = StellarSdk.BASE_FEE * transaction.operations.length;
+    const baseFee = typeof StellarSdk.BASE_FEE === 'string' ? parseInt(StellarSdk.BASE_FEE) : Number(StellarSdk.BASE_FEE);
+    const recommendedFee = baseFee * transaction.operations.length;
     
     if (fee < recommendedFee) {
       warnings.push(`Fee (${fee}) is lower than recommended (${recommendedFee})`);
@@ -188,7 +189,8 @@ export const validateEscrowCreation = async (
     if (!StellarSdk.StrKey.isValidEd25519PublicKey(params.clientAddress)) {
       errors.push('Invalid client address');
     }
-    if (!StellarSdk.StrKey.isValidEd25519PublicKey(params.freelancerAddress)) {
+    // Freelancer address is optional when creating project (will be set when bid is accepted)
+    if (params.freelancerAddress && !StellarSdk.StrKey.isValidEd25519PublicKey(params.freelancerAddress)) {
       errors.push('Invalid freelancer address');
     }
 
