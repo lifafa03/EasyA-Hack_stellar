@@ -65,7 +65,7 @@ export class AnchorRegistry {
     {
       id: 'moneygram',
       name: 'MoneyGram Access',
-      domain: 'stellar-anchor.moneygram.com',
+      domain: 'extstellar.moneygram.com',
       logo: '/anchors/moneygram-logo.png',
       supportedCurrencies: ['USDC', 'USD'],
       supportedRegions: ['GLOBAL', 'US', 'EU', 'IN', 'ASIA', 'AFRICA', 'LATAM'],
@@ -77,7 +77,7 @@ export class AnchorRegistry {
         deposit: '5-15 minutes',
         withdrawal: '1-3 business days',
       },
-      description: 'Global cash in/out with 174 country coverage. Supports direct USDC to fiat conversion with pickup at 430,000+ MoneyGram locations worldwide. Testnet requires domain approval.',
+      description: '✅ LIVE: Global cash in/out with 174 country coverage. Direct USDC→INR conversion with pickup at 430,000+ MoneyGram locations worldwide or bank transfer to India.',
     },
   ];
 
