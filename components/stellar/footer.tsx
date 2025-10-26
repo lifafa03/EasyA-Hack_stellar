@@ -47,11 +47,6 @@ export function Footer() {
                   Dashboard
                 </Link>
               </li>
-              <li>
-                <Link href="/dashboard" className="text-gray-400 hover:text-[#4ade80] transition-colors">
-                  Dashboard
-                </Link>
-              </li>
             </ul>
           </div>
 
