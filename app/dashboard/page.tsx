@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { Suspense } from 'react';
 import { motion } from 'framer-motion';
 import { useWallet } from '@/hooks/use-wallet';
 import { AnchorRegistry, type AnchorProvider } from '@/lib/stellar/services/anchor-registry';
@@ -1284,7 +1285,16 @@ function DashboardContent() {
 export default function DashboardPage() {
   return (
     <StellarErrorBoundary>
-      <DashboardContent />
+      <Suspense fallback={
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" />
+            <p className="mt-4 text-muted-foreground">Loading dashboard...</p>
+          </div>
+        </div>
+      }>
+        <DashboardContent />
+      </Suspense>
     </StellarErrorBoundary>
   );
 }
