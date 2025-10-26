@@ -5,7 +5,7 @@ import { StellarBadge } from "./stellar-logo"
 
 export function Footer() {
   return (
-    <footer className="border-t border-white/10 bg-black/50 backdrop-blur-sm mt-20 relative">
+    <footer className="border-t border-white/10 bg-black/50 backdrop-blur-sm relative">
       {/* Subtle gradient background */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl" />

@@ -28,7 +28,7 @@ export function Navigation() {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4ade80] to-[#22c55e] flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-[#4ade80] to-[#22c55e] flex items-center justify-center">
               <span className="text-white font-bold text-xl">S+</span>
             </div>
             <span className="font-bold text-xl text-foreground">StellarWork+</span>
@@ -36,10 +36,10 @@ export function Navigation() {
 
           <div className="hidden md:flex items-center gap-6">
             <Link href="/browse" className="text-muted-foreground hover:text-foreground transition-colors">
-              Browse Projects
+              Find Projects
             </Link>
             <Link href="/post-project" className="text-muted-foreground hover:text-foreground transition-colors">
-              Post Project
+              Fund Projects
             </Link>
             <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
               Dashboard
