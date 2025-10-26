@@ -845,15 +845,15 @@ export function OffRampFlow({
             {transactionId && (
               <Button
                 onClick={() => {
-                  // Open Stellar Laboratory to view transaction on testnet
-                  const labUrl = `https://laboratory.stellar.org/#explorer?resource=transactions&endpoint=single&network=test&values=eyJpZCI6IiR7dHJhbnNhY3Rpb25JZH0ifQ%3D%3D`;
-                  window.open(labUrl, '_blank');
+                  // Open Stellar.Expert to view transaction on testnet
+                  const stellarExpertUrl = `https://stellar.expert/explorer/testnet/tx/${transactionId}`;
+                  window.open(stellarExpertUrl, '_blank');
                 }}
                 variant="outline"
                 className="w-full"
               >
                 <ExternalLink className="mr-2 h-4 w-4" />
-                View Transaction on Stellar Testnet
+                View Transaction on Stellar.Expert
               </Button>
             )}
 
