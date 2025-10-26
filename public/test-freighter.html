@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Freighter Wallet</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #0a0a0a;
+            color: #fff;
+        }
+        .container {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 30px;
+        }
+        h1 {
+            color: #4ade80;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #4ade80;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px 10px 10px 0;
+        }
+        button:hover {
+            background: #22c55e;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            background: #0a0a0a;
+            border-radius: 8px;
+            border-left: 4px solid #4ade80;
+        }
+        .error {
+            border-left-color: #ef4444;
+            color: #fca5a5;
+        }
+        .success {
+            border-left-color: #4ade80;
+            color: #86efac;
+        }
+        .info {
+            border-left-color: #3b82f6;
+            color: #93c5fd;
+        }
+        code {
+            background: #0a0a0a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        pre {
+            background: #0a0a0a;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Freighter Wallet Test</h1>
+        <p>This page will test if Freighter wallet extension is properly installed and accessible.</p>
+        
+        <button onclick="checkFreighter()">Check Freighter</button>
+        <button onclick="testConnection()">Test Connection</button>
+        <button onclick="checkWindow()">Debug Window Object</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const results = document.getElementById('results');
+
+        function addResult(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = message;
+            results.appendChild(div);
+        }
+
+        function clearResults() {
+            results.innerHTML = '';
+        }
+
+        function checkFreighter() {
+            const resultDiv = document.getElementById('result');
+            
+            // Check for Freighter
+            const hasFreighter = typeof window.freighter !== 'undefined';
+            
+            if (hasFreighter) {
+                resultDiv.innerHTML = `
+                    <div style="color: green;">
+                        ✅ <strong>Freighter FOUND!</strong><br>
+                        window.freighter exists and is ready to use.
+                    </div>
+                `;
+            } else {
+                resultDiv.innerHTML = `
+                    <div style="color: red;">
+                        ❌ <strong>Freighter NOT FOUND</strong><br>
+                        Make sure the Freighter extension is installed and enabled.<br>
+                        Get it at: <a href="https://freighter.app" target="_blank">https://freighter.app</a>
+                    </div>
+                `;
+            }
+        }
+
+        async function testConnection() {
+            const resultDiv = document.getElementById('result');
+            
+            if (!window.freighter) {
+                resultDiv.innerHTML = '<div style="color: red;">❌ Freighter not found. Install it first!</div>';
+                return;
+            }
+            
+            try {
+                resultDiv.innerHTML = '<div style="color: blue;">⏳ Connecting to Freighter...</div>';
+                
+                const publicKey = await window.freighter.getPublicKey();
+                
+                resultDiv.innerHTML = `
+                    <div style="color: green;">
+                        ✅ <strong>Connection Successful!</strong><br>
+                        <strong>Public Key:</strong> ${publicKey}<br>
+                        <a href="https://stellar.expert/explorer/testnet/account/${publicKey}" target="_blank">
+                            View on Stellar Expert
+                        </a>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div style="color: red;">
+                        ❌ <strong>Connection Failed</strong><br>
+                        Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+
+        function checkWindow() {
+            clearResults();
+            addResult('<strong>🪟 Window Object Debug</strong>', 'info');
+            
+            const checks = {
+                'window.freighterApi': !!window.freighterApi,
+                'window.xBullSDK': !!window.xBullSDK,
+                'window.albedo': !!window.albedo,
+                'window.lobstrApi': !!window.lobstrApi,
+            };
+
+            addResult('<pre>' + JSON.stringify(checks, null, 2) + '</pre>', 'info');
+
+            if (window.freighterApi) {
+                addResult('<strong>Freighter API Methods:</strong>', 'success');
+                addResult('<pre>' + Object.keys(window.freighterApi).join('\n') + '</pre>', 'success');
+            }
+        }
+
+        // Auto-check on load
+        window.addEventListener('load', () => {
+            setTimeout(checkFreighter, 500);
+        });
+    </script>
+</body>
+</html>

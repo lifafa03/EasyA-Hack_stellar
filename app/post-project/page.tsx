@@ -216,7 +216,7 @@ export default function PostProjectPage() {
     // Prepare escrow parameters
     const escrowParams = {
       clientAddress: wallet.publicKey,
-      freelancerAddress: '', // Will be set when bid is accepted
+      freelancerAddress: wallet.publicKey, // Temporarily set to client, will be updated when bid accepted
       totalBudget: parseFloat(formData.budget),
       milestones: milestones.map((m, index) => ({
         id: `milestone-${index + 1}`,
@@ -230,22 +230,42 @@ export default function PostProjectPage() {
       enableYield: true, // Enable yield-bearing escrow
     }
 
-    // Validate escrow parameters
+    // Validate escrow parameters (freelancer address optional at this stage)
     const validation = await validateEscrowCreation({
       clientAddress: escrowParams.clientAddress,
-      freelancerAddress: escrowParams.freelancerAddress,
+      // Don't pass freelancerAddress since it's not assigned yet
       budget: escrowParams.totalBudget,
       milestones: escrowParams.milestones,
     })
+    
     if (!validation.success) {
+      // Log errors for debugging
+      console.error('❌ Escrow validation failed:', validation.errors)
+      
+      // Show specific error messages
+      if (validation.errors && validation.errors.length > 0) {
+        validation.errors.forEach(error => {
+          toast.error('Validation Error', { description: error })
+        })
+      }
+      
       throw new Error(validation.message || 'Escrow validation failed')
+    }
+    
+    // Show warnings if any
+    if (validation.warnings && validation.warnings.length > 0) {
+      validation.warnings.forEach(warning => {
+        toast.warning('Warning', { description: warning })
+      })
     }
 
     toast.success('✅ Escrow Parameters Validated')
 
     // Create escrow with auto-retry
     setSubmitState('signing')
-    toast.info('Please Sign Transaction in Your Wallet...')
+    toast.info('📝 Creating Escrow...', {
+      description: 'Your account will be auto-funded if needed'
+    })
 
     const result = await executeWithRetry(
       () => createEscrow(escrowParams, wallet.walletType!)
@@ -299,6 +319,26 @@ export default function PostProjectPage() {
       setTransactionHash(escrowData.transaction?.hash || null)
       setSubmitState('success')
 
+      // Show success with transaction link
+      if (escrowData.transaction?.hash) {
+        const txHash = escrowData.transaction.hash;
+        const stellarExpertLink = `https://stellar.expert/explorer/testnet/tx/${txHash}`;
+        
+        console.log('🎉 PROJECT POSTED SUCCESSFULLY!');
+        console.log('📝 Escrow ID:', escrowData.escrowId);
+        console.log('🔗 Transaction Hash:', txHash);
+        console.log('🔍 View on Stellar Expert:', stellarExpertLink);
+        
+        toast.success('🎉 Project Posted On-Chain!', {
+          description: `Click to view transaction: ${txHash.slice(0, 8)}...`,
+          action: {
+            label: 'View on Stellar Expert',
+            onClick: () => window.open(stellarExpertLink, '_blank')
+          },
+          duration: 10000,
+        });
+      }
+
       // Store project metadata temporarily
       const projectData = {
         ...formData,
@@ -306,18 +346,28 @@ export default function PostProjectPage() {
         skills,
         escrowId: escrowData.escrowId,
         contractAddress: escrowData.contractAddress,
+        transactionHash: escrowData.transaction?.hash,
         createdAt: new Date().toISOString(),
       }
       localStorage.setItem(`project-${escrowData.escrowId}`, JSON.stringify(projectData))
+      
+      // Store transaction hash and public key for auto-verification
+      if (escrowData.transaction?.hash) {
+        localStorage.setItem('lastTransactionHash', escrowData.transaction.hash)
+      }
+      if (wallet.publicKey) {
+        localStorage.setItem('walletPublicKey', wallet.publicKey)
+      }
 
-      toast.success('Project Created Successfully!', {
-        description: `Escrow ID: ${escrowData.escrowId}`,
+      toast.success('✅ Project Created Successfully!', {
+        description: `Redirecting to verification...`,
+        duration: 3000,
       })
 
-      // Redirect to project page after 3 seconds
+      // Auto-redirect to verification page
       setTimeout(() => {
-        router.push(`/project/${escrowData.escrowId}`)
-      }, 3000)
+        router.push('/verify-onchain')
+      }, 2000)
 
     } catch (error: any) {
       console.error('Error creating project:', error)

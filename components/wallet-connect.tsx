@@ -1,104 +1,27 @@
 /**
  * Wallet Connect Button Component
- * Provides UI for connecting Stellar wallets (Freighter, Albedo, Lobstr, xBull)
+ * Provides UI for connecting Stellar wallets (Freighter, Albedo)
  */
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Wallet, LogOut, ExternalLink, AlertCircle, Copy, Check } from 'lucide-react';
+import { Wallet, LogOut, ExternalLink, RefreshCw, Coins } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useWallet } from '@/hooks/use-wallet';
 import { toast } from 'sonner';
-import { isWalletAvailable, debugWalletAPIs } from '@/lib/stellar/wallet';
+import { fundAccountViaFriendbot } from '@/lib/stellar/wallet';
 
 export function WalletConnectButton() {
   const [showDialog, setShowDialog] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [walletAvailability, setWalletAvailability] = useState({
-    freighter: false,
-    albedo: false,
-    lobstr: false,
-    xbull: false,
-  });
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isFunding, setIsFunding] = useState(false);
   const wallet = useWallet();
 
-  // Check wallet availability when dialog opens
-  useEffect(() => {
-    if (showDialog) {
-      // Debug: log available wallet APIs
-      debugWalletAPIs();
-      
-      // Check immediately
-      const checkAvailability = () => {
-        const availability = {
-          freighter: isWalletAvailable('freighter'),
-          albedo: isWalletAvailable('albedo'),
-          lobstr: isWalletAvailable('lobstr'),
-          xbull: isWalletAvailable('xbull'),
-        };
-        
-        setWalletAvailability(availability);
-        console.log('Wallet availability:', availability);
-        
-        return availability;
-      };
-      
-      // Check immediately
-      const initial = checkAvailability();
-      
-      // If no wallets detected, retry after delays
-      // (wallet extensions might still be initializing)
-      if (!initial.freighter && !initial.albedo && !initial.lobstr && !initial.xbull) {
-        const timeout1 = setTimeout(() => {
-          console.log('Retrying wallet detection (500ms)...');
-          const retry1 = checkAvailability();
-          
-          // Try one more time if still no wallets
-          if (!retry1.freighter && !retry1.albedo && !retry1.lobstr && !retry1.xbull) {
-            const timeout2 = setTimeout(() => {
-              console.log('Retrying wallet detection (1500ms)...');
-              checkAvailability();
-            }, 1000);
-            
-            return () => clearTimeout(timeout2);
-          }
-        }, 500);
-        
-        return () => clearTimeout(timeout1);
-      }
-    }
-  }, [showDialog]);
-
-  const handleConnect = async (walletType: 'freighter' | 'albedo' | 'lobstr' | 'xbull') => {
-    // Check if wallet is available before attempting connection
-    if (!walletAvailability[walletType]) {
-      const walletNames = {
-        freighter: 'Freighter',
-        albedo: 'Albedo',
-        lobstr: 'Lobstr',
-        xbull: 'xBull',
-      };
-      const walletLinks = {
-        freighter: 'https://freighter.app',
-        albedo: 'https://albedo.link',
-        lobstr: 'https://lobstr.co',
-        xbull: 'https://xbull.app',
-      };
-      
-      toast.error(`${walletNames[walletType]} not installed`, {
-        description: `Please install ${walletNames[walletType]} wallet first`,
-        action: {
-          label: 'Get Wallet',
-          onClick: () => window.open(walletLinks[walletType], '_blank'),
-        },
-      });
-      return;
-    }
-
+  const handleConnect = async (walletType: 'freighter' | 'albedo') => {
     try {
       await wallet.connect(walletType);
       setShowDialog(false);
@@ -108,26 +31,70 @@ export function WalletConnectButton() {
     }
   };
 
-  const handleCopyAddress = () => {
-    if (wallet.publicKey) {
-      navigator.clipboard.writeText(wallet.publicKey);
-      setCopied(true);
-      toast.success('Address copied to clipboard');
-      setTimeout(() => setCopied(false), 2000);
+  const handleRefreshBalance = async () => {
+    setIsRefreshing(true);
+    try {
+      await wallet.refreshBalance();
+      toast.success('Balance refreshed!');
+    } catch (error) {
+      toast.error('Failed to refresh balance');
+    } finally {
+      setIsRefreshing(false);
     }
   };
 
-  const handleSwitchWallet = () => {
-    setShowDialog(true);
+  const handleFundAccount = async () => {
+    if (!wallet.publicKey) return;
+    
+    setIsFunding(true);
+    try {
+      toast.info('🚀 Requesting Testnet Funds...', {
+        description: 'Funding your account with 10,000 XLM'
+      });
+      
+      await fundAccountViaFriendbot(wallet.publicKey);
+      
+      // Wait a bit for confirmation
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      
+      // Refresh balance
+      await wallet.refreshBalance();
+      
+      toast.success('🎉 Account Funded!', {
+        description: 'You received 10,000 XLM testnet tokens'
+      });
+    } catch (error: any) {
+      console.error('Funding error:', error);
+      toast.error('Failed to fund account', {
+        description: error.message || 'Please try again'
+      });
+    } finally {
+      setIsFunding(false);
+    }
   };
 
   const formatAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-6)}`;
   };
 
+  const copyAddress = (address: string) => {
+    navigator.clipboard.writeText(address);
+    toast.success('Address copied!', {
+      description: address,
+    });
+  };
+
   const formatBalance = (balance: string | null) => {
-    if (!balance) return '0.00';
-    return parseFloat(balance).toFixed(2);
+    if (!balance || balance === '0' || balance === '0.0000000') return '0.00';
+    const num = parseFloat(balance);
+    // Show up to 7 decimal places for small amounts, 2 for larger
+    if (num < 0.01 && num > 0) {
+      return num.toFixed(7);
+    }
+    return num.toLocaleString('en-US', { 
+      minimumFractionDigits: 2, 
+      maximumFractionDigits: 2 
+    });
   };
 
   if (wallet.connected && wallet.publicKey) {
@@ -137,39 +104,34 @@ export function WalletConnectButton() {
           <div className="flex items-center gap-3">
             <div className="text-sm">
               <div className="flex items-center gap-2 mb-1">
-                <span className="font-mono font-semibold">{formatAddress(wallet.publicKey)}</span>
-                <button
-                  onClick={handleCopyAddress}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                  title="Copy address"
+                <span 
+                  className="font-mono font-semibold cursor-pointer hover:text-blue-500" 
+                  onClick={() => copyAddress(wallet.publicKey!)}
+                  title="Click to copy full address"
                 >
-                  {copied ? (
-                    <Check className="h-3 w-3 text-green-500" />
-                  ) : (
-                    <Copy className="h-3 w-3" />
-                  )}
-                </button>
+                  {formatAddress(wallet.publicKey)}
+                </span>
                 <Badge variant="outline" className="text-xs bg-[#4ade80]/10 text-[#22c55e] border-[#4ade80]/20">
-                  {wallet.walletType || 'Connected'}
+                  Connected
                 </Badge>
               </div>
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span>{formatBalance(wallet.usdcBalance)} USDC</span>
+                <span className="font-mono">{formatBalance(wallet.usdcBalance)} USDC</span>
                 <span>•</span>
-                <span>{formatBalance(wallet.balance)} XLM</span>
+                <span className="font-mono">{formatBalance(wallet.balance)} XLM</span>
               </div>
             </div>
           </div>
         </Card>
         
         <Button
-          variant="outline"
+          variant="ghost"
           size="sm"
-          onClick={handleSwitchWallet}
-          className="border-border hover:bg-surface"
+          onClick={handleRefreshBalance}
+          disabled={isRefreshing}
+          className="border border-border hover:bg-surface-dark"
         >
-          <Wallet className="h-4 w-4 mr-2" />
-          Switch
+          <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
         </Button>
         
         <Button
@@ -208,28 +170,17 @@ export function WalletConnectButton() {
           <div className="space-y-3 mt-4">
             {/* Freighter Wallet */}
             <Card
-              className={`p-4 transition-all border-2 ${
-                walletAvailability.freighter
-                  ? 'hover:shadow-lg cursor-pointer hover:border-[#4ade80]/50'
-                  : 'opacity-60 cursor-not-allowed'
-              }`}
+              className="p-4 hover:shadow-lg transition-all cursor-pointer border-2 hover:border-[#4ade80]/50"
               onClick={() => handleConnect('freighter')}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-linear-to-br from-purple-500 to-pink-400 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-400 flex items-center justify-center">
                     <Wallet className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold">Freighter</h3>
-                      {!walletAvailability.freighter && (
-                        <AlertCircle className="h-4 w-4 text-yellow-500" />
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {walletAvailability.freighter ? 'Browser extension' : 'Not installed'}
-                    </p>
+                    <h3 className="font-semibold">Freighter</h3>
+                    <p className="text-sm text-muted-foreground">Browser extension</p>
                   </div>
                 </div>
                 <Badge variant="outline" className="bg-[#4ade80]/10 text-[#22c55e] border-[#4ade80]/20">
@@ -240,86 +191,17 @@ export function WalletConnectButton() {
 
             {/* Albedo Wallet */}
             <Card
-              className={`p-4 transition-all border-2 ${
-                walletAvailability.albedo
-                  ? 'hover:shadow-lg cursor-pointer hover:border-[#4ade80]/50'
-                  : 'opacity-60 cursor-not-allowed'
-              }`}
+              className="p-4 hover:shadow-lg transition-all cursor-pointer border-2 hover:border-[#4ade80]/50"
               onClick={() => handleConnect('albedo')}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-linear-to-br from-blue-500 to-cyan-400 flex items-center justify-center">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center">
                     <Wallet className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold">Albedo</h3>
-                      {!walletAvailability.albedo && (
-                        <AlertCircle className="h-4 w-4 text-yellow-500" />
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {walletAvailability.albedo ? 'Web-based wallet' : 'Not available'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            {/* Lobstr Wallet */}
-            <Card
-              className={`p-4 transition-all border-2 ${
-                walletAvailability.lobstr
-                  ? 'hover:shadow-lg cursor-pointer hover:border-[#4ade80]/50'
-                  : 'opacity-60 cursor-not-allowed'
-              }`}
-              onClick={() => handleConnect('lobstr')}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-linear-to-br from-orange-500 to-red-400 flex items-center justify-center">
-                    <Wallet className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold">Lobstr</h3>
-                      {!walletAvailability.lobstr && (
-                        <AlertCircle className="h-4 w-4 text-yellow-500" />
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {walletAvailability.lobstr ? 'Mobile & browser wallet' : 'Not installed'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </Card>
-
-            {/* xBull Wallet */}
-            <Card
-              className={`p-4 transition-all border-2 ${
-                walletAvailability.xbull
-                  ? 'hover:shadow-lg cursor-pointer hover:border-[#4ade80]/50'
-                  : 'opacity-60 cursor-not-allowed'
-              }`}
-              onClick={() => handleConnect('xbull')}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-linear-to-br from-indigo-500 to-purple-400 flex items-center justify-center">
-                    <Wallet className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold">xBull</h3>
-                      {!walletAvailability.xbull && (
-                        <AlertCircle className="h-4 w-4 text-yellow-500" />
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {walletAvailability.xbull ? 'Browser extension' : 'Not installed'}
-                    </p>
+                    <h3 className="font-semibold">Albedo</h3>
+                    <p className="text-sm text-muted-foreground">Web-based wallet</p>
                   </div>
                 </div>
               </div>
@@ -347,24 +229,6 @@ export function WalletConnectButton() {
                   className="text-sm text-[#22c55e] hover:text-[#4ade80] flex items-center gap-1"
                 >
                   Use Albedo Wallet
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-                <a
-                  href="https://lobstr.co"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-[#22c55e] hover:text-[#4ade80] flex items-center gap-1"
-                >
-                  Get Lobstr Wallet
-                  <ExternalLink className="h-3 w-3" />
-                </a>
-                <a
-                  href="https://xbull.app"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-[#22c55e] hover:text-[#4ade80] flex items-center gap-1"
-                >
-                  Get xBull Wallet
                   <ExternalLink className="h-3 w-3" />
                 </a>
               </div>

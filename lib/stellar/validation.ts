@@ -111,7 +111,7 @@ export const validateTransaction = async (
 
     // Check transaction fee
     const fee = parseInt(transaction.fee);
-    const recommendedFee = StellarSdk.BASE_FEE * transaction.operations.length;
+    const recommendedFee = Number(StellarSdk.BASE_FEE) * transaction.operations.length;
     
     if (fee < recommendedFee) {
       warnings.push(`Fee (${fee}) is lower than recommended (${recommendedFee})`);
@@ -173,7 +173,7 @@ export const validateTransaction = async (
 export const validateEscrowCreation = async (
   params: {
     clientAddress: string;
-    freelancerAddress: string;
+    freelancerAddress?: string; // Optional - may not be assigned yet
     budget: number;
     milestones: any[];
   },
@@ -188,7 +188,9 @@ export const validateEscrowCreation = async (
     if (!StellarSdk.StrKey.isValidEd25519PublicKey(params.clientAddress)) {
       errors.push('Invalid client address');
     }
-    if (!StellarSdk.StrKey.isValidEd25519PublicKey(params.freelancerAddress)) {
+    
+    // Freelancer address is optional (assigned later when someone bids)
+    if (params.freelancerAddress && !StellarSdk.StrKey.isValidEd25519PublicKey(params.freelancerAddress)) {
       errors.push('Invalid freelancer address');
     }
 

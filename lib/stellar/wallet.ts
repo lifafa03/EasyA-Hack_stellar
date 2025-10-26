@@ -1,30 +1,14 @@
 /**
  * Stellar Wallet Integration
- * Uses Stellar Wallets Kit (https://stellarwalletskit.dev/) for unified wallet support
- * 
- * Benefits of Stellar Wallets Kit:
- * - Single API for all Stellar wallets (Freighter, xBull, Albedo, Lobstr, etc.)
- * - Automatic wallet detection and availability checking
- * - Consistent error handling across all wallets
- * - Built-in support for WalletConnect
- * - Maintained by the Stellar community
+ * Supports Freighter, Albedo, and other Stellar wallets
+ * Handles connection, signing, and transaction submission
  */
 
 import * as StellarSdk from '@stellar/stellar-sdk';
-import { 
-  StellarWalletsKit, 
-  WalletNetwork, 
-  ISupportedWallet, 
-  FREIGHTER_ID, 
-  XBULL_ID,
-  FreighterModule,
-  xBullModule,
-  AlbedoModule,
-  LobstrModule
-} from '@creit.tech/stellar-wallets-kit';
+import { isConnected, getAddress, signTransaction, requestAccess } from '@stellar/freighter-api';
 import { getNetworkConfig } from './config';
 
-export type WalletType = 'freighter' | 'albedo' | 'lobstr' | 'xbull';
+export type WalletType = 'freighter' | 'albedo' | 'rabet';
 
 export interface WalletState {
   connected: boolean;
@@ -34,115 +18,159 @@ export interface WalletState {
   usdcBalance: string | null;
 }
 
-// Singleton instance of Stellar Wallets Kit
-let kit: StellarWalletsKit | null = null;
-
 /**
- * Get or initialize the Stellar Wallets Kit instance
- * Uses singleton pattern to ensure only one instance exists
+ * Connect to Freighter wallet
  */
-const getKit = (): StellarWalletsKit => {
-  if (!kit) {
-    const config = getNetworkConfig();
-    const network = config.network === 'TESTNET' ? WalletNetwork.TESTNET : WalletNetwork.PUBLIC;
-    
-    kit = new StellarWalletsKit({
-      network,
-      selectedWalletId: FREIGHTER_ID, // Default to Freighter
-      modules: [
-        new FreighterModule(),
-        new xBullModule(),
-        new AlbedoModule(),
-        new LobstrModule(),
-      ],
-    });
-  }
-  return kit;
-};
-
-/**
- * Map wallet type to Stellar Wallets Kit ID
- */
-const getWalletId = (walletType: WalletType): string => {
-  const walletMap: Record<WalletType, string> = {
-    freighter: FREIGHTER_ID,
-    xbull: XBULL_ID,
-    albedo: 'albedo',
-    lobstr: 'lobstr',
-  };
-  return walletMap[walletType];
-};
-
-/**
- * Generic wallet connection handler using Stellar Wallets Kit
- */
-export const connectWallet = async (walletType: WalletType = 'freighter'): Promise<string> => {
+export const connectFreighter = async (): Promise<string> => {
   try {
-    const walletKit = getKit();
-    const walletId = getWalletId(walletType);
+    // Check if Freighter is installed
+    const { isConnected: connected } = await isConnected();
+    if (!connected) {
+      throw new Error('Freighter wallet not installed. Please install from https://freighter.app');
+    }
+
+    // Request access and get address
+    const { address, error } = await requestAccess();
     
-    // Set the selected wallet
-    await walletKit.setWallet(walletId);
-    
-    // Get the public key
-    const { address } = await walletKit.getAddress();
-    
+    if (error) {
+      throw new Error(`Freighter error: ${error}`);
+    }
+
     if (!address) {
-      throw new Error(`Failed to get address from ${walletType} wallet`);
+      throw new Error('Failed to get address from Freighter');
     }
-    
+
     return address;
-  } catch (error: any) {
-    console.error(`${walletType} connection error:`, error);
-    
-    // Provide user-friendly error messages
-    if (error.message?.includes('not installed') || error.message?.includes('not found')) {
-      const walletUrls: Record<WalletType, string> = {
-        freighter: 'https://freighter.app',
-        albedo: 'https://albedo.link',
-        lobstr: 'https://lobstr.co',
-        xbull: 'https://xbull.app',
-      };
-      throw new Error(`${walletType.charAt(0).toUpperCase() + walletType.slice(1)} wallet not installed. Get it at ${walletUrls[walletType]}`);
-    }
-    
+  } catch (error) {
+    console.error('Freighter connection error:', error);
     throw error;
   }
 };
 
 /**
+ * Connect to Albedo wallet
+ */
+export const connectAlbedo = async (): Promise<string> => {
+  try {
+    // @ts-ignore - Albedo is loaded from external script
+    if (!window.albedo) {
+      throw new Error('Albedo wallet not found. Please install from https://albedo.link');
+    }
+
+    // @ts-ignore
+    const result = await window.albedo.publicKey({});
+    return result.pubkey;
+  } catch (error) {
+    console.error('Albedo connection error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Generic wallet connection handler
+ */
+export const connectWallet = async (walletType: WalletType = 'freighter'): Promise<string> => {
+  switch (walletType) {
+    case 'freighter':
+      return await connectFreighter();
+    case 'albedo':
+      return await connectAlbedo();
+    default:
+      throw new Error(`Wallet type ${walletType} not supported`);
+  }
+};
+
+/**
  * Get account balance from Stellar network
+ * Automatically funds account via Friendbot if it doesn't exist on testnet
  */
 export const getAccountBalance = async (publicKey: string): Promise<{ xlm: string; usdc: string }> => {
   try {
     const config = getNetworkConfig();
     const server = new StellarSdk.Horizon.Server(config.horizonUrl);
     
-    const account = await server.loadAccount(publicKey);
+    console.log('🔍 Fetching balance for:', publicKey);
+    
+    let account;
+    try {
+      account = await server.loadAccount(publicKey);
+    } catch (error: any) {
+      // If account doesn't exist on testnet, fund it via Friendbot
+      if (error?.response?.status === 404 && config.network === 'TESTNET') {
+        console.log('🆕 Account not found on testnet, funding via Friendbot...');
+        await fundAccountViaFriendbot(publicKey);
+        
+        // Wait a bit for the transaction to be confirmed
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        // Try loading account again
+        account = await server.loadAccount(publicKey);
+        console.log('✅ Account funded and activated!');
+      } else {
+        throw error;
+      }
+    }
     
     let xlmBalance = '0';
     let usdcBalance = '0';
 
+    console.log('📊 All balances:', account.balances);
+    
     account.balances.forEach((balance) => {
       if (balance.asset_type === 'native') {
         xlmBalance = balance.balance;
+        console.log('💰 XLM Balance:', xlmBalance);
       } else if (
         'asset_code' in balance &&
-        balance.asset_code === process.env.NEXT_PUBLIC_USDC_ASSET_CODE
+        balance.asset_code === 'USDC'
       ) {
         usdcBalance = balance.balance;
+        console.log('💵 USDC Balance:', usdcBalance, 'Issuer:', 'asset_issuer' in balance ? balance.asset_issuer : 'N/A');
       }
     });
 
+    console.log('✅ Final balances - XLM:', xlmBalance, 'USDC:', usdcBalance);
     return { xlm: xlmBalance, usdc: usdcBalance };
   } catch (error) {
-    console.error('Error fetching balance:', error);
+    console.error('❌ Error fetching balance:', error);
     throw error;
   }
 };
 
 /**
- * Sign and submit transaction using Stellar Wallets Kit
+ * Fund account via Stellar Friendbot (Testnet only)
+ */
+export const fundAccountViaFriendbot = async (publicKey: string): Promise<void> => {
+  try {
+    const config = getNetworkConfig();
+    
+    if (config.network !== 'TESTNET') {
+      throw new Error('Friendbot is only available on testnet');
+    }
+
+    console.log('💰 Requesting testnet XLM from Friendbot for:', publicKey);
+    
+    const response = await fetch(
+      `https://friendbot.stellar.org?addr=${encodeURIComponent(publicKey)}`
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Friendbot funding failed: ${errorText}`);
+    }
+
+    const responseJSON = await response.json();
+    console.log('✅ Friendbot response:', responseJSON);
+    console.log('🎉 Account funded with 10,000 XLM testnet tokens!');
+    
+  } catch (error) {
+    console.error('❌ Friendbot error:', error);
+    throw error;
+  }
+};
+
+/**
+ * Sign and submit transaction using Freighter
  */
 export const signAndSubmitTransaction = async (
   transaction: StellarSdk.Transaction,
@@ -151,162 +179,111 @@ export const signAndSubmitTransaction = async (
   try {
     const config = getNetworkConfig();
     const server = new StellarSdk.Horizon.Server(config.horizonUrl);
-    const walletKit = getKit();
+    
+    let signedXdr: string;
 
-    // Sign transaction using Stellar Wallets Kit
-    const { signedTxXdr } = await walletKit.signTransaction(transaction.toXDR(), {
-      networkPassphrase: config.networkPassphrase,
-    });
+    if (walletType === 'freighter') {
+      // Sign with Freighter
+      const { signedTxXdr, error } = await signTransaction(transaction.toXDR(), {
+        networkPassphrase: config.networkPassphrase,
+      });
+      
+      if (error) {
+        throw new Error(`Freighter signing error: ${error}`);
+      }
+      
+      signedXdr = signedTxXdr;
+    } else if (walletType === 'albedo') {
+      // @ts-ignore
+      const result = await window.albedo.tx({
+        xdr: transaction.toXDR(),
+        network: config.network,
+      });
+      signedXdr = result.signed_envelope_xdr;
+    } else {
+      throw new Error(`Wallet type ${walletType} not supported for signing`);
+    }
 
     // Submit transaction
-    const signedTransaction = StellarSdk.TransactionBuilder.fromXDR(
-      signedTxXdr,
+    const transactionToSubmit = StellarSdk.TransactionBuilder.fromXDR(
+      signedXdr,
       config.networkPassphrase
     );
+
+    console.log('📤 Submitting transaction to Stellar network...');
+    const response = await server.submitTransaction(transactionToSubmit as StellarSdk.Transaction);
     
-    const result = await server.submitTransaction(signedTransaction);
-    return result;
+    console.log('✅ Transaction submitted successfully!');
+    console.log('🔗 Transaction Hash:', response.hash);
+    console.log('📊 Ledger:', response.ledger);
+    console.log('🔍 View on Stellar Expert:', `https://stellar.expert/explorer/testnet/tx/${response.hash}`);
+    
+    return response;
   } catch (error) {
-    console.error('Transaction signing/submission error:', error);
+    console.error('❌ Transaction submission error:', error);
     throw error;
   }
 };
 
 /**
- * Create a payment operation
+ * Check if wallet is available
  */
-export const createPaymentOperation = async (
-  sourcePublicKey: string,
-  destinationPublicKey: string,
-  amount: string,
-  assetCode: string = 'XLM',
-  assetIssuer?: string
-): Promise<StellarSdk.Transaction> => {
-  try {
-    const config = getNetworkConfig();
-    const server = new StellarSdk.Horizon.Server(config.horizonUrl);
-    
-    const sourceAccount = await server.loadAccount(sourcePublicKey);
-    
-    const asset = assetCode === 'XLM' 
-      ? StellarSdk.Asset.native()
-      : new StellarSdk.Asset(assetCode, assetIssuer!);
+export const isWalletAvailable = async (walletType: WalletType): Promise<boolean> => {
+  if (walletType === 'freighter') {
+    try {
+      const { isConnected: connected } = await isConnected();
+      return connected;
+    } catch {
+      return false;
+    }
+  }
+  
+  if (walletType === 'albedo') {
+    // @ts-ignore
+    return typeof window !== 'undefined' && !!window.albedo;
+  }
+  
+  return false;
+};
 
-    const transaction = new StellarSdk.TransactionBuilder(sourceAccount, {
-      fee: StellarSdk.BASE_FEE,
-      networkPassphrase: config.networkPassphrase,
-    })
-      .addOperation(
-        StellarSdk.Operation.payment({
-          destination: destinationPublicKey,
-          asset: asset,
-          amount: amount,
-        })
-      )
-      .setTimeout(180)
-      .build();
+/**
+ * Get available wallets
+ */
+export const getAvailableWallets = async (): Promise<WalletType[]> => {
+  const wallets: WalletType[] = [];
+  
+  const freighterAvailable = await isWalletAvailable('freighter');
+  if (freighterAvailable) {
+    wallets.push('freighter');
+  }
+  
+  const albedoAvailable = await isWalletAvailable('albedo');
+  if (albedoAvailable) {
+    wallets.push('albedo');
+  }
+  
+  return wallets;
+};
 
-    return transaction;
-  } catch (error) {
-    console.error('Error creating payment:', error);
-    throw error;
+/**
+ * Disconnect wallet (clears local state)
+ */
+export const disconnectWallet = (): void => {
+  // Clear any stored wallet state
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('walletType');
+    localStorage.removeItem('publicKey');
   }
 };
 
 /**
- * Check if wallet is connected
+ * Check if wallet is still connected
  */
 export const checkWalletConnection = async (): Promise<boolean> => {
   try {
-    const walletKit = getKit();
-    const { address } = await walletKit.getAddress();
-    return !!address;
+    const { isConnected: connected } = await isConnected();
+    return connected;
   } catch {
     return false;
-  }
-};
-
-/**
- * Check if a specific wallet is available using Stellar Wallets Kit
- */
-export const isWalletAvailable = (walletType: WalletType): boolean => {
-  if (typeof window === 'undefined') return false;
-
-  try {
-    const walletKit = getKit();
-    const walletId = getWalletId(walletType);
-    const supportedWallets = walletKit.getSupportedWallets();
-    
-    // Check if wallet is in supported list and installed
-    const wallet = supportedWallets.find((w: ISupportedWallet) => w.id === walletId);
-    return wallet ? wallet.isAvailable : false;
-  } catch (error) {
-    console.error(`Error checking ${walletType} availability:`, error);
-    return false;
-  }
-};
-
-/**
- * Get all available wallets using Stellar Wallets Kit
- */
-export const getAvailableWallets = (): WalletType[] => {
-  try {
-    const walletKit = getKit();
-    const supportedWallets = walletKit.getSupportedWallets();
-    
-    const walletTypeMap: Record<string, WalletType> = {
-      [FREIGHTER_ID]: 'freighter',
-      [XBULL_ID]: 'xbull',
-      'albedo': 'albedo',
-      'lobstr': 'lobstr',
-    };
-    
-    return supportedWallets
-      .filter((w: ISupportedWallet) => w.isAvailable)
-      .map((w: ISupportedWallet) => walletTypeMap[w.id])
-      .filter((type): type is WalletType => type !== undefined);
-  } catch (error) {
-    console.error('Error getting available wallets:', error);
-    return [];
-  }
-};
-
-/**
- * Debug function to check what wallet APIs are available
- */
-export const debugWalletAPIs = (): void => {
-  if (typeof window === 'undefined') {
-    console.log('Window is undefined (SSR)');
-    return;
-  }
-  
-  console.log('=== Wallet API Debug (Stellar Wallets Kit) ===');
-  
-  try {
-    const walletKit = getKit();
-    const supportedWallets = walletKit.getSupportedWallets();
-    
-    console.log('Supported wallets:', supportedWallets.map((w: ISupportedWallet) => ({
-      id: w.id,
-      name: w.name,
-      isAvailable: w.isAvailable,
-    })));
-    
-    console.log('Available wallets:', getAvailableWallets());
-  } catch (error) {
-    console.error('Error debugging wallets:', error);
-  }
-  
-  console.log('=======================');
-};
-
-/**
- * Disconnect wallet (clear local state)
- */
-export const disconnectWallet = (): void => {
-  // Clear any stored wallet data
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem('stellar_wallet_type');
-    localStorage.removeItem('stellar_public_key');
   }
 };

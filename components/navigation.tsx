@@ -36,6 +36,12 @@ export function Navigation() {
             <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
               Dashboard
             </Link>
+            <Link href="/ramp" className="text-muted-foreground hover:text-foreground transition-colors">
+              💰 Off-Ramp
+            </Link>
+            <Link href="/verify-onchain" className="text-muted-foreground hover:text-foreground transition-colors">
+              🔍 Verify On-Chain
+            </Link>
             <Link href="/how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
               How It Works
             </Link>

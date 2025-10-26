@@ -40,44 +40,90 @@ export interface EscrowStatus {
 
 /**
  * Create a new escrow contract via Trustless Work
+ * NOTE: Using simplified local escrow creation until Trustless Work API is deployed
  */
 export const createEscrow = async (
   params: EscrowParams,
   walletType: WalletType = 'freighter'
 ): Promise<{ escrowId: string; contractAddress: string; transaction: any }> => {
   try {
-    // Step 1: Call Trustless Work API to prepare escrow
-    const response = await axios.post(`${TRUSTLESS_WORK_CONFIG.apiUrl}/escrow/create`, {
-      client: params.clientAddress,
-      freelancer: params.freelancerAddress,
-      amount: params.totalBudget,
-      milestones: params.milestones,
-      currency: params.currency || 'USDC',
-      enableYield: params.enableYield || false,
-      metadata: {
-        projectId: params.projectId,
-        platform: 'StellarWork+',
-      },
-    });
+    console.log('🏗️ Creating escrow locally (Trustless Work API integration pending)');
+    
+    // Generate a unique escrow ID
+    const escrowId = `ESCROW-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    // For now, we'll create a simple payment transaction
+    // This will be replaced with actual Soroban smart contract deployment
+    const { Horizon } = await import('@stellar/stellar-sdk');
+    const { getNetworkConfig } = await import('./config');
+    const { fundAccountViaFriendbot } = await import('./wallet');
+    const config = getNetworkConfig();
+    const server = new Horizon.Server(config.horizonUrl);
+    
+    // Load the client account (fund it first if it doesn't exist on testnet)
+    let sourceAccount;
+    try {
+      sourceAccount = await server.loadAccount(params.clientAddress);
+    } catch (error: any) {
+      if (error?.response?.status === 404 && config.network === 'TESTNET') {
+        console.log('🆕 Client account not found, funding via Friendbot...');
+        await fundAccountViaFriendbot(params.clientAddress);
+        
+        // Wait for transaction to be confirmed
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        
+        sourceAccount = await server.loadAccount(params.clientAddress);
+        console.log('✅ Client account funded and activated!');
+      } else {
+        throw error;
+      }
+    }
+    
+    // Build a transaction that represents the escrow creation
+    // In production, this would deploy a Soroban contract
+    const transaction = new StellarSdk.TransactionBuilder(sourceAccount, {
+      fee: StellarSdk.BASE_FEE,
+      networkPassphrase: config.networkPassphrase,
+    })
+      .addOperation(
+        StellarSdk.Operation.manageData({
+          name: `escrow_${escrowId.slice(-10)}`,
+          value: JSON.stringify({
+            project: params.projectId,
+            budget: params.totalBudget,
+            milestones: params.milestones.length,
+          }).slice(0, 64), // Max 64 bytes for data value
+        })
+      )
+      .setTimeout(300)
+      .build();
 
-    const { escrowId, contractAddress, unsignedXdr } = response.data;
+    // Sign and submit the transaction
+    const result = await signAndSubmitTransaction(transaction, walletType);
 
-    // Step 2: Sign and submit the transaction
-    const transaction = StellarSdk.TransactionBuilder.fromXDR(
-      unsignedXdr,
-      StellarSdk.Networks.TESTNET
-    );
+    console.log('✅ Escrow created:', { escrowId, txHash: result.hash });
 
-    const result = await signAndSubmitTransaction(transaction as StellarSdk.Transaction, walletType);
+    // The contract address would be the deployed Soroban contract address
+    // For now, using a demo address format
+    const contractAddress = `C${escrowId.slice(-10).toUpperCase()}`;
 
     return {
       escrowId,
       contractAddress,
       transaction: result,
     };
-  } catch (error) {
-    console.error('Error creating escrow:', error);
-    throw new Error('Failed to create escrow contract');
+  } catch (error: any) {
+    console.error('❌ Error creating escrow:', error);
+    
+    // Provide more specific error messages
+    if (error.response?.status === 404) {
+      throw new Error('Account not found on Stellar network. Please ensure your wallet is funded.');
+    }
+    if (error.message?.includes('op_underfunded')) {
+      throw new Error('Insufficient XLM balance to create escrow. Please add funds to your wallet.');
+    }
+    
+    throw new Error(error.message || 'Failed to create escrow contract');
   }
 };
 
