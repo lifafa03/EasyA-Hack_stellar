@@ -6,9 +6,9 @@ VERSION = "2.0.0"
 # Network Passphrase (Testnet for now)
 NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
 
-# Accounts that sign transactions (you'll need to generate a keypair for this)
-# For now, this is a placeholder - you'll need to add your actual signing key
-ACCOUNTS = ["GABC123...PLACEHOLDER"]
+# Signing account - This should be the public key of your wallet/application
+# Note: Remove or update this with your actual signing key if you use one
+# ACCOUNTS = []
 
 # Organization Information
 [DOCUMENTATION]
@@ -30,10 +30,10 @@ anchor_asset = "USD"
 
 [[CURRENCIES]]
 code = "XLM"
-issuer = ""
 display_decimals = 7
 name = "Stellar Lumens"
 desc = "Native Stellar asset"
+is_asset_anchored = false
 
 # Principal Contact
 [[PRINCIPALS]]
