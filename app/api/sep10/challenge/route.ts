@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     if (ANCHOR_DOMAIN === 'extstellar.moneygram.com') {
       // MoneyGram REQUIRES client_domain - use production URL even for local dev
       // This is safe because client_domain just identifies the app, doesn't need localhost
-      const clientDomain = 'easy-a-hack-stellar.vercel.app';
+      const clientDomain = 'easy-a-hack-stellar.vercel.app';  // Domain only, no https:// or trailing /
       
       requestUrl = `${challengeUrl}&client_domain=${encodeURIComponent(clientDomain)}`;
       console.log('🔐 Using client_domain:', clientDomain);
