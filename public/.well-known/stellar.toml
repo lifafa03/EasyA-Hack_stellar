@@ -9,6 +9,12 @@ NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
 # Signing key for SEP-10 authentication (required for non-custodial wallet)
 SIGNING_KEY = "GCDN4Z4S2JWANOEEYIXCAZSJKFFYYP3IVS2MJEYHXUBALFYTX6A5AXDX"
 
+# SEP-10 Web Authentication Endpoint
+WEB_AUTH_ENDPOINT = "https://easy-a-hack-stellar.vercel.app/api/sep10/auth"
+
+# SEP-24 Transfer Server Endpoint
+TRANSFER_SERVER_SEP0024 = "https://easy-a-hack-stellar.vercel.app/api/sep24"
+
 # Organization Information
 [DOCUMENTATION]
 ORG_NAME = "EasyA Stellar Wallet"
