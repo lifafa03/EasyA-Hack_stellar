@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useWallet } from '@/hooks/use-wallet';
 import { type AnchorProvider } from '@/lib/stellar/services/anchor-registry';
+import { extractTransactionXdr, validateNetworkPassphrase, extractFreighterSignature } from '@/lib/sep10';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -77,7 +78,7 @@ export function OffRampFlow({
   // SEP-10: Get challenge for authentication
   const getChallenge = async () => {
     try {
-      console.log('🔐 Getting challenge for account:', wallet.publicKey);
+      console.log('🔐 SEP-10 Step 1: Getting challenge for account:', wallet.publicKey);
       console.log('🏦 Anchor domain:', selectedAnchor.domain);
       
       const response = await fetch('/api/sep10/challenge', {
@@ -97,57 +98,41 @@ export function OffRampFlow({
 
       const data = await response.json();
       console.log('✅ Challenge received');
-      return data.transaction;
+      
+      // Validate network passphrase if provided
+      validateNetworkPassphrase(
+        data.network_passphrase,
+        'Test SDF Network ; September 2015'
+      );
+      
+      // Extract and validate transaction XDR
+      const challengeXdr = extractTransactionXdr(data);
+      console.log('📄 Challenge XDR preview:', challengeXdr.substring(0, 20) + '...');
+      
+      return challengeXdr;
     } catch (err: any) {
       console.error('❌ Challenge error:', err);
       throw err;
     }
   };
 
-  // Sign challenge with wallet
+  // SEP-10 Step 2: Sign challenge with wallet (Signature #1)
   const signChallenge = async (challengeXdr: string) => {
     try {
-      console.log('📝 Signing challenge with wallet...');
+      console.log('📝 SEP-10 Step 2: Signing challenge with wallet...');
       
       if (wallet.walletType === 'freighter') {
         const { signTransaction } = await import('@stellar/freighter-api');
+        
         const result = await signTransaction(challengeXdr, {
           networkPassphrase: 'Test SDF Network ; September 2015',
         });
         
-        // Extract signed XDR from result
-        let signedXdr: string;
-        if (typeof result === 'string') {
-          signedXdr = result;
-        } else if (result && typeof result === 'object' && 'signedTxXdr' in result) {
-          signedXdr = (result as any).signedTxXdr;
-        } else {
-          throw new Error('Unexpected signature result format');
-        }
+        // Extract and validate signed XDR from Freighter
+        const signedXdr = extractFreighterSignature(result);
         
-        console.log('✅ Wallet signature added');
-        
-        // For MoneyGram, add client_domain signature
-        if (selectedAnchor.domain === 'extstellar.moneygram.com') {
-          console.log('🔐 Adding client_domain signature for MoneyGram...');
-          const response = await fetch('/api/sep10/sign-client-domain', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              transaction_xdr: signedXdr,
-              anchor_domain: selectedAnchor.domain,
-            }),
-          });
-          
-          if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Failed to add client_domain signature');
-          }
-          
-          const data = await response.json();
-          signedXdr = data.transaction;
-          console.log('✅ Client domain signature added');
-        }
+        console.log('✅ Wallet signature added (Signature #1)');
+        console.log('📄 Signed XDR preview:', signedXdr.substring(0, 20) + '...');
         
         return signedXdr;
       } else {
@@ -155,7 +140,60 @@ export function OffRampFlow({
       }
     } catch (err: any) {
       console.error('❌ Sign error:', err);
+      
+      // Enhanced error messages
+      if (err.message?.includes('User declined')) {
+        throw new Error('User rejected signature request in Freighter');
+      } else if (err.message?.includes('invalid encoded string')) {
+        throw new Error(
+          'XDR encoding error. Challenge XDR is malformed. ' +
+          'This is likely a bug in the anchor or our XDR parsing.'
+        );
+      } else if (err.message?.includes('network')) {
+        throw new Error(
+          'Network passphrase mismatch. Expected Test SDF Network ; September 2015'
+        );
+      }
+      
       throw new Error(`Failed to sign challenge: ${err.message}`);
+    }
+  };
+
+  // SEP-10 Step 3: Add client_domain signature + get JWT
+  const getTokenWithClientDomain = async (walletSignedXdr: string) => {
+    try {
+      console.log('🔐 SEP-10 Step 3: Adding client_domain signature...');
+      
+      const response = await fetch('/api/sep10/sign-client-domain', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          transaction_xdr: walletSignedXdr,
+          anchor_domain: selectedAnchor.domain,
+        }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        console.error('❌ Client domain signing failed:', error);
+        throw new Error(
+          error.error || 'Server failed to add client_domain signature'
+        );
+      }
+      
+      const data = await response.json();
+      
+      if (!data.token) {
+        throw new Error('Server response missing JWT token');
+      }
+      
+      console.log('✅ JWT token obtained');
+      console.log('⏰ Token expires:', data.expires_at || 'unknown');
+      
+      return data.token;
+    } catch (err: any) {
+      console.error('❌ Token error:', err);
+      throw err;
     }
   };
 
@@ -194,21 +232,28 @@ export function OffRampFlow({
     try {
       setIsLoading(true);
       setError(null);
-      setStep('processing');
+      // Don't change step - stay on current step while loading
 
-      // Get SEP-10 authentication
-      console.log('1️⃣ Getting SEP-10 challenge...');
+      // SEP-10 Authentication Flow
+      console.log('🔐 Starting SEP-10 authentication...');
+      
+      // Step 1: Get challenge
+      console.log('1️⃣ SEP-10: Requesting challenge...');
       const challengeXdr = await getChallenge();
       
-      console.log('2️⃣ Signing challenge...');
-      const signedChallenge = await signChallenge(challengeXdr);
+      // Step 2: User signs with wallet (Signature #1)
+      console.log('2️⃣ SEP-10: User signing with wallet...');
+      const walletSignedXdr = await signChallenge(challengeXdr);
       
-      console.log('3️⃣ Getting JWT token...');
-      const token = await getToken(signedChallenge);
+      // Step 3: Add client_domain signature + get JWT (Signature #2 + token)
+      console.log('3️⃣ SEP-10: Getting JWT with client_domain signature...');
+      const token = await getTokenWithClientDomain(walletSignedXdr);
       setJwtToken(token);
 
-      // Start withdrawal
-      console.log('4️⃣ Initiating withdrawal...');
+      // SEP-24 Withdrawal Flow
+      console.log('💸 Starting SEP-24 withdrawal...');
+      console.log('4️⃣ SEP-24: Initiating interactive withdrawal...');
+      
       const response = await fetch('/api/sep24/withdraw', {
         method: 'POST',
         headers: {
