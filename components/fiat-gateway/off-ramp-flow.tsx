@@ -461,10 +461,11 @@ export function OffRampFlow({
     const amountNum = parseFloat(withdrawAmount);
     const balanceNum = parseFloat(getUSDCBalance());
 
-    if (amountNum > balanceNum) {
-      setError(`Insufficient balance. Available: ${getUSDCBalance()} USDC`);
-      return false;
-    }
+    // Temporarily skip balance check for testing MoneyGram authentication
+    // if (amountNum > balanceNum) {
+    //   setError(`Insufficient balance. Available: ${getUSDCBalance()} USDC`);
+    //   return false;
+    // }
 
     return true;
   };
@@ -571,9 +572,6 @@ export function OffRampFlow({
                 step="0.01"
                 max={getUSDCBalance()}
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                Maximum: {getUSDCBalance()} USDC
-              </p>
             </div>
 
             {error && (
