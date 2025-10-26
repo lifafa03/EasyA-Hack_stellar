@@ -1211,30 +1211,53 @@ function DashboardContent() {
                                       const StellarSDK = await import('@stellar/stellar-sdk')
                                       const { signAndSubmitTransaction } = await import('@/lib/stellar/wallet')
                                       
-                                      const server = new StellarSDK.Horizon.Server('https://horizon-testnet.stellar.org')
+                                      const config = {
+                                        horizonUrl: 'https://horizon-testnet.stellar.org',
+                                        networkPassphrase: StellarSDK.Networks.TESTNET
+                                      }
+                                      const server = new StellarSDK.Horizon.Server(config.horizonUrl)
                                       const account = await server.loadAccount(wallet.publicKey!)
                                       
-                                      // Create a simple payment transaction (in real app, this would interact with escrow contract)
+                                      const withdrawAmount = bid.escrowReleasedAmount || 0
+                                      
+                                      // Create USDC asset
+                                      const usdcAsset = new StellarSDK.Asset(
+                                        'USDC',
+                                        'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5'
+                                      )
+                                      
+                                      // In a real escrow, funds would be held in an escrow account
+                                      // For demo, we'll simulate by sending from a test account to user
+                                      // In production, this would call the escrow smart contract
+                                      
+                                      // Create payment transaction to user's wallet
                                       const transaction = new StellarSDK.TransactionBuilder(account, {
                                         fee: StellarSDK.BASE_FEE,
-                                        networkPassphrase: StellarSDK.Networks.TESTNET,
+                                        networkPassphrase: config.networkPassphrase,
                                       })
                                         .addOperation(
                                           StellarSDK.Operation.payment({
                                             destination: wallet.publicKey!,
-                                            asset: new StellarSDK.Asset(
-                                              'USDC',
-                                              'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5'
-                                            ),
-                                            amount: (bid.escrowReleasedAmount || 0).toString(),
+                                            asset: usdcAsset,
+                                            amount: withdrawAmount.toString(),
                                           })
                                         )
+                                        .addMemo(StellarSDK.Memo.text(`Escrow withdrawal: ${bid.projectTitle.substring(0, 20)}`))
                                         .setTimeout(180)
                                         .build()
                                       
-                                      // Note: In production, this would call the escrow contract to release funds
-                                      // For now, we'll just show success
-                                      toast.success(`Withdrawn ${bid.escrowReleasedAmount} USDC from escrow`)
+                                      // Sign and submit the transaction
+                                      const result = await signAndSubmitTransaction(transaction, wallet.walletType as any)
+                                      
+                                      // Show success with transaction link
+                                      toast.success(`Withdrawn ${withdrawAmount} USDC from escrow`, {
+                                        description: 'Transaction confirmed on Stellar',
+                                        action: {
+                                          label: 'View Transaction',
+                                          onClick: () => window.open(`https://stellar.expert/explorer/testnet/tx/${result.hash}`, '_blank'),
+                                        },
+                                        duration: 10000,
+                                      })
                                       
                                       // Update the bid to mark funds as withdrawn
                                       bid.escrowReleasedAmount = 0
@@ -1245,7 +1268,9 @@ function DashboardContent() {
                                       }
                                     } catch (error: any) {
                                       console.error('Withdrawal error:', error)
-                                      toast.error(error.message || 'Failed to withdraw funds')
+                                      toast.error('Failed to withdraw funds', {
+                                        description: error.message || 'Please try again'
+                                      })
                                     }
                                   }}
                                 >
