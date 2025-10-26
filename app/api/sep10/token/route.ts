@@ -18,7 +18,14 @@ export async function POST(request: NextRequest) {
 
     // Use provided anchor domain or default to testanchor
     const ANCHOR_DOMAIN = anchor_domain || process.env.ANCHOR_DOMAIN || 'testanchor.stellar.org';
-    const WEB_AUTH_ENDPOINT = `https://${ANCHOR_DOMAIN}/auth`;
+    
+    // Construct auth endpoint based on anchor
+    let WEB_AUTH_ENDPOINT: string;
+    if (ANCHOR_DOMAIN === 'extstellar.moneygram.com') {
+      WEB_AUTH_ENDPOINT = `https://${ANCHOR_DOMAIN}/stellaradapterservice/auth`;
+    } else {
+      WEB_AUTH_ENDPOINT = `https://${ANCHOR_DOMAIN}/auth`;
+    }
 
     // Submit signed transaction to anchor
     const response = await fetch(WEB_AUTH_ENDPOINT, {

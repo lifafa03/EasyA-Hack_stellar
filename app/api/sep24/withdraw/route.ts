@@ -28,7 +28,14 @@ export async function POST(request: NextRequest) {
 
     // Use provided anchor domain or default to testanchor
     const ANCHOR_DOMAIN = anchor_domain || process.env.ANCHOR_DOMAIN || 'testanchor.stellar.org';
-    const TRANSFER_SERVER = `https://${ANCHOR_DOMAIN}/sep24`;
+    
+    // Construct transfer server endpoint based on anchor
+    let TRANSFER_SERVER: string;
+    if (ANCHOR_DOMAIN === 'extstellar.moneygram.com') {
+      TRANSFER_SERVER = `https://${ANCHOR_DOMAIN}/stellaradapterservice/sep24`;
+    } else {
+      TRANSFER_SERVER = `https://${ANCHOR_DOMAIN}/sep24`;
+    }
 
     // Initiate withdrawal
     const withdrawUrl = `${TRANSFER_SERVER}/transactions/withdraw/interactive`;
