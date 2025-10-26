@@ -245,6 +245,40 @@ export const checkWalletConnection = async (): Promise<boolean> => {
 };
 
 /**
+ * Check if a specific wallet is available
+ */
+export const isWalletAvailable = (walletType: WalletType): boolean => {
+  if (typeof window === 'undefined') return false;
+
+  switch (walletType) {
+    case 'freighter':
+      // Freighter injects itself into window
+      return typeof window !== 'undefined' && 'freighter' in window;
+    case 'albedo':
+      // @ts-ignore
+      return typeof window !== 'undefined' && window.albedo !== undefined;
+    case 'lobstr':
+      // @ts-ignore
+      return typeof window !== 'undefined' && window.lobstr !== undefined;
+    default:
+      return false;
+  }
+};
+
+/**
+ * Get all available wallets
+ */
+export const getAvailableWallets = (): WalletType[] => {
+  const wallets: WalletType[] = [];
+  
+  if (isWalletAvailable('freighter')) wallets.push('freighter');
+  if (isWalletAvailable('albedo')) wallets.push('albedo');
+  if (isWalletAvailable('lobstr')) wallets.push('lobstr');
+  
+  return wallets;
+};
+
+/**
  * Disconnect wallet (clear local state)
  */
 export const disconnectWallet = (): void => {

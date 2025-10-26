@@ -5,20 +5,60 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Wallet, LogOut, ExternalLink } from 'lucide-react';
+import { Wallet, LogOut, ExternalLink, AlertCircle } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useWallet } from '@/hooks/use-wallet';
 import { toast } from 'sonner';
+import { isWalletAvailable } from '@/lib/stellar/wallet';
 
 export function WalletConnectButton() {
   const [showDialog, setShowDialog] = useState(false);
+  const [walletAvailability, setWalletAvailability] = useState({
+    freighter: false,
+    albedo: false,
+    lobstr: false,
+  });
   const wallet = useWallet();
 
+  // Check wallet availability when dialog opens
+  useEffect(() => {
+    if (showDialog) {
+      setWalletAvailability({
+        freighter: isWalletAvailable('freighter'),
+        albedo: isWalletAvailable('albedo'),
+        lobstr: isWalletAvailable('lobstr'),
+      });
+    }
+  }, [showDialog]);
+
   const handleConnect = async (walletType: 'freighter' | 'albedo' | 'lobstr') => {
+    // Check if wallet is available before attempting connection
+    if (!walletAvailability[walletType]) {
+      const walletNames = {
+        freighter: 'Freighter',
+        albedo: 'Albedo',
+        lobstr: 'Lobstr',
+      };
+      const walletLinks = {
+        freighter: 'https://freighter.app',
+        albedo: 'https://albedo.link',
+        lobstr: 'https://lobstr.co',
+      };
+      
+      toast.error(`${walletNames[walletType]} not installed`, {
+        description: `Please install ${walletNames[walletType]} wallet first`,
+        action: {
+          label: 'Get Wallet',
+          onClick: () => window.open(walletLinks[walletType], '_blank'),
+        },
+      });
+      return;
+    }
+
     try {
       await wallet.connect(walletType);
       setShowDialog(false);
@@ -94,7 +134,11 @@ export function WalletConnectButton() {
           <div className="space-y-3 mt-4">
             {/* Freighter Wallet */}
             <Card
-              className="p-4 hover:shadow-lg transition-all cursor-pointer border-2 hover:border-[#4ade80]/50"
+              className={`p-4 transition-all border-2 ${
+                walletAvailability.freighter
+                  ? 'hover:shadow-lg cursor-pointer hover:border-[#4ade80]/50'
+                  : 'opacity-60 cursor-not-allowed'
+              }`}
               onClick={() => handleConnect('freighter')}
             >
               <div className="flex items-center justify-between">
@@ -103,8 +147,15 @@ export function WalletConnectButton() {
                     <Wallet className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold">Freighter</h3>
-                    <p className="text-sm text-muted-foreground">Browser extension</p>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold">Freighter</h3>
+                      {!walletAvailability.freighter && (
+                        <AlertCircle className="h-4 w-4 text-yellow-500" />
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {walletAvailability.freighter ? 'Browser extension' : 'Not installed'}
+                    </p>
                   </div>
                 </div>
                 <Badge variant="outline" className="bg-[#4ade80]/10 text-[#22c55e] border-[#4ade80]/20">
@@ -115,7 +166,11 @@ export function WalletConnectButton() {
 
             {/* Albedo Wallet */}
             <Card
-              className="p-4 hover:shadow-lg transition-all cursor-pointer border-2 hover:border-[#4ade80]/50"
+              className={`p-4 transition-all border-2 ${
+                walletAvailability.albedo
+                  ? 'hover:shadow-lg cursor-pointer hover:border-[#4ade80]/50'
+                  : 'opacity-60 cursor-not-allowed'
+              }`}
               onClick={() => handleConnect('albedo')}
             >
               <div className="flex items-center justify-between">
@@ -124,8 +179,15 @@ export function WalletConnectButton() {
                     <Wallet className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold">Albedo</h3>
-                    <p className="text-sm text-muted-foreground">Web-based wallet</p>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold">Albedo</h3>
+                      {!walletAvailability.albedo && (
+                        <AlertCircle className="h-4 w-4 text-yellow-500" />
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {walletAvailability.albedo ? 'Web-based wallet' : 'Not available'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -133,7 +195,11 @@ export function WalletConnectButton() {
 
             {/* Lobstr Wallet */}
             <Card
-              className="p-4 hover:shadow-lg transition-all cursor-pointer border-2 hover:border-[#4ade80]/50"
+              className={`p-4 transition-all border-2 ${
+                walletAvailability.lobstr
+                  ? 'hover:shadow-lg cursor-pointer hover:border-[#4ade80]/50'
+                  : 'opacity-60 cursor-not-allowed'
+              }`}
               onClick={() => handleConnect('lobstr')}
             >
               <div className="flex items-center justify-between">
@@ -142,8 +208,15 @@ export function WalletConnectButton() {
                     <Wallet className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold">Lobstr</h3>
-                    <p className="text-sm text-muted-foreground">Mobile & browser wallet</p>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold">Lobstr</h3>
+                      {!walletAvailability.lobstr && (
+                        <AlertCircle className="h-4 w-4 text-yellow-500" />
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {walletAvailability.lobstr ? 'Mobile & browser wallet' : 'Not installed'}
+                    </p>
                   </div>
                 </div>
               </div>
