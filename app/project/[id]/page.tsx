@@ -104,6 +104,24 @@ export default function ProjectDetailPage() {
   // Load project from storage or use mock data
   const [project, setProject] = React.useState<StoredProject | null>(null);
   const [loading, setLoading] = React.useState(true);
+  
+  // ALL useState hooks must be declared BEFORE any conditional returns
+  const [bidDialogOpen, setBidDialogOpen] = React.useState(false);
+  const [fundDialogOpen, setFundDialogOpen] = React.useState(false);
+  
+  // Bid form state
+  const [bidFormData, setBidFormData] = React.useState<BidFormData>({
+    bidAmount: '',
+    deliveryDays: '',
+    proposal: '',
+    portfolioLink: '',
+    milestonesApproach: '',
+  });
+  
+  // Submission state tracking
+  const [submitState, setSubmitState] = React.useState<SubmitState>('idle');
+  const [transactionHash, setTransactionHash] = React.useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     // Try to load project from localStorage
@@ -204,7 +222,9 @@ export default function ProjectDetailPage() {
     ],
   };
 
-  const fundedPercentage = (projectData.funded / projectData.budget) * 100
+  const fundedPercentage = (projectData.funded / projectData.budget) * 100;
+  
+  const isSubmitting = submitState !== 'idle' && submitState !== 'success' && submitState !== 'error';
 
   // Show loading state
   if (loading) {
@@ -217,25 +237,6 @@ export default function ProjectDetailPage() {
       </div>
     );
   }
-
-  const [bidDialogOpen, setBidDialogOpen] = React.useState(false)
-  const [fundDialogOpen, setFundDialogOpen] = React.useState(false)
-  
-  // Bid form state
-  const [bidFormData, setBidFormData] = React.useState<BidFormData>({
-    bidAmount: '',
-    deliveryDays: '',
-    proposal: '',
-    portfolioLink: '',
-    milestonesApproach: '',
-  });
-  
-  // Submission state tracking
-  const [submitState, setSubmitState] = React.useState<SubmitState>('idle');
-  const [transactionHash, setTransactionHash] = React.useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
-  
-  const isSubmitting = submitState !== 'idle' && submitState !== 'success' && submitState !== 'error';
 
   const handleBidSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
