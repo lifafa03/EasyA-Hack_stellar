@@ -1,0 +1,47 @@
+# Stellar TOML Configuration for EasyA Stellar Wallet
+# This file is required for MoneyGram Ramps integration (non-custodial wallet)
+
+VERSION = "2.0.0"
+
+# Network Passphrase (Testnet for now)
+NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
+
+# Accounts that sign transactions (you'll need to generate a keypair for this)
+# For now, this is a placeholder - you'll need to add your actual signing key
+ACCOUNTS = ["GABC123...PLACEHOLDER"]
+
+# Organization Information
+[DOCUMENTATION]
+ORG_NAME = "EasyA Stellar Wallet"
+ORG_URL = "https://github.com/lifafa03/EasyA-Hack_stellar"
+ORG_DESCRIPTION = "Decentralized freelance platform built on Stellar blockchain with trustless escrow and fiat on/off-ramp capabilities"
+ORG_OFFICIAL_EMAIL = "solipuram.rohanreddy@gmail.com"
+
+# Supported Assets
+[[CURRENCIES]]
+code = "USDC"
+issuer = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+display_decimals = 2
+name = "USD Coin (Testnet)"
+desc = "USDC stablecoin for testnet"
+is_asset_anchored = true
+anchor_asset_type = "fiat"
+anchor_asset = "USD"
+
+[[CURRENCIES]]
+code = "XLM"
+issuer = ""
+display_decimals = 7
+name = "Stellar Lumens"
+desc = "Native Stellar asset"
+
+# Principal Contact
+[[PRINCIPALS]]
+name = "Rohan Solipuram"
+email = "solipuram.rohanreddy@gmail.com"
+
+# Validators (optional for wallet applications)
+# [[VALIDATORS]]
+# ALIAS = "easyastellar"
+# DISPLAY_NAME = "EasyA Stellar Validator"
+# PUBLIC_KEY = "YOUR_VALIDATOR_KEY_HERE"
