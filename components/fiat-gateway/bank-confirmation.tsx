@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Download, Mail } from 'lucide-react';
@@ -19,6 +20,15 @@ export function BankConfirmation({
   anchorName,
   onClose,
 }: BankConfirmationProps) {
+  // Auto-close after 5 seconds
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onClose();
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [onClose]);
+
   const now = new Date();
   const formattedDate = now.toLocaleDateString('en-US', {
     year: 'numeric',
