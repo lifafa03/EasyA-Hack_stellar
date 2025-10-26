@@ -6,9 +6,8 @@ VERSION = "2.0.0"
 # Network Passphrase (Testnet for now)
 NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
 
-# Signing account - This should be the public key of your wallet/application
-# Note: Remove or update this with your actual signing key if you use one
-# ACCOUNTS = []
+# Signing key for SEP-10 authentication (required for non-custodial wallet)
+SIGNING_KEY = "GCDN4Z4S2JWANOEEYIXCAZSJKFFYYP3IVS2MJEYHXUBALFYTX6A5AXDX"
 
 # Organization Information
 [DOCUMENTATION]
