@@ -29,8 +29,26 @@
 
 ---
 
+## 🎥 Presentation Video
+
+Watch our complete platform demonstration and learn how StellaNova revolutionizes the freelance marketplace with Stellar blockchain technology:
+
+https://github.com/user-attachments/assets/videofinal.mov
+
+**Video Preview:**
+
+<video width="100%" controls>
+  <source src="public/video/videofinal.mov" type="video/quicktime">
+  Your browser does not support the video tag. <a href="public/video/videofinal.mov">Download the presentation video</a>
+</video>
+
+*Full walkthrough covering wallet integration, project funding, escrow management, and USDC transactions on Stellar testnet*
+
+---
+
 ## 📋 Table of Contents
 
+- [Presentation Video](#-presentation-video)
 - [Features](#-features)
 - [Tech Stack](#-tech-stack)
 - [Quick Start](#-quick-start)
