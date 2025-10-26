@@ -7,6 +7,7 @@ export * from './types';
 export * from './config';
 export * from './sdk';
 export * from './services';
+export * from './storage';
 export * from './errors';
 export * from './retry';
 export * from './events';

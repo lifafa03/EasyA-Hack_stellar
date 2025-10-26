@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Search, Filter, ArrowRight, TrendingUp, Clock, Users, DollarSign, Sparkles } from "lucide-react"
 import Link from "next/link"
 import { GradientBackground } from "@/components/gradient-background"
@@ -91,17 +92,38 @@ const allProjects = [
 
 const categories = ["All", "Development", "Design", "AI/ML", "Marketing", "Blockchain", "Video"]
 
+// Helper function to format USDC amounts
+const formatUSDC = (amount: number): string => {
+  return `$${amount.toLocaleString()} USDC`
+}
+
 export default function BrowsePage() {
   const [selectedCategory, setSelectedCategory] = useState("All")
   const [searchQuery, setSearchQuery] = useState("")
+  const [loading, setLoading] = useState(true)
+  const [projects, setProjects] = useState(allProjects)
 
-  const filteredProjects = allProjects.filter((project) => {
+  // Simulate loading projects
+  useEffect(() => {
+    setLoading(true)
+    const timer = setTimeout(() => {
+      setProjects(allProjects)
+      setLoading(false)
+    }, 800)
+    return () => clearTimeout(timer)
+  }, [])
+
+  const filteredProjects = projects.filter((project) => {
     const matchesCategory = selectedCategory === "All" || project.category === selectedCategory
     const matchesSearch =
       project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      project.description.toLowerCase().includes(searchQuery.toLowerCase())
+      project.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.skills.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()))
     return matchesCategory && matchesSearch
   })
+
+  const totalFunding = projects.reduce((sum, project) => sum + project.funded, 0)
+  const totalBids = projects.reduce((sum, project) => sum + project.bids, 0)
 
   return (
     <GradientBackground variant="default">
@@ -133,44 +155,60 @@ export default function BrowsePage() {
 
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
               <Card className="p-6 bg-gradient-to-br from-card to-surface border-border">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#4ade80] to-[#22c55e] flex items-center justify-center shadow-md">
-                      <TrendingUp className="h-6 w-6 text-white" />
+                {loading ? (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    {[...Array(4)].map((_, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <Skeleton className="w-12 h-12 rounded-xl" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-6 w-16" />
+                          <Skeleton className="h-3 w-20" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#4ade80] to-[#22c55e] flex items-center justify-center shadow-md">
+                        <TrendingUp className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold text-foreground">{projects.length}</p>
+                        <p className="text-xs text-muted-foreground">Active Projects</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-2xl font-bold text-foreground">{allProjects.length}</p>
-                      <p className="text-xs text-muted-foreground">Active Projects</p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-md">
+                        <DollarSign className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold text-foreground">${(totalFunding / 1000).toFixed(0)}K</p>
+                        <p className="text-xs text-muted-foreground">Total USDC Funding</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-400 flex items-center justify-center shadow-md">
+                        <Users className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold text-foreground">{totalBids}</p>
+                        <p className="text-xs text-muted-foreground">Total Bids</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-400 flex items-center justify-center shadow-md">
+                        <Clock className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-2xl font-bold text-foreground">
+                          {Math.round(projects.reduce((sum, p) => sum + p.daysLeft, 0) / projects.length)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">Avg Days Left</p>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 flex items-center justify-center shadow-md">
-                      <DollarSign className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-foreground">$42K</p>
-                      <p className="text-xs text-muted-foreground">Total Funding</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-400 flex items-center justify-center shadow-md">
-                      <Users className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-foreground">74</p>
-                      <p className="text-xs text-muted-foreground">Total Bids</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 to-pink-400 flex items-center justify-center shadow-md">
-                      <Clock className="h-6 w-6 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold text-foreground">14</p>
-                      <p className="text-xs text-muted-foreground">Avg Days Left</p>
-                    </div>
-                  </div>
-                </div>
+                )}
               </Card>
             </motion.div>
           </motion.div>
@@ -231,7 +269,40 @@ export default function BrowsePage() {
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProjects.map((project, index) => (
+            {loading ? (
+              // Loading skeleton cards
+              [...Array(6)].map((_, index) => (
+                <motion.div
+                  key={`skeleton-${index}`}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
+                  <Card className="p-0 h-full border-border bg-card flex flex-col overflow-hidden">
+                    <Skeleton className="h-48 w-full" />
+                    <div className="p-6 flex flex-col flex-grow space-y-4">
+                      <Skeleton className="h-6 w-3/4" />
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-2/3" />
+                      <div className="flex gap-2 mt-4">
+                        <Skeleton className="h-6 w-16" />
+                        <Skeleton className="h-6 w-16" />
+                        <Skeleton className="h-6 w-16" />
+                      </div>
+                      <div className="mt-auto space-y-2">
+                        <Skeleton className="h-2 w-full" />
+                        <div className="flex justify-between">
+                          <Skeleton className="h-4 w-24" />
+                          <Skeleton className="h-4 w-24" />
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
+              ))
+            ) : (
+              filteredProjects.map((project, index) => (
               <motion.div
                 key={project.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -297,8 +368,8 @@ export default function BrowsePage() {
                           />
                         </div>
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">${project.funded.toLocaleString()} raised</span>
-                          <span className="font-semibold text-foreground">${project.budget.toLocaleString()} goal</span>
+                          <span className="text-muted-foreground">{formatUSDC(project.funded)} raised</span>
+                          <span className="font-semibold text-foreground">{formatUSDC(project.budget)} goal</span>
                         </div>
                       </div>
 
@@ -322,7 +393,8 @@ export default function BrowsePage() {
                   </div>
                 </Card>
               </motion.div>
-            ))}
+              ))
+            )}
           </div>
 
           {filteredProjects.length === 0 && (

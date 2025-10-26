@@ -9,13 +9,15 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Wallet, LogOut, Copy, Check } from 'lucide-react';
+import { Wallet, LogOut, Copy, Check, Clock } from 'lucide-react';
 import { useWalletKit } from '@/hooks/use-wallet-kit';
+import { useFiatBalance } from '@/hooks/use-fiat-balance';
 import { toast } from 'sonner';
 
 export function WalletConnectButton() {
   const [copied, setCopied] = useState(false);
   const wallet = useWalletKit();
+  const fiatBalance = useFiatBalance();
 
   const handleCopyAddress = () => {
     if (wallet.publicKey) {
@@ -59,9 +61,22 @@ export function WalletConnectButton() {
                 <Badge variant="outline" className="text-xs bg-[#4ade80]/10 text-[#22c55e] border-[#4ade80]/20">
                   Connected
                 </Badge>
+                {fiatBalance.hasPendingTransactions && (
+                  <Badge variant="outline" className="text-xs bg-yellow-500/10 text-yellow-500 border-yellow-500/20">
+                    <Clock className="h-3 w-3 mr-1" />
+                    {fiatBalance.pendingTransactions.length} Pending
+                  </Badge>
+                )}
               </div>
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span>{formatBalance(wallet.usdcBalance)} USDC</span>
+                <span className="flex items-center gap-1">
+                  {formatBalance(wallet.usdcBalance)} USDC
+                  {parseFloat(fiatBalance.pendingOnRampAmount) > 0 && (
+                    <span className="text-yellow-500" title="Pending deposits">
+                      (+{fiatBalance.pendingOnRampAmount})
+                    </span>
+                  )}
+                </span>
                 <span>•</span>
                 <span>{formatBalance(wallet.balance)} XLM</span>
                 {isUnfunded && (

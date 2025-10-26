@@ -5,6 +5,7 @@ import "./globals.css"
 import { Navigation } from "@/components/navigation"
 import { ThemeProvider } from "@/components/theme-provider"
 import { WalletKitProvider } from "@/hooks/use-wallet-kit"
+import { WalletProvider } from "@/hooks/use-wallet"
 import { Toaster } from "@/components/ui/sonner"
 import { Footer } from "@/components/stellar"
 
@@ -29,10 +30,12 @@ export default function RootLayout({
       <body className={inter.className}>
         <ThemeProvider>
           <WalletKitProvider>
-            <Navigation />
-            {children}
-            <Footer />
-            <Toaster position="top-right" richColors />
+            <WalletProvider>
+              <Navigation />
+              {children}
+              <Footer />
+              <Toaster position="top-right" richColors />
+            </WalletProvider>
           </WalletKitProvider>
         </ThemeProvider>
       </body>

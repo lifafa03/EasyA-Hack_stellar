@@ -4,6 +4,9 @@
 
 import { Networks, Transaction, Server } from '@stellar/stellar-sdk';
 
+// Re-export types from types directory
+export * from './types';
+
 // Network configuration types
 export type NetworkType = 'testnet' | 'mainnet';
 

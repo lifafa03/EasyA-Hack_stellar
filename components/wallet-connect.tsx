@@ -8,10 +8,11 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Wallet, LogOut, ExternalLink, AlertCircle, Copy, Check } from 'lucide-react';
+import { Wallet, LogOut, ExternalLink, AlertCircle, Copy, Check, Clock } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useWallet } from '@/hooks/use-wallet';
+import { useFiatBalance } from '@/hooks/use-fiat-balance';
 import { toast } from 'sonner';
 import { isWalletAvailable, debugWalletAPIs } from '@/lib/stellar/wallet';
 
@@ -25,6 +26,7 @@ export function WalletConnectButton() {
     xbull: false,
   });
   const wallet = useWallet();
+  const fiatBalance = useFiatBalance();
 
   // Check wallet availability when dialog opens
   useEffect(() => {
@@ -152,9 +154,22 @@ export function WalletConnectButton() {
                 <Badge variant="outline" className="text-xs bg-[#4ade80]/10 text-[#22c55e] border-[#4ade80]/20">
                   {wallet.walletType || 'Connected'}
                 </Badge>
+                {fiatBalance.hasPendingTransactions && (
+                  <Badge variant="outline" className="text-xs bg-yellow-500/10 text-yellow-500 border-yellow-500/20">
+                    <Clock className="h-3 w-3 mr-1" />
+                    {fiatBalance.pendingTransactions.length} Pending
+                  </Badge>
+                )}
               </div>
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span>{formatBalance(wallet.usdcBalance)} USDC</span>
+                <span className="flex items-center gap-1">
+                  {formatBalance(wallet.usdcBalance)} USDC
+                  {parseFloat(fiatBalance.pendingOnRampAmount) > 0 && (
+                    <span className="text-yellow-500" title="Pending deposits">
+                      (+{fiatBalance.pendingOnRampAmount})
+                    </span>
+                  )}
+                </span>
                 <span>•</span>
                 <span>{formatBalance(wallet.balance)} XLM</span>
               </div>

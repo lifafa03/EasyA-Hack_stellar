@@ -36,3 +36,6 @@ export type {
   AnchorInfo,
   PaymentMethod,
 } from './anchor';
+
+export { AnchorRegistry } from './anchor-registry';
+export type { AnchorProvider } from './anchor-registry';

@@ -42,8 +42,8 @@ export function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/my-investments" className="text-muted-foreground hover:text-foreground transition-colors">
-                  My Investments
+                <Link href="/profile" className="text-muted-foreground hover:text-foreground transition-colors">
+                  Profile & Wallet
                 </Link>
               </li>
             </ul>

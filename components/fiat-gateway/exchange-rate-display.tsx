@@ -15,19 +15,26 @@ import { toast } from "sonner"
 interface ExchangeRateDisplayProps {
   rate: ExchangeRate
   loading?: boolean
+  error?: string | null
   onRefresh?: () => Promise<void>
+  autoRefresh?: boolean
+  refreshInterval?: number
   className?: string
 }
 
 export function ExchangeRateDisplay({
   rate,
   loading = false,
+  error = null,
   onRefresh,
+  autoRefresh = true,
+  refreshInterval = 30000,
   className,
 }: ExchangeRateDisplayProps) {
   const [refreshing, setRefreshing] = useState(false)
   const [timeAgo, setTimeAgo] = useState<string>("")
 
+  // Update time ago display
   useEffect(() => {
     const updateTimeAgo = () => {
       const now = Date.now() / 1000
@@ -49,6 +56,21 @@ export function ExchangeRateDisplay({
 
     return () => clearInterval(interval)
   }, [rate.timestamp])
+
+  // Auto-refresh functionality
+  useEffect(() => {
+    if (!autoRefresh || !onRefresh) return
+
+    const autoRefreshInterval = setInterval(async () => {
+      try {
+        await onRefresh()
+      } catch (error) {
+        console.error("Auto-refresh failed:", error)
+      }
+    }, refreshInterval)
+
+    return () => clearInterval(autoRefreshInterval)
+  }, [autoRefresh, onRefresh, refreshInterval])
 
   const handleRefresh = async () => {
     if (!onRefresh || refreshing) return
@@ -78,6 +100,33 @@ export function ExchangeRateDisplay({
         <CardContent className="space-y-4">
           <Skeleton className="h-12 w-full" />
           <Skeleton className="h-8 w-full" />
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card className={className}>
+        <CardHeader>
+          <CardTitle className="text-base">Exchange Rate</CardTitle>
+          <CardDescription>Current conversion rate</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <p className="text-sm text-destructive mb-4">{error}</p>
+            {onRefresh && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={refreshing}
+              >
+                <RefreshCw className={cn("h-4 w-4 mr-2", refreshing && "animate-spin")} />
+                Try Again
+              </Button>
+            )}
+          </div>
         </CardContent>
       </Card>
     )
@@ -148,10 +197,24 @@ export function ExchangeRateDisplay({
         </div>
 
         {/* Rate Update Time */}
-        <div className="pt-2 border-t">
+        <div className="pt-2 border-t flex items-center justify-between">
           <p className="text-xs text-muted-foreground">
             Updated {timeAgo}
           </p>
+          {autoRefresh && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Badge variant="secondary" className="text-xs">
+                    Auto-refresh
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-xs">Rate updates every {refreshInterval / 1000}s</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -179,6 +242,8 @@ interface ExchangeRateSelectorProps {
   onPairChange?: (pair: CurrencyPair) => void
   onRefresh?: (from: string, to: string) => Promise<void>
   loading?: boolean
+  error?: string | null
+  autoRefresh?: boolean
   className?: string
 }
 
@@ -188,6 +253,8 @@ export function ExchangeRateSelector({
   onPairChange,
   onRefresh,
   loading = false,
+  error = null,
+  autoRefresh = true,
   className,
 }: ExchangeRateSelectorProps) {
   const [currentPair, setCurrentPair] = useState<CurrencyPair>(selectedPair)
@@ -217,6 +284,7 @@ export function ExchangeRateSelector({
         <Select
           value={`${currentPair.from}-${currentPair.to}`}
           onValueChange={handlePairChange}
+          disabled={loading}
         >
           <SelectTrigger className="w-full">
             <SelectValue />
@@ -236,13 +304,15 @@ export function ExchangeRateSelector({
         <ExchangeRateDisplay
           rate={currentRate}
           loading={loading}
+          error={error}
           onRefresh={handleRefresh}
+          autoRefresh={autoRefresh}
         />
       ) : (
         <Card>
           <CardContent className="py-8 text-center">
             <p className="text-sm text-muted-foreground">
-              Rate not available for this pair
+              {loading ? "Loading rate..." : "Rate not available for this pair"}
             </p>
           </CardContent>
         </Card>
@@ -321,6 +391,8 @@ interface ExchangeCalculatorProps {
   rate: ExchangeRate
   amount: string
   onAmountChange?: (amount: string) => void
+  loading?: boolean
+  error?: string | null
   className?: string
 }
 
@@ -328,6 +400,8 @@ export function ExchangeCalculator({
   rate,
   amount,
   onAmountChange,
+  loading = false,
+  error = null,
   className,
 }: ExchangeCalculatorProps) {
   const rateValue = parseFloat(rate.rate)
@@ -345,6 +419,12 @@ export function ExchangeCalculator({
         <CardDescription>Calculate conversion amounts</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {error && (
+          <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+            <p className="text-sm text-destructive">{error}</p>
+          </div>
+        )}
+
         <div className="space-y-2">
           <label className="text-sm font-medium">You Send</label>
           <div className="flex items-center gap-2">
@@ -353,7 +433,8 @@ export function ExchangeCalculator({
               value={amount}
               onChange={(e) => onAmountChange?.(e.target.value)}
               placeholder="0.00"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              disabled={loading}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm disabled:opacity-50"
             />
             <Badge variant="outline" className="font-mono">
               {rate.from}
@@ -369,7 +450,11 @@ export function ExchangeCalculator({
           <label className="text-sm font-medium">You Receive</label>
           <div className="flex items-center gap-2">
             <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted px-3 py-2 text-sm font-medium">
-              {receiveAmount.toFixed(4)}
+              {loading ? (
+                <Skeleton className="h-4 w-24" />
+              ) : (
+                receiveAmount.toFixed(4)
+              )}
             </div>
             <Badge variant="outline" className="font-mono">
               {rate.to}
@@ -377,14 +462,18 @@ export function ExchangeCalculator({
           </div>
         </div>
 
-        <div className="pt-2 border-t space-y-1 text-sm">
+        <div className="pt-2 border-t space-y-2 text-sm">
           <div className="flex justify-between text-muted-foreground">
             <span>Exchange Rate</span>
-            <span>{rateValue.toFixed(4)}</span>
+            <span className="font-mono">{rateValue.toFixed(4)}</span>
           </div>
           <div className="flex justify-between text-muted-foreground">
             <span>Fee</span>
-            <span>{totalFee.toFixed(4)} {rate.to}</span>
+            <span className="font-mono">{totalFee.toFixed(4)} {rate.to}</span>
+          </div>
+          <div className="flex justify-between pt-2 border-t font-medium">
+            <span>Total Amount</span>
+            <span className="font-mono text-lg">{receiveAmount.toFixed(4)} {rate.to}</span>
           </div>
         </div>
       </CardContent>

@@ -4,7 +4,16 @@
  * Provides integration with Stellar anchors for currency conversion
  */
 
+import {
+  Transaction,
+  TransactionBuilder,
+  Operation,
+  Asset,
+  BASE_FEE,
+} from '@stellar/stellar-sdk';
 import { StellarError, ErrorCode } from '../types';
+import { getStellarSDK } from '../sdk';
+import { getStellarConfig } from '../config';
 
 export type PaymentMethod = 'bank_transfer' | 'credit_card' | 'debit_card' | 'wire_transfer';
 
@@ -83,10 +92,25 @@ export interface AnchorInfo {
   };
 }
 
+interface CachedExchangeRate {
+  rate: ExchangeRate;
+  expiresAt: number;
+}
+
+interface TrustlineInfo {
+  exists: boolean;
+  asset: Asset;
+  balance?: string;
+  limit?: string;
+}
+
 export class AnchorService {
   private anchorDomain: string;
   private transferServerUrl: string;
   private webAuthUrl: string;
+  private exchangeRateCache: Map<string, CachedExchangeRate> = new Map();
+  private readonly RATE_CACHE_TTL = 30000; // 30 seconds
+  private authTokenCache: Map<string, { token: string; expiresAt: number }> = new Map();
 
   constructor(anchorDomain: string) {
     this.anchorDomain = anchorDomain;
@@ -95,15 +119,25 @@ export class AnchorService {
   }
 
   /**
+   * Get the anchor domain
+   */
+  getAnchorDomain(): string {
+    return this.anchorDomain;
+  }
+
+  /**
    * Initialize on-ramp transaction (fiat to crypto)
    */
-  async onRamp(params: OnRampParams): Promise<OnRampSession> {
+  async onRamp(
+    params: OnRampParams,
+    signer: (tx: Transaction) => Promise<Transaction>
+  ): Promise<OnRampSession> {
     try {
       // Validate parameters
       this.validateOnRampParams(params);
 
       // Get authentication token
-      const authToken = await this.getAuthToken(params.destinationAddress);
+      const authToken = await this.getAuthToken(params.destinationAddress, signer);
 
       // Initiate SEP-24 deposit transaction
       const response = await fetch(`${this.transferServerUrl}/transactions/deposit/interactive`, {
@@ -146,13 +180,16 @@ export class AnchorService {
   /**
    * Initialize off-ramp transaction (crypto to fiat)
    */
-  async offRamp(params: OffRampParams): Promise<OffRampSession> {
+  async offRamp(
+    params: OffRampParams,
+    signer: (tx: Transaction) => Promise<Transaction>
+  ): Promise<OffRampSession> {
     try {
       // Validate parameters
       this.validateOffRampParams(params);
 
       // Get authentication token
-      const authToken = await this.getAuthToken(params.sourceAddress);
+      const authToken = await this.getAuthToken(params.sourceAddress, signer);
 
       // Initiate SEP-24 withdrawal transaction
       const response = await fetch(`${this.transferServerUrl}/transactions/withdraw/interactive`, {
@@ -198,10 +235,18 @@ export class AnchorService {
   }
 
   /**
-   * Get current exchange rate
+   * Get current exchange rate with caching (30-second TTL)
    */
   async getExchangeRate(from: string, to: string): Promise<ExchangeRate> {
     try {
+      const cacheKey = `${from}-${to}`;
+      const cached = this.exchangeRateCache.get(cacheKey);
+
+      // Return cached rate if still valid
+      if (cached && cached.expiresAt > Date.now()) {
+        return cached.rate;
+      }
+
       // Query anchor for exchange rate
       const response = await fetch(`${this.transferServerUrl}/price`, {
         method: 'GET',
@@ -217,13 +262,21 @@ export class AnchorService {
       const data = await response.json();
 
       // Parse rate data (simplified - actual format depends on anchor)
-      return {
+      const rate: ExchangeRate = {
         from,
         to,
         rate: data.buy_price || '1.0',
         fee: data.fee || '0',
         timestamp: Date.now() / 1000,
       };
+
+      // Cache the rate
+      this.exchangeRateCache.set(cacheKey, {
+        rate,
+        expiresAt: Date.now() + this.RATE_CACHE_TTL,
+      });
+
+      return rate;
     } catch (error) {
       throw new StellarError(
         'Failed to get exchange rate',
@@ -271,10 +324,11 @@ export class AnchorService {
    */
   async startInteractiveDeposit(
     asset: string,
-    account: string
+    account: string,
+    signer: (tx: Transaction) => Promise<Transaction>
   ): Promise<InteractiveSession> {
     try {
-      const authToken = await this.getAuthToken(account);
+      const authToken = await this.getAuthToken(account, signer);
 
       const response = await fetch(`${this.transferServerUrl}/transactions/deposit/interactive`, {
         method: 'POST',
@@ -314,10 +368,11 @@ export class AnchorService {
    */
   async startInteractiveWithdraw(
     asset: string,
-    account: string
+    account: string,
+    signer: (tx: Transaction) => Promise<Transaction>
   ): Promise<InteractiveSession> {
     try {
-      const authToken = await this.getAuthToken(account);
+      const authToken = await this.getAuthToken(account, signer);
 
       const response = await fetch(`${this.transferServerUrl}/transactions/withdraw/interactive`, {
         method: 'POST',
@@ -387,18 +442,241 @@ export class AnchorService {
   }
 
   /**
+   * Check if a trustline exists for a specific asset
+   */
+  async checkTrustline(
+    account: string,
+    assetCode: string,
+    assetIssuer: string
+  ): Promise<TrustlineInfo> {
+    try {
+      const sdk = getStellarSDK();
+      const accountData = await sdk.getAccount(account);
+      
+      const asset = new Asset(assetCode, assetIssuer);
+      
+      // Check if trustline exists in account balances
+      const balance = accountData.balances.find(
+        (b: any) =>
+          b.asset_type !== 'native' &&
+          b.asset_code === assetCode &&
+          b.asset_issuer === assetIssuer
+      );
+
+      if (balance) {
+        return {
+          exists: true,
+          asset,
+          balance: balance.balance,
+          limit: balance.limit,
+        };
+      }
+
+      return {
+        exists: false,
+        asset,
+      };
+    } catch (error) {
+      throw new StellarError(
+        'Failed to check trustline',
+        ErrorCode.NETWORK_ERROR,
+        error
+      );
+    }
+  }
+
+  /**
+   * Create a trustline for a specific asset
+   */
+  async createTrustline(
+    account: string,
+    assetCode: string,
+    assetIssuer: string,
+    signer: (tx: Transaction) => Promise<Transaction>,
+    limit?: string
+  ): Promise<string> {
+    try {
+      const sdk = getStellarSDK();
+      const config = getStellarConfig();
+      
+      // Check if trustline already exists
+      const trustlineInfo = await this.checkTrustline(account, assetCode, assetIssuer);
+      if (trustlineInfo.exists) {
+        throw new StellarError(
+          'Trustline already exists',
+          ErrorCode.INVALID_PARAMS
+        );
+      }
+
+      const asset = new Asset(assetCode, assetIssuer);
+      
+      // Build change trust operation
+      const changeTrustOp = Operation.changeTrust({
+        asset,
+        limit: limit || '922337203685.4775807', // Max limit
+      }) as any; // Type assertion needed due to SDK type complexity
+
+      // Build and sign transaction
+      const transaction = await sdk.buildTransaction(account, [changeTrustOp]);
+      const signedTx = await signer(transaction);
+      
+      // Submit transaction
+      const result = await sdk.submitTransaction(signedTx);
+      
+      if (result.status !== 'success') {
+        throw new Error('Trustline creation transaction failed');
+      }
+
+      return result.hash;
+    } catch (error) {
+      if (error instanceof StellarError) {
+        throw error;
+      }
+      throw new StellarError(
+        'Failed to create trustline',
+        ErrorCode.TRANSACTION_FAILED,
+        error
+      );
+    }
+  }
+
+  /**
+   * Poll transaction status with exponential backoff
+   */
+  async pollTransactionStatus(
+    transactionId: string,
+    authToken: string,
+    options: {
+      maxAttempts?: number;
+      initialDelay?: number;
+      maxDelay?: number;
+      onStatusChange?: (status: TransactionStatus) => void;
+    } = {}
+  ): Promise<TransactionStatus> {
+    const {
+      maxAttempts = 40, // ~10 minutes with exponential backoff
+      initialDelay = 5000, // 5 seconds
+      maxDelay = 15000, // 15 seconds
+      onStatusChange,
+    } = options;
+
+    let attempt = 0;
+    let delay = initialDelay;
+    let lastStatus: TransactionStatus | null = null;
+
+    while (attempt < maxAttempts) {
+      try {
+        const status = await this.getTransactionStatus(transactionId, authToken);
+
+        // Notify if status changed
+        if (status !== lastStatus && onStatusChange) {
+          onStatusChange(status);
+        }
+        lastStatus = status;
+
+        // Check if transaction is in a final state
+        if (
+          status === 'completed' ||
+          status === 'error' ||
+          status === 'refunded'
+        ) {
+          return status;
+        }
+
+        // Wait before next poll with exponential backoff
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        
+        // Increase delay for next attempt (exponential backoff)
+        delay = Math.min(delay * 1.5, maxDelay);
+        attempt++;
+      } catch (error) {
+        // On error, wait and retry
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        delay = Math.min(delay * 1.5, maxDelay);
+        attempt++;
+      }
+    }
+
+    throw new StellarError(
+      'Transaction polling timeout',
+      ErrorCode.ANCHOR_ERROR
+    );
+  }
+
+  /**
    * Get authentication token using SEP-10
    */
-  private async getAuthToken(account: string): Promise<string> {
+  async getAuthToken(
+    account: string,
+    signer: (tx: Transaction) => Promise<Transaction>
+  ): Promise<string> {
     try {
-      // In a real implementation, this would:
-      // 1. Request challenge from anchor
-      // 2. Sign challenge with user's wallet
-      // 3. Submit signed challenge to get JWT token
-      
-      // For now, return a placeholder
-      // This would be implemented with proper SEP-10 flow
-      return 'AUTH_TOKEN_PLACEHOLDER';
+      // Check cache first
+      const cached = this.authTokenCache.get(account);
+      if (cached && cached.expiresAt > Date.now()) {
+        return cached.token;
+      }
+
+      // Step 1: Request challenge from anchor
+      const challengeResponse = await fetch(
+        `${this.webAuthUrl}?account=${account}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      if (!challengeResponse.ok) {
+        throw new Error(`Failed to get challenge: ${challengeResponse.statusText}`);
+      }
+
+      const challengeData = await challengeResponse.json();
+      const challengeXdr = challengeData.transaction;
+
+      if (!challengeXdr) {
+        throw new Error('No challenge transaction received from anchor');
+      }
+
+      // Step 2: Parse and sign the challenge transaction
+      const config = getStellarConfig();
+      const transaction = TransactionBuilder.fromXDR(
+        challengeXdr,
+        config.networkPassphrase
+      ) as Transaction;
+
+      const signedTx = await signer(transaction);
+
+      // Step 3: Submit signed challenge to get JWT token
+      const tokenResponse = await fetch(this.webAuthUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          transaction: signedTx.toXDR(),
+        }),
+      });
+
+      if (!tokenResponse.ok) {
+        throw new Error(`Failed to get token: ${tokenResponse.statusText}`);
+      }
+
+      const tokenData = await tokenResponse.json();
+      const token = tokenData.token;
+
+      if (!token) {
+        throw new Error('No token received from anchor');
+      }
+
+      // Cache the token (typically valid for 24 hours, we'll cache for 23 hours)
+      this.authTokenCache.set(account, {
+        token,
+        expiresAt: Date.now() + 23 * 60 * 60 * 1000,
+      });
+
+      return token;
     } catch (error) {
       throw new StellarError(
         'Failed to get authentication token',
