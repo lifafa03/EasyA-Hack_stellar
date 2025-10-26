@@ -19,6 +19,7 @@ import { createEscrow } from "@/lib/stellar/trustless-work"
 import { validateEscrowCreation, executeWithRetry } from "@/lib/stellar/validation"
 import { checkUSDCTrustline } from "@/lib/stellar/payments"
 import { toast } from "sonner"
+import { saveProject, StoredProject } from "@/lib/storage"
 
 interface Milestone {
   title: string
@@ -290,16 +291,25 @@ export default function PostProjectPage() {
       setTransactionHash(escrowData.transaction?.hash || null)
       setSubmitState('success')
 
-      // Store project metadata temporarily
-      const projectData = {
-        ...formData,
-        milestones,
+      // Save project to storage
+      const storedProject: StoredProject = {
+        id: escrowData.escrowId,
+        title: formData.title,
+        description: formData.description,
+        category: formData.category,
+        budget: parseFloat(formData.budget),
+        duration: parseInt(formData.duration),
+        notes: formData.notes,
         skills,
+        milestones,
         escrowId: escrowData.escrowId,
-        contractAddress: escrowData.contractAddress,
-        createdAt: new Date().toISOString(),
-      }
-      localStorage.setItem(`project-${escrowData.escrowId}`, JSON.stringify(projectData))
+        transactionHash: escrowData.transaction?.hash,
+        clientAddress: wallet.publicKey!,
+        createdAt: Date.now(),
+        status: 'active',
+      };
+      
+      saveProject(storedProject);
 
       toast.success('Project Created Successfully!', {
         description: `Escrow ID: ${escrowData.escrowId}`,

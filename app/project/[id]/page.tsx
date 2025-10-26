@@ -24,6 +24,8 @@ import { useWallet } from "@/hooks/use-wallet"
 import { submitBidWithCheckpoints, BidFormData } from "@/lib/stellar/bid-validation"
 import { SignedBid, fetchEscrowBids, verifyBidSignature } from "@/lib/stellar/contracts"
 import { toast } from "sonner"
+import { getProject, getProjectBids, StoredProject } from "@/lib/storage"
+import { useParams } from "next/navigation"
 
 // Mock project data
 const projectData = {
@@ -95,8 +97,127 @@ type SubmitState =
   | 'error';
 
 export default function ProjectDetailPage() {
+  const params = useParams();
+  const projectId = params.id as string;
   const wallet = useWallet();
+  
+  // Load project from storage or use mock data
+  const [project, setProject] = React.useState<StoredProject | null>(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    // Try to load project from localStorage
+    const storedProject = getProject(projectId);
+    if (storedProject) {
+      setProject(storedProject);
+      console.log('✅ Loaded project from storage:', storedProject);
+    } else {
+      console.log('⚠️  No project found with ID:', projectId, '- Using demo data');
+    }
+    setLoading(false);
+  }, [projectId]);
+
+  // Use stored project data or fall back to mock data
+  const projectData = project ? {
+    id: project.id,
+    title: project.title,
+    description: project.description,
+    category: project.category,
+    budget: project.budget,
+    funded: 0, // In demo mode, no funding yet
+    bids: getProjectBids(project.id).length,
+    daysLeft: Math.max(0, Math.floor((project.createdAt + project.duration * 24 * 60 * 60 * 1000 - Date.now()) / (24 * 60 * 60 * 1000))),
+    postedDate: new Date(project.createdAt).toISOString().split('T')[0],
+    skills: project.skills,
+    milestones: project.milestones.map((m, index) => ({
+      title: m.title,
+      budget: parseFloat(m.budget),
+      status: index === 0 ? 'in-progress' : 'pending',
+      description: m.description,
+    })),
+    client: {
+      name: project.clientAddress.substring(0, 8) + '...',
+      avatar: "/diverse-company-team.png",
+      rating: 5.0,
+      projectsPosted: 1,
+      address: project.clientAddress,
+    },
+    escrowId: project.escrowId,
+    transactionHash: project.transactionHash,
+    topBids: getProjectBids(project.id).map((bid: any) => ({
+      id: bid.bidId,
+      freelancer: bid.freelancerAddress.substring(0, 8) + '...',
+      avatar: "/developer-working.png",
+      amount: bid.bidAmount,
+      deliveryDays: bid.deliveryDays,
+      rating: 4.8,
+      verified: true,
+      signature: bid.signature,
+    })),
+  } : {
+    // Fall back to mock data for demo
+    id: projectId,
+    title: "Mobile App Development for E-commerce (DEMO)",
+    description:
+      "We are looking for an experienced React Native developer to build a cross-platform mobile shopping application. The app needs to support iOS and Android, integrate with our existing backend API, and include features like product browsing, cart management, secure checkout, and order tracking.",
+    category: "Development",
+    budget: 5000,
+    funded: 3200,
+    bids: 12,
+    daysLeft: 14,
+    postedDate: "2025-01-10",
+    skills: ["React Native", "Node.js", "Payment APIs", "REST API", "Mobile UI/UX"],
+    milestones: [
+      { title: "UI/UX Design & Wireframes", budget: 1000, status: "completed" },
+      { title: "Core App Development", budget: 2500, status: "in-progress" },
+      { title: "Payment Integration", budget: 1000, status: "pending" },
+      { title: "Testing & Deployment", budget: 500, status: "pending" },
+    ],
+    client: {
+      name: "TechCorp Inc. (DEMO)",
+      avatar: "/diverse-company-team.png",
+      rating: 4.8,
+      projectsPosted: 23,
+    },
+    escrowId: "ESCROW_DEMO_12345",
+    topBids: [
+      {
+        id: 1,
+        freelancer: "Sarah Chen",
+        avatar: "/developer-working.png",
+        amount: 4800,
+        deliveryDays: 30,
+        rating: 4.9,
+        verified: true,
+        signature: "MOCK_SIGNATURE_1",
+      },
+      {
+        id: 2,
+        freelancer: "Mike Johnson",
+        avatar: "/coder.png",
+        amount: 5200,
+        deliveryDays: 25,
+        rating: 4.7,
+        verified: true,
+        signature: "MOCK_SIGNATURE_2",
+      },
+    ],
+  };
+
   const fundedPercentage = (projectData.funded / projectData.budget) * 100
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="text-muted-foreground">Loading project details...</p>
+        </div>
+      </div>
+    );
+  }
+
   const [bidDialogOpen, setBidDialogOpen] = React.useState(false)
   const [fundDialogOpen, setFundDialogOpen] = React.useState(false)
   
