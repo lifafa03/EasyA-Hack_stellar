@@ -18,7 +18,7 @@ export function WalletConnectButton() {
   const [showDialog, setShowDialog] = useState(false);
   const wallet = useWallet();
 
-  const handleConnect = async (walletType: 'freighter' | 'albedo') => {
+  const handleConnect = async (walletType: 'freighter' | 'albedo' | 'lobstr') => {
     try {
       await wallet.connect(walletType);
       setShowDialog(false);
@@ -131,6 +131,24 @@ export function WalletConnectButton() {
               </div>
             </Card>
 
+            {/* Lobstr Wallet */}
+            <Card
+              className="p-4 hover:shadow-lg transition-all cursor-pointer border-2 hover:border-[#4ade80]/50"
+              onClick={() => handleConnect('lobstr')}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-red-400 flex items-center justify-center">
+                    <Wallet className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Lobstr</h3>
+                    <p className="text-sm text-muted-foreground">Mobile & browser wallet</p>
+                  </div>
+                </div>
+              </div>
+            </Card>
+
             {/* Help Text */}
             <div className="mt-6 p-4 bg-surface-dark rounded-lg">
               <p className="text-sm text-muted-foreground mb-2">
@@ -153,6 +171,15 @@ export function WalletConnectButton() {
                   className="text-sm text-[#22c55e] hover:text-[#4ade80] flex items-center gap-1"
                 >
                   Use Albedo Wallet
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+                <a
+                  href="https://lobstr.co"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-[#22c55e] hover:text-[#4ade80] flex items-center gap-1"
+                >
+                  Get Lobstr Wallet
                   <ExternalLink className="h-3 w-3" />
                 </a>
               </div>

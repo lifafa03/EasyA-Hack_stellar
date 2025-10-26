@@ -8,7 +8,7 @@ import * as StellarSdk from '@stellar/stellar-sdk';
 import { isConnected, getAddress, signTransaction, requestAccess } from '@stellar/freighter-api';
 import { getNetworkConfig } from './config';
 
-export type WalletType = 'freighter' | 'albedo' | 'rabet';
+export type WalletType = 'freighter' | 'albedo' | 'lobstr' | 'rabet';
 
 export interface WalletState {
   connected: boolean;
@@ -67,6 +67,28 @@ export const connectAlbedo = async (): Promise<string> => {
 };
 
 /**
+ * Connect to Lobstr wallet
+ */
+export const connectLobstr = async (): Promise<string> => {
+  try {
+    // @ts-ignore - Lobstr is loaded from external script
+    if (!window.lobstr) {
+      throw new Error('Lobstr wallet not found. Please use the Lobstr mobile app or browser extension');
+    }
+
+    // @ts-ignore
+    const result = await window.lobstr.connect();
+    if (!result || !result.publicKey) {
+      throw new Error('Failed to get public key from Lobstr');
+    }
+    return result.publicKey;
+  } catch (error) {
+    console.error('Lobstr connection error:', error);
+    throw error;
+  }
+};
+
+/**
  * Generic wallet connection handler
  */
 export const connectWallet = async (walletType: WalletType = 'freighter'): Promise<string> => {
@@ -75,6 +97,8 @@ export const connectWallet = async (walletType: WalletType = 'freighter'): Promi
       return await connectFreighter();
     case 'albedo':
       return await connectAlbedo();
+    case 'lobstr':
+      return await connectLobstr();
     default:
       throw new Error(`Wallet type ${walletType} not supported`);
   }
@@ -142,6 +166,13 @@ export const signAndSubmitTransaction = async (
         network: config.network,
       });
       signedXdr = result.signed_envelope_xdr;
+    } else if (walletType === 'lobstr') {
+      // @ts-ignore
+      const result = await window.lobstr.signTransaction({
+        xdr: transaction.toXDR(),
+        networkPassphrase: config.networkPassphrase,
+      });
+      signedXdr = result.signedXDR;
     } else {
       throw new Error(`Signing not supported for wallet type: ${walletType}`);
     }
