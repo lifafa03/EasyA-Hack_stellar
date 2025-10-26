@@ -7,12 +7,20 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Wallet, LogOut, Copy, Check, Clock } from 'lucide-react';
+import { Wallet, LogOut, Copy, Check, Clock, ChevronDown, ArrowDownToLine, ArrowUpFromLine, User } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useWalletKit } from '@/hooks/use-wallet-kit';
 import { useFiatBalance } from '@/hooks/use-fiat-balance';
 import { toast } from 'sonner';
+import Link from 'next/link';
 
 export function WalletConnectButton() {
   const [copied, setCopied] = useState(false);
@@ -41,83 +49,111 @@ export function WalletConnectButton() {
     const isUnfunded = wallet.balance === '0' && wallet.usdcBalance === '0';
     
     return (
-      <div className="flex items-center gap-3">
-        <Card className="px-4 py-2 bg-surface border-border">
-          <div className="flex items-center gap-3">
-            <div className="text-sm">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="font-mono font-semibold">{formatAddress(wallet.publicKey)}</span>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="border-[#4ade80]/30 bg-[#4ade80]/5 hover:bg-[#4ade80]/10">
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="bg-[#4ade80]/10 text-[#22c55e] border-[#4ade80]/20 px-1.5 py-0.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#22c55e] animate-pulse mr-1" />
+                <span className="text-xs">Connected</span>
+              </Badge>
+              <span className="font-mono text-sm">{formatAddress(wallet.publicKey)}</span>
+              <ChevronDown className="h-4 w-4 opacity-50" />
+            </div>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-80 bg-background/95 backdrop-blur-xl border-white/10">
+          <DropdownMenuLabel className="font-normal">
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-medium leading-none">Wallet Address</p>
                 <button
                   onClick={handleCopyAddress}
                   className="text-muted-foreground hover:text-foreground transition-colors"
                   title="Copy address"
                 >
                   {copied ? (
-                    <Check className="h-3 w-3 text-green-500" />
+                    <Check className="h-4 w-4 text-green-500" />
                   ) : (
-                    <Copy className="h-3 w-3" />
+                    <Copy className="h-4 w-4" />
                   )}
                 </button>
-                <Badge variant="outline" className="text-xs bg-[#4ade80]/10 text-[#22c55e] border-[#4ade80]/20">
-                  Connected
-                </Badge>
-                {fiatBalance.hasPendingTransactions && (
-                  <Badge variant="outline" className="text-xs bg-yellow-500/10 text-yellow-500 border-yellow-500/20">
-                    <Clock className="h-3 w-3 mr-1" />
-                    {fiatBalance.pendingTransactions.length} Pending
-                  </Badge>
-                )}
               </div>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  {formatBalance(wallet.usdcBalance)} USDC
+              <p className="text-xs font-mono leading-none text-muted-foreground break-all">
+                {wallet.publicKey}
+              </p>
+            </div>
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator className="bg-white/10" />
+          <div className="px-2 py-3">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">USDC Balance</span>
+                <span className="font-semibold text-[#4ade80]">
+                  ${formatBalance(wallet.usdcBalance)}
                   {parseFloat(fiatBalance.pendingOnRampAmount) > 0 && (
-                    <span className="text-yellow-500" title="Pending deposits">
-                      (+{fiatBalance.pendingOnRampAmount})
+                    <span className="text-yellow-500 text-xs ml-1" title="Pending deposits">
+                      (+${fiatBalance.pendingOnRampAmount})
                     </span>
                   )}
                 </span>
-                <span>•</span>
-                <span>{formatBalance(wallet.balance)} XLM</span>
-                {isUnfunded && (
-                  <>
-                    <span>•</span>
-                    <a
-                      href="https://laboratory.stellar.org/#account-creator"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[#22c55e] hover:text-[#4ade80] underline"
-                      title="Get free testnet XLM"
-                    >
-                      Fund Account
-                    </a>
-                  </>
-                )}
               </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">XLM Balance</span>
+                <span className="font-semibold">{formatBalance(wallet.balance)}</span>
+              </div>
+              {fiatBalance.hasPendingTransactions && (
+                <div className="flex items-center gap-2 text-xs bg-yellow-500/10 text-yellow-500 rounded-md px-2 py-1.5 mt-2">
+                  <Clock className="h-3 w-3" />
+                  <span>{fiatBalance.pendingTransactions.length} pending transaction(s)</span>
+                </div>
+              )}
+              {isUnfunded && (
+                <a
+                  href="https://laboratory.stellar.org/#account-creator"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-xs bg-[#4ade80]/10 text-[#22c55e] rounded-md px-2 py-1.5 mt-2 hover:bg-[#4ade80]/20 transition-colors"
+                >
+                  <Wallet className="h-3 w-3" />
+                  <span>Fund Account (Get Testnet XLM)</span>
+                </a>
+              )}
             </div>
           </div>
-        </Card>
-        
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={wallet.openModal}
-          className="border-border hover:bg-surface"
-        >
-          <Wallet className="h-4 w-4 mr-2" />
-          Switch
-        </Button>
-        
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={wallet.disconnect}
-          className="border-destructive/50 text-destructive hover:bg-destructive/10"
-        >
-          <LogOut className="h-4 w-4 mr-2" />
-          Disconnect
-        </Button>
-      </div>
+          <DropdownMenuSeparator className="bg-white/10" />
+          <DropdownMenuItem asChild>
+            <Link href="/dashboard" className="cursor-pointer">
+              <User className="mr-2 h-4 w-4" />
+              <span>Dashboard</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/dashboard?tab=deposit" className="cursor-pointer">
+              <ArrowDownToLine className="mr-2 h-4 w-4" />
+              <span>Deposit Funds</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/dashboard?tab=withdraw" className="cursor-pointer">
+              <ArrowUpFromLine className="mr-2 h-4 w-4" />
+              <span>Withdraw Funds</span>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator className="bg-white/10" />
+          <DropdownMenuItem onClick={wallet.openModal} className="cursor-pointer">
+            <Wallet className="mr-2 h-4 w-4" />
+            <span>Switch Wallet</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem 
+            onClick={wallet.disconnect}
+            className="cursor-pointer text-destructive focus:text-destructive"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Disconnect</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     );
   }
 
