@@ -62,6 +62,23 @@ export class AnchorRegistry {
       },
       description: 'Multi-region anchor for Africa and Europe',
     },
+    {
+      id: 'moneygram',
+      name: 'MoneyGram Access',
+      domain: 'stellar-anchor.moneygram.com',
+      logo: '/anchors/moneygram-logo.png',
+      supportedCurrencies: ['USDC', 'USD'],
+      supportedRegions: ['GLOBAL', 'US', 'EU', 'IN', 'ASIA', 'AFRICA', 'LATAM'],
+      fees: {
+        deposit: '1-2% (varies by region)',
+        withdrawal: '2-3% (varies by region)',
+      },
+      processingTime: {
+        deposit: '5-15 minutes',
+        withdrawal: '1-3 business days',
+      },
+      description: 'Global cash in/out with 174 country coverage. Supports direct USDC to fiat conversion with pickup at 430,000+ MoneyGram locations worldwide. Testnet requires domain approval.',
+    },
   ];
 
   /**
