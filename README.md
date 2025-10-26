@@ -1,13 +1,31 @@
-# 🌟 StellarWork+ - Decentralized Freelance Marketplace
+# 🌟 StellaNova - Decentralized Freelance Marketplace
 
-> Where Work Meets Funding on the Stellar Blockchain
+> Where Kickstarter Meets Upwork on the Stellar Blockchain
 
-**StellarWork+** is a revolutionary three-sided marketplace connecting businesses, freelancers, and investors through trustless escrow contracts powered by Stellar and integrated with Trustless Work infrastructure.
+**StellaNova** is a revolutionary three-sided marketplace connecting businesses, freelancers, and investors through secure escrow contracts powered by Stellar blockchain. Fund projects, hire talent, and build the future—all on a decentralized, transparent platform.
 
-![Status](https://img.shields.io/badge/status-development-yellow)
+![Status](https://img.shields.io/badge/status-live-green)
 ![Blockchain](https://img.shields.io/badge/blockchain-Stellar-blue)
 ![Network](https://img.shields.io/badge/network-testnet-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
+
+## 📸 Screenshots
+
+### Home Page - Hero Section
+![StellaNova Home](public/photo1.png)
+*Modern landing page with animated blockchain video and interactive elements*
+
+### Project Funding Interface
+![Fund Project](public/photo2.png)
+*Real-time funding with USDC escrow and Stellar testnet transactions*
+
+### Anchor Provider Selection
+![Anchor Selection](public/photo3.png)
+*Choose trusted anchor providers for fiat-to-crypto conversion*
+
+### Dashboard & Wallet
+![Dashboard](public/photo4.png)
+*Manage your projects, bids, investments, and USDC balance*
 
 ---
 
@@ -34,55 +52,74 @@
 
 - **Three-Sided Marketplace**: Businesses post projects, freelancers bid, investors fund
 - **Milestone-Based Payments**: Projects broken into verifiable milestones with escrow protection
-- **Transparent Funding**: Real-time funding progress and blockchain verification
-- **Smart Bidding System**: On-chain bid proposals with signature verification
-- **Investor Pooling**: Multiple investors can fund projects collaboratively
+- **Real-Time Funding**: Live funding progress with blockchain verification
+- **Smart Bidding System**: Submit bids with USDC deposits
+- **Crowdfunding Pools**: Multiple investors can fund projects collaboratively
+- **Instant Payments**: Blockchain-powered payments in 5-7 seconds
 
 ### 🔐 Blockchain Features
 
-- **Trustless Escrow**: Smart contracts hold funds securely until milestones approved
+- **Secure Escrow**: USDC funds locked in dedicated escrow accounts
+- **Claimable Balances**: Secure fund releases to freelancers
 - **Wallet Integration**: Freighter and Albedo wallet support
-- **USDC Payments**: Stable cryptocurrency payments via Stellar
-- **Yield-Bearing Escrows**: Earn interest while funds locked in escrow
-- **On-Chain Verification**: All transactions verifiable on Stellar blockchain
-- **Real-Time Sync**: Live updates from blockchain without page refresh
+- **USDC Payments**: Stable cryptocurrency payments via Stellar testnet
+- **Transaction Explorer**: View all transactions on Stellar Expert
+- **Real-Time Balance**: Live XLM and USDC balance updates
+- **XLM to USDC Swap**: Built-in DEX integration for currency conversion
+
+### 💰 Fiat Gateway (SEP-24)
+
+- **Deposit USDC**: Convert fiat to USDC via trusted anchors
+- **Withdraw to Bank**: Convert USDC back to fiat currency
+- **Multiple Anchors**: Choose from various anchor providers
+- **Transaction History**: Track all deposits and withdrawals
+- **Global Coverage**: Support for multiple currencies and regions
 
 ### 🛡️ Security & Validation
 
-- **5-Layer Checkpoint System**: Validates all operations before execution
-- **Auto-Correction**: Automatically fixes common errors (sequence, fees, etc.)
-- **Auto-Retry**: Failed transactions retry with exponential backoff
-- **Comprehensive Error Handling**: User-friendly error messages with solutions
-- **Transaction Preview**: Review all details before signing
-- **Balance Validation**: Checks sufficient funds before transactions
+- **Memo Length Validation**: Automatic truncation to 28-byte limit
+- **Balance Checks**: Validates sufficient funds before transactions
+- **Trustline Verification**: Ensures USDC trustline exists
+- **Error Recovery**: User-friendly error messages with solutions
+- **Transaction Confirmation**: Review details before signing
 
 ---
 
 ## 🚀 Tech Stack
 
 ### Frontend
-- **Next.js 16** - React framework with App Router
+- **Next.js 15** - React framework with App Router
 - **React 19** - Latest React with concurrent features
 - **TypeScript** - Type-safe development
-- **Tailwind CSS 4** - Utility-first styling
-- **Framer Motion** - Smooth animations
-- **Shadcn/ui** - Beautiful component library
+- **Tailwind CSS** - Utility-first styling with custom design system
+- **Framer Motion** - Smooth animations and transitions
+- **Shadcn/ui** - Beautiful, accessible component library
+- **Lucide Icons** - Modern icon system
 
-### Blockchain
-- **Stellar SDK** - Blockchain interactions
-- **Soroban** - Smart contracts on Stellar
-- **Freighter API** - Wallet connectivity
-- **Trustless Work** - Escrow infrastructure
+### Blockchain & Web3
+- **Stellar SDK (@stellar/stellar-sdk)** - Core blockchain interactions
+- **Freighter Wallet** - Browser wallet integration
+- **Albedo Wallet** - Alternative wallet support
+- **Stellar Wallets Kit** - Multi-wallet connectivity
+- **USDC on Stellar** - Stablecoin payments
+- **Claimable Balances** - Secure fund releases
 
-### State & Data
-- **React Hooks** - Custom hooks for wallet and escrow state
+### Fiat Gateway
+- **SEP-24 Integration** - Stellar Ecosystem Proposal for deposits/withdrawals
+- **Anchor Services** - Fiat-to-crypto conversion
+- **MoneyGram Access** - Global fiat on/off ramps
+
+### State Management & Data
+- **React Hooks** - Custom hooks for wallet, escrow, and fiat balance
 - **Context API** - Global state management
-- **Axios** - HTTP client for Trustless Work API
+- **LocalStorage** - Client-side data persistence
+- **Real-time Updates** - Live balance and transaction tracking
 
-### Development
-- **ESLint** - Code linting
-- **TypeScript** - Type checking
-- **Sonner** - Toast notifications
+### Development Tools
+- **ESLint** - Code linting and quality
+- **TypeScript** - Full type safety
+- **Sonner** - Beautiful toast notifications
+- **Vercel** - Deployment and hosting
 
 ---
 
@@ -98,7 +135,8 @@
 
 ```bash
 # Clone repository
-cd /Users/solipuram.rohanreddy/Desktop/EasyA-Hack_stellar
+git clone https://github.com/YOUR_USERNAME/EasyA-Hack_stellar.git
+cd EasyA-Hack_stellar
 
 # Install dependencies
 npm install
@@ -115,10 +153,11 @@ Visit http://localhost:3000
 
 ### Get Testnet Funds
 
-1. Install Freighter: https://freighter.app
-2. Switch to Testnet in settings
-3. Get XLM: https://laboratory.stellar.org/#account-creator
-4. Add USDC trustline and request from faucet
+1. **Install Freighter**: https://freighter.app
+2. **Switch to Testnet** in Freighter settings
+3. **Get XLM**: https://laboratory.stellar.org/#account-creator
+4. **Add USDC Trustline**: Use the deposit tab in StellaNova dashboard
+5. **Get USDC**: Use the fiat gateway or swap XLM for USDC
 
 ---
 
@@ -207,18 +246,22 @@ StellarWork+/
 ### Wallet Connectivity
 
 ```typescript
-import { useWallet } from '@/hooks/use-wallet';
+import { useWalletKit } from '@/hooks/use-wallet-kit';
 
 function Component() {
-  const wallet = useWallet();
+  const wallet = useWalletKit();
   
   // Connect wallet
-  await wallet.connect('freighter');
+  await wallet.connect();
   
   // Access wallet data
   console.log(wallet.publicKey);
   console.log(wallet.balance); // XLM
   console.log(wallet.usdcBalance); // USDC
+  console.log(wallet.connected); // Connection status
+  
+  // Refresh balance
+  await wallet.refreshBalance();
   
   // Disconnect
   wallet.disconnect();
@@ -228,47 +271,73 @@ function Component() {
 ### Creating Escrows
 
 ```typescript
-import { createEscrow } from '@/lib/stellar/trustless-work';
+import { createEscrow } from '@/lib/stellar/escrow';
 
 const escrow = await createEscrow({
   clientAddress: 'GXXX...',
-  freelancerAddress: 'GYYY...',
+  freelancerAddress: 'GYYY...', // Optional - can be assigned later
   totalBudget: 1000,
   milestones: [
-    { title: 'Design', budget: 400, description: '...' },
-    { title: 'Development', budget: 600, description: '...' }
+    { id: 'milestone-0', title: 'Design', budget: 400, description: '...', status: 'pending' },
+    { id: 'milestone-1', title: 'Development', budget: 600, description: '...', status: 'pending' }
   ],
-  projectId: 'project-123',
-  currency: 'USDC',
-  enableYield: true
-});
+  projectId: 'project-123'
+}, 'freighter');
 
 console.log(escrow.escrowId);
-console.log(escrow.contractAddress);
+console.log(escrow.escrowAddress);
+console.log(escrow.transactionHash);
 ```
 
-### Validation Checkpoints
+### Funding Projects
 
 ```typescript
-import { validateWalletConnection, validateEscrowCreation } from '@/lib/stellar/validation';
+import { fundEscrow } from '@/lib/stellar/escrow';
 
-// Validate wallet
-const walletCheck = await validateWalletConnection(publicKey);
-if (!walletCheck.success) {
-  console.error(walletCheck.errors);
-}
+const result = await fundEscrow(
+  'escrow-project-123',
+  '100', // Amount in USDC
+  'GINVESTOR...', // Investor address
+  'freighter'
+);
 
-// Validate escrow params
-const escrowCheck = await validateEscrowCreation({
-  clientAddress,
-  freelancerAddress,
-  budget: 1000,
-  milestones
-});
+console.log(result.transactionHash);
+// View on explorer: https://stellar.expert/explorer/testnet/tx/{hash}
+```
 
-if (!escrowCheck.success) {
-  console.error(escrowCheck.errors);
-}
+### XLM to USDC Swap
+
+```typescript
+import * as StellarSDK from '@stellar/stellar-sdk';
+import { signAndSubmitTransaction } from '@/lib/stellar/wallet';
+
+const server = new StellarSDK.Horizon.Server('https://horizon-testnet.stellar.org');
+const sourceAsset = StellarSDK.Asset.native();
+const destAsset = new StellarSDK.Asset('USDC', 'GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5');
+
+// Find swap path
+const paths = await server.strictSendPaths(sourceAsset, '100', [destAsset]).call();
+const bestPath = paths.records[0];
+
+// Build and submit transaction
+const account = await server.loadAccount(publicKey);
+const transaction = new StellarSDK.TransactionBuilder(account, {
+  fee: StellarSDK.BASE_FEE,
+  networkPassphrase: StellarSDK.Networks.TESTNET,
+})
+  .addOperation(
+    StellarSDK.Operation.pathPaymentStrictSend({
+      sendAsset: sourceAsset,
+      sendAmount: '100',
+      destination: publicKey,
+      destAsset: destAsset,
+      destMin: (parseFloat(bestPath.destination_amount) * 0.99).toFixed(7),
+    })
+  )
+  .setTimeout(180)
+  .build();
+
+const result = await signAndSubmitTransaction(transaction, 'freighter');
 ```
 
 ---
